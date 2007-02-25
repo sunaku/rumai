@@ -246,7 +246,7 @@ module Wmii
 
     # Returns the tags associated with this client.
     def tags
-      self[:tags, true].split(TAG_DELIMITER)
+      self[:tags].read.split(TAG_DELIMITER)
     end
 
     # Modifies the tags associated with this client.

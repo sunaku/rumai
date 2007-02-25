@@ -91,14 +91,8 @@ module Ixp
     end
 
     # Accesses the given sub-path and dereferences it (reads its contents) if specified.
-    def [] aSubPath, aDeref = false
-      child = Node.new("#{@path}/#{aSubPath}")
-
-      if aDeref
-        child.read
-      else
-        child
-      end
+    def [] aSubPath
+      Node.new("#{@path}/#{aSubPath}")
     end
 
     # Writes the given content to the given sub-path.
@@ -119,11 +113,7 @@ module Ixp
           self[$`] = *aArgs
 
         else
-          if (n = self[aMeth]).file?
-            n.read
-          else
-            n
-          end
+          self[aMeth]
       end
     end
   end
