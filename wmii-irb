@@ -40,8 +40,8 @@ if __FILE__ == $0
     RDoc::usage_no_exit
 
   # start the IRB session
-    $:.unshift File.dirname(__FILE__)
-    require 'rc'
+    $: << File.dirname(__FILE__)
+    require 'wm'
 
     IRB.start_session Wmii
 end

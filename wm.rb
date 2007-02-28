@@ -1,6 +1,6 @@
 # Abstractions for the window manager.
 =begin
-  Copyright 2006 Suraj N. Kurapati
+  Copyright 2006, 2007 Suraj N. Kurapati
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License
@@ -17,260 +17,260 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 =end
 
+$: << File.dirname(__FILE__)
 require 'fs'
+require 'enumerator'
+
+class Object #:nodoc:
+  # Get rid of this deprecated property so that it does not clash with our usage in the classes below.
+  undef id
+end
 
 # Encapsulates access to the window manager.
 module Wmii
   ## state access
 
   # Returns the root of IXP file system hierarchy.
-  def Wmii.fs
+  def fs
     Ixp::Node.new '/'
   end
 
-  # Returns the currently focused client.
-  def Wmii.current_client
-    Client.new("/view/sel/sel")
+  # Returns the name of the currently focused tag.
+  def current_tag
+    fs['/tag/sel/ctl'].read
   end
 
-  # Returns the currently focused area.
-  def Wmii.current_area
-    Area.new("/view/sel")
+  def next_tag
+    next_view.id
   end
 
-  # Returns the currently focused view.
-  def Wmii.current_view
-    View.new("/view")
+  def prev_tag
+    prev_view.id
   end
 
   # Returns the current set of tags.
-  def Wmii.tags
-    Ixp::Client.read('/tags').split
+  def tags
+    ary = fs['/tag'].read
+    ary.delete 'sel'
+    ary.sort!
+    ary
   end
 
   # Returns the current set of views.
-  def Wmii.views
-    tags.map {|v| get_view v}
+  def views
+    tags.map! {|t| View.new t}
   end
 
   # Returns the current set of clients.
-  def Wmii.clients
-    Area.new("/client").clients
+  def client_ids
+    ary = fs['/client'].read
+    ary.delete 'sel'
+    ary
   end
 
-  # Returns the client which has the given ID.
-  def Wmii.get_client aId
-    Client.new("/client/#{aId}")
-  end
-
-  # Returns the view which has the given name.
-  def Wmii.get_view aName
-    View.new("/#{aName}")
-  end
-
-  # Searches for a client, which has the given ID, in the given places. If no places are specified, then all views are searched. If the client is not found, *nil* is returned.
-  def Wmii.find_client aClientId, *aPlaces
-    aClientId = aClientId.to_i
-    needle = Wmii.get_client(aClientId)
-
-    if needle.exist?
-      haystack = []
-
-      # populate the haystack (places to be searched)
-        aPlaces.select {|p| p.exist?}.each do |place|
-          if place.respond_to? :clients
-            haystack << place
-          end
-
-          if place.respond_to? :areas
-            haystack.concat place.areas
-          end
-        end
-
-        if haystack.empty?
-          needle.tags.map {|t| get_view t}.each do |v|
-            haystack.concat v.areas
-          end
-        end
-
-      haystack.each do |a|
-        if a.indices.detect {|i| i == aClientId}
-          return a[aClientId]
-        end
-      end
-    end
-
-    puts "could not find client #{aClientId} in area #{aArea.inspect} or view #{aView.inspect}" if $DEBUG
-
-    nil
+  # Returns the current set of clients.
+  def clients
+    client_ids.map! {|i| Client.new i}
   end
 
 
-  ## state manipulation
+  ## Multiple client grouping
+  # Allows you to group a set of clients together and perform operations on all of them simultaneously.
 
-  # Focuses the view with the given name.
-  def Wmii.focus_view aName
-    get_view(aName).focus!
-  end
+  GROUPING_TAG = '@'
 
-  # Focuses the area with the given ID in the current view.
-  def Wmii.focus_area aId
-    Wmii.current_view[aId].focus!
-  end
-
-  # Focuses the client which has the given ID.
-  def Wmii.focus_client aId
-    if c = find_client(aId)
-      v = (a = c.parent).parent
-
-      v.focus!
-      a.focus!
-      c.focus!
-    end
-  end
-
-
-  ## Multiple client selection
-
-  SELECTION_TAG = 'SEL'
-
-  # Returns a list of all selected clients in the currently focused view. If there are no selected clients, then the currently focused client is returned in the list.
-  def Wmii.selected_clients
-    list = current_view.areas.map do |a|
-      a.clients.select {|c| c.selected?}
-    end
-    list.flatten!
-
-    if list.empty?
-      list << current_client
-    end
-
+  # Returns a list of all grouped clients in the currently focused view. If there are no grouped clients, then the currently focused client is returned in the list.
+  def grouped_clients
+    list = current_view.clients.select {|c| c.grouped?}
+    list << current_client if list.empty?
     list
   end
 
-  # Un-selects all selected clients so that there is nothing selected.
-  def Wmii.select_none!
-    get_view(SELECTION_TAG).unselect!
+  alias grouping grouped_clients
+
+  # Un-groups all grouped clients so that there is nothing grouped.
+  def ungroup_all
+    View.new(GROUPING_TAG).ungroup
   end
 
 
   ## subclasses for abstraction
 
-  # A region in the window manager's hierarchy.
-  class Node < Ixp::Node
-    def initialize aParentClass, aChildClass, aFocusCommand, *aArgs
-      @parentClass = aParentClass
-      @childClass = aChildClass
-      @focusCmd = aFocusCommand
-      super(*aArgs)
+  module Identifiable
+    # Returns the identification for this object.
+    # NOTE: Override this method!
+    def id
+      self
     end
 
-    # Returns a child with the given sub-path.
-    def [] *args
-      child = super
-
-      if child.respond_to? :path
-        child = @childClass.new(child.path)
-      end
-
-      child
-    end
-
-    # Returns the parent of this region.
-    def parent
-      @parentClass.new File.dirname(@path)
-    end
-
-    # Returns the index of this region in the parent.
-    def index
-      basename.to_i
-    end
-
-    # Returns the next region in the parent.
-    def next
-      parent[self.index + 1]
-    end
-
-    # Returns a list of indices of items in this region.
-    def indices
-      read.grep(/^\d+$/).map {|s| s.to_i} rescue []
-    end
-
-    # Returns the number of items in this region.
-    def length
-      indices.length
-    end
-
-    # Returns a list of items in this region.
-    def children
-      indices.map {|i| @childClass.new "#{@path}/#{i}"}
-    end
-
-    # Adds all clients in this region to the selection.
-    def select!
-      children.each do |s|
-        s.select!
-      end
-    end
-
-    # Removes all clients in this region from the selection.
-    def unselect!
-      children.each do |s|
-        s.unselect!
-      end
-    end
-
-    # Inverts the selection of clients in this region.
-    def invert_selection!
-      children.each do |s|
-        s.invert_selection!
-      end
-    end
-
-    # Puts focus on this region.
-    def focus!
-      parent.ctl = "#{@focusCmd} #{basename}"
+    def == aOther
+      id == aOther.id
     end
   end
 
-  class Client < Node
-    def initialize *aArgs
-      super Area, Ixp::Node, :select, *aArgs
+  module Chainable
+    # Returns an array of objects related to this one.
+    # NOTE: Override this method!
+    def chain *args
+      [self]
     end
 
-    def index
-      self[:index, true].to_i
+    # Returns the object after this one in the chain.
+    def next *args
+      ary = chain(*args)
+      pos = ary.index(self)
+      ary[(pos + 1) % ary.length]
     end
 
-    TAG_DELIMITER = "+"
+    # Returns the object before this one in the chain.
+    def prev *args
+      ary = chain(*args)
+      pos = ary.index(self)
+      ary[(pos - 1) % ary.length]
+    end
+  end
+
+  # The basic building block of the WM hierarchy.
+  # NOTE: inheritors must have a 'current' class method.
+  module Common
+    include Identifiable
+      attr_reader :id
+
+    # Checks if this object is currently focused.
+    def current?
+      self == self.class.current
+    end
+
+    alias focused? current?
+  end
+
+  class FsNode < Ixp::Node #:nodoc:
+    def initialize aId, aPathPrefix
+      super "#{aPathPrefix}/#{aId}"
+
+      @id = if aId.to_sym == :sel
+        self[:ctl].read
+      else
+        basename
+      end
+    end
+  end
+
+
+  # A graphical program that is running in your current X Windows session.
+  class Client < FsNode
+    include Common
+      # Returns the currently focused client.
+      def Client.current
+        Client.new :sel
+      end
+
+      # Focuses this client within the given view.
+      def focus aView = nil
+        if exist? and not focused?
+          haystack = if aView
+            [aView]
+          else
+            views
+          end
+
+          haystack.each do |v|
+            if a = self.area(v)
+              v.focus
+              a.focus
+
+              # slide the focus (from the current view in the area) onto this client
+                ary = a.client_ids
+                src = ary.index Client.current.id
+                dst = ary.index id
+
+                distance = (src - dst).abs
+                direction = src < dst ? :down : :up
+
+                distance.times do
+                  v.ctl = "select #{direction}"
+                end
+
+              break
+            end
+          end
+        end
+      end
+
+    include Chainable
+      def chain aView = View.current
+        aView.clients
+      end
+
+    def initialize aClientId
+      super aClientId, '/client'
+    end
+
+
+    ## WM operations
+
+    # Sends this client to the given destination within the given view.
+    def send aDst, aView = View.current
+      if aDst.to_sym != :toggle
+        # XXX: it is an error to send a floating client directly to a managed area, so we gotta "ground" it first and then send it to the desired managed area. John-Galt will fix this someday.
+        if area(aView).floating?
+          aView.ctl = "send #{id} toggle"
+        end
+      end
+
+      aView.ctl = "send #{id} #{aDst}"
+    end
+
+    # Swaps this client with the given destination within the given view.
+    def swap aDst, aView = View.current
+      aView.ctl = "swap #{id} #{aDst}"
+    end
+
+
+    ## WM hierarchy
+
+    # Returns the area that contains this client within the given view.
+    def area aView = View.current
+      aView.area_of_client self
+    end
+
+    # Returns the views that contain this client.
+    def views
+      tags.map! {|t| View.new t}
+    end
+
+
+    ## client tagging stuff
+
+    TAG_DELIMITER = '+'
 
     # Returns the tags associated with this client.
     def tags
-      self[:tags].read.split(TAG_DELIMITER)
+      self[:tags].read.split TAG_DELIMITER
     end
 
     # Modifies the tags associated with this client.
     def tags= *aTags
-      t = aTags.flatten.uniq
-      self[:tags] = t.join(TAG_DELIMITER) unless t.empty?
+      ary = aTags.flatten.compact.uniq
+      self[:tags] = ary.join(TAG_DELIMITER)
     end
 
     # Evaluates the given block within the context of this client's list of tags.
     def with_tags &aBlock
-      t = self.tags
-      t.instance_eval(&aBlock)
-      self.tags = t
+      ary = self.tags
+      ary.instance_eval(&aBlock)
+      self.tags = ary
     end
 
     # Adds the given tags to this client.
-    def tag! *aTags
+    def tag *aTags
       with_tags do
-        push(*aTags.flatten.map {|t| t.to_s})
+        concat aTags
       end
     end
 
     # Removes the given tags from this client.
-    def untag! *aTags
+    def untag *aTags
       with_tags do
         aTags.flatten.each do |tag|
           delete tag.to_s
@@ -278,201 +278,297 @@ module Wmii
       end
     end
 
-    # Checks if this client is included in the current selection.
-    def selected?
-      tags.include? SELECTION_TAG
+
+    ## multiple client grouping
+
+    # Checks if this client is included in the current grouping.
+    def grouped?
+      tags.include? GROUPING_TAG
     end
 
-    def select!
+    # Adds this client to the current grouping.
+    def group
       with_tags do
-        unshift SELECTION_TAG
+        push GROUPING_TAG
       end
     end
 
-    def unselect!
-      untag! SELECTION_TAG
+    # Removes this client to the current grouping.
+    def ungroup
+      untag GROUPING_TAG
     end
 
-    def invert_selection!
-      if selected?
-        unselect!
+    # Toggles the presence of this client in the current grouping.
+    def toggle_grouping
+      if grouped?
+        ungroup
       else
-        select!
+        group
       end
     end
   end
 
-  class Area < Node
-    def initialize *aArgs
-      super View, Client, :select, *aArgs
+  module ClientContainer
+    # Returns the IDs of the clients in this container.
+    # NOTE: Override this method!
+    def client_ids
+      []
     end
 
-    alias clients children
+    # Returns the clients contained in this container.
+    def clients
+      client_ids.map! {|i| Client.new i}
+    end
 
-    # Tests if this area is empty (has no clients).
-    def empty?
-      length < 1
+    # multiple client grouping
+    %w[group ungroup toggle_grouping].each do |meth|
+      define_method meth do
+        clients.each do |c|
+          c.__send__ meth
+        end
+      end
+    end
+  end
+
+
+  # A region that contains clients. This can be either the floating area or a column in the managed area.
+  class Area
+    include Common
+      # Returns the currently focused area.
+      def Area.current
+        View.current.area_of_client Client.current
+      end
+
+      # Puts focus on this area.
+      def focus
+        @view.ctl = "select #{ctl_id}"
+      end
+
+    include Chainable
+      def chain
+        @view.areas
+      end
+
+      # Checks if this area really exists.
+      def exist?
+        chain.include? self
+      end
+
+    include ClientContainer
+      # Returns the IDs of the clients in this area.
+      def client_ids
+        @view.client_ids ctl_id
+      end
+
+    include Enumerable
+      # Iterates through each client in this container.
+      def each &aBlock
+        clients.each(&aBlock)
+      end
+
+    attr_reader :view
+
+    # aView:: the view which contains this area.
+    def initialize aAreaId, aView = View.current
+      @id = aAreaId.to_i
+      @view = aView
+    end
+
+    # Checks if this area is the floating area.
+    def floating?
+      @id == 0
+    end
+
+    # Checks if this area is a column in the managed area.
+    def managed?
+      not floating?
+    end
+
+    alias column? managed?
+
+    # Sets the layout of clients in this column.
+    def layout= aMode
+      @view.ctl = "colmode #{ctl_id} #{aMode}"
+    end
+
+
+    ## array abstraction: area is an array of clients
+
+    # Returns the number of clients in this area.
+    def length
+      client_ids.length
     end
 
     # Inserts the given clients at the bottom of this area.
-    def push! *aClients
-      if target = clients.last
-        target.focus!
+    def push *aClients
+      if target = clients.first
+        target.focus
       end
 
-      insert! aClients
+      insert aClients
     end
 
+    alias << push
+
     # Inserts the given clients after the currently focused client in this area.
-    def insert! *aClients
+    def insert *aClients
       aClients.flatten!
       return if aClients.empty?
 
-      setup_for_insertion! aClients.shift
-
-      dst = self.index
       aClients.each do |c|
-        c.ctl = "sendto #{dst}"
+        import_client c
       end
     end
 
     # Inserts the given clients at the top of this area.
-    def unshift! *aClients
+    def unshift *aClients
       aClients.flatten!
       return if aClients.empty?
 
       if target = clients.first
-        target.focus!
+        target.focus
       end
 
-      setup_for_insertion! aClients.shift
-
-      if top = clients.first
-        top.ctl = 'swap down'
-      end
-
-      dst = self.index
       aClients.each do |c|
-        c.ctl = "sendto #{dst}"
+        import_client c
       end
     end
 
     # Concatenates the given area to the bottom of this area.
-    def concat! aArea
-      push! aArea.clients
+    def concat aArea
+      push aArea.clients
     end
 
     # Ensures that this area has at most the given number of clients. Areas to the right of this one serve as a buffer into which excess clients are evicted and from which deficit clients are imported.
     def length= aMaxClients
-      return if aMaxClients < 0
-      len = self.length
+      return if aMaxClients <= 0
+      len, out = length, fringe
 
       if len > aMaxClients
-        self.next.unshift! clients[aMaxClients..-1]
+        out.unshift clients[aMaxClients..-1]
 
       elsif len < aMaxClients
         until (diff = aMaxClients - length) == 0
-          immigrants = self.next.clients[0...diff]
+          immigrants = out.clients[0...diff]
           break if immigrants.empty?
 
-          push! immigrants
+          push immigrants
         end
       end
     end
 
-
     private
 
-    # Updates the path of this area for proper insertion and inserts the given client.
-    def setup_for_insertion! aFirstClient
-      raise ArgumentError, 'nonexistent client' unless aFirstClient.exist?
+    # Makes the ID usable in wmii's /ctl commands.
+    def ctl_id
+      floating? ? '~' : @id
+    end
 
-      dstIdx = self.index
-      maxIdx = parent.indices.last
-
-      if dstIdx > maxIdx
-        # move *near* final destination
-          clientId = aFirstClient.index
-          aFirstClient.ctl = "sendto #{maxIdx}"
-
-          # recalculate b/c sendto can be destructive
-            maxIdx = parent.indices.last
-            maxCol = parent[maxIdx]
-
-            aFirstClient = Wmii.find_client(clientId, maxCol)
-
-        # move *into* final destination
-          if maxCol.indices.length > 1
-            aFirstClient.ctl = "sendto next"
-            dstIdx = maxIdx + 1
-          else
-            dstIdx = maxIdx
-          end
-
-        @path = "#{dirname}/#{dstIdx}"
-
+    def import_client c
+      if exist?
+        @view.ctl = "send #{c.id} #{@id+1}" #XXX: +1 until John-Galt fixes this: right now, index 1 is floating area; but ~ should be floating area.
       else
-        aFirstClient.ctl = "sendto #{dstIdx}"
+        # move the client to the nearest existing column
+          src = c.area
+          dst = chain.last
+
+          dst.insert c unless src == dst
+
+        # slide the client over to this column
+          c.send :right
+          @id = dst.id.next
+
+          raise 'column should exist now' unless exist?
       end
+    end
+
+    # Returns the next area, which may or may not exist.
+    def fringe
+      Area.new @id.next, @view
     end
   end
 
-  class View < Node
-    def initialize *aArgs
-      super Ixp::Node, Area, :view, *aArgs
-    end
-
-    alias areas children
-
-    # Tests if this view is empty (has no clients).
-    def empty?
-      length < 3 &&
-      self[0].length < 1 &&
-      self[1].length < 1
-    end
-
-    # Iterates over columns in this view such that destructive operations are supported. If specified, the iteration starts with the column which has the given index.
-    # Note that the floating area is not considered to be a column.
-    def each_column aStartIdx = 1 # :yields: area
-      return unless block_given?
-
-      if (i = aStartIdx.to_i) < 1
-        i = 1
+  # The visualization of a tag.
+  class View < FsNode
+    include Common
+      # Returns the currently focused view.
+      def View.current
+        View.new :sel
       end
 
-      until i >= (areaList = self.areas).length
-        yield areaList[i]
-        i += 1
+      # Focuses this view.
+      def focus
+        Wmii.fs.ctl = "view #{id}"
+      end
+
+    include Chainable
+      def chain
+        Wmii.views
+      end
+
+    include ClientContainer
+      # Returns the IDs of the clients contained in the given area within this view.
+      def client_ids aAreaId = '\S+'
+        manifest.scan(/^#{aAreaId} (0x\S+)/).flatten
+      end
+
+    include Enumerable
+      # Iterates through each area in this view.
+      def each &aBlock
+        areas.each(&aBlock)
+      end
+
+    def initialize aViewId
+      super aViewId, '/tag'
+    end
+
+    # Returns the manifest of all areas and clients in this view.
+    def manifest
+      self[:index].read
+    end
+
+
+    ## WM hierarchy
+
+    # Returns the area which contains the given client in this view.
+    def area_of_client aClientOrId
+      arg = aClientOrId.id rescue aClientOrId
+
+      if areaId = (manifest =~ /^(\S+) #{arg}/ && $1)
+        Area.new areaId, self
       end
     end
+
+    # Returns the IDs of all areas in this view.
+    def area_ids
+      manifest.scan(/^# (\S+)/).flatten
+    end
+
+    # Returns all areas in this view.
+    def areas
+      area_ids.map! {|i| Area.new i, self}
+    end
+
+    # Returns all columns (managed areas) in this view.
+    def columns
+      areas[1..-1]
+    end
+
+
+    ## visual arrangement of clients
 
     # Arranges the clients in this view, while maintaining their relative order, in the tiling fashion of LarsWM. Only the first client in the primary column is kept; all others are evicted to the *top* of the secondary column. Any subsequent columns are squeezed into the *bottom* of the secondary column.
-    def tile!
-      priCol, secCol, extCol = self[1], self[2], self[3]
-
-      unless priCol.empty?
-        # keep only the first client in primary column
-          priClient, *rest = priCol.clients
-          secCol.unshift! rest
-
-        # squeeze extra columns into secondary column
-          if (numAreas = self.indices.length) > 3
-            (numAreas - 2).times do
-              secCol.concat! extCol
-            end
-          end
-
-        secCol.mode = :default
-        #priCol.mode = :max
-        priClient.focus!
-      end
+    def arrange_as_larswm
+      float, main, *extra = areas
+      main.length = 1
+      squeeze extra
     end
 
     # Arranges the clients in this view, while maintaining their relative order, in a (at best) square grid.
-    def grid! aMaxClientsPerColumn = nil
+    def arrange_in_grid aMaxClientsPerColumn = nil
       # determine client distribution
         unless aMaxClientsPerColumn
-          numClients = num_grounded_clients
+          numClients = num_managed_clients
           return unless numClients > 1
 
           numColumns = Math.sqrt(numClients)
@@ -481,24 +577,22 @@ module Wmii
 
       # distribute the clients
         if aMaxClientsPerColumn <= 0
-          # squeeze all clients into a single column
-            areaList = self.areas
-
-            (areaList.length - 2).times do
-              areaList[1].concat! areaList[2]
-            end
-
+          squeeze columns
         else
-          each_column do |a|
-            a.length = aMaxClientsPerColumn
-            a.mode = :default
+          columns.each do |a|
+            if a.exist?
+              a.length = aMaxClientsPerColumn
+              a.layout = :default
+            else
+              break
+            end
           end
         end
     end
 
     # Arranges the clients in this view, while maintaining their relative order, in a (at best) equilateral triangle. However, the resulting arrangement appears like a diamond because wmii does not waste screen space.
-    def diamond!
-      if (numClients = num_grounded_clients) > 0
+    def arrange_in_diamond
+      if (numClients = num_managed_clients) > 0
         subtriArea = numClients / 2
         crestArea = numClients % subtriArea
 
@@ -506,14 +600,14 @@ module Wmii
           height = area = 0
           lastCol = nil
 
-          each_column do |col|
+          columns.each do |col|
             if area < subtriArea
               height += 1
 
               col.length = height
               area += height
 
-              col.mode = :default
+              col.layout = :default
               lastCol = col
             else
               break
@@ -526,7 +620,9 @@ module Wmii
           end
 
         # build second sub-triangle downwards
-          each_column(lastCol.index + 1) do |col|
+          down = columns
+          down.slice! 0..down.index(lastCol)
+          down.each do |col|
             if area > 0
               col.length = height
               area -= height
@@ -543,37 +639,61 @@ module Wmii
     private
 
     # Returns the number of clients in the non-floating areas of this view.
-    def num_grounded_clients
-      if ground = areas[1..-1]
-        ground.inject(0) do |count, area|
-          count + area.length
-        end
-      else
-        0
+    def num_managed_clients
+      manifest.scan(/^\d+ 0x/).length
+    end
+
+    # Smashes the given list of areas into the first one.
+    # The relative ordering of clients is preserved.
+    def squeeze aAreas
+      aAreas.reverse.each_cons(2) do |src, dst|
+        dst.concat src
       end
     end
   end
-end
 
-class Array
-  alias original_each each
 
-  # Supports destructive operations on each client in this array.
-  def each
-    if block_given?
-      original_each do |c|
-        # resolve stale paths caused by destructive operations
-        if c.is_a?(Wmii::Client) && !c.exist?
-          puts "\n trying to resolve nonexistent client: #{c.path}" if $DEBUG
+  ## shortcuts for interactive WM manipulation (via IRB)
 
-          c = Wmii.find_client(c.basename, Wmii.current_view)
-          next unless c
+  bricks = [Client, Area, View]
 
-          puts "resolution OK: #{c.path}" if $DEBUG
+  # provide easy access to container state information
+    bricks.each do |c|
+      c.extend Ixp::ExternalizeInstanceMethods
+    end
+
+  # provide easy access to common WM state information
+    common = bricks.map do |c|
+      c.methods false
+    end.inject do |a, b|
+      a & b
+    end
+
+    bricks.each do |c|
+      target = c.to_s.sub(/.*::/, '').downcase
+
+      common.each do |prop|
+        meth = "#{prop}_#{target}"
+
+        define_method meth do |*args|
+          c.__send__ prop, *args
         end
 
-        yield c
+        module_function meth
+      end
+
+      # complementary properties for 'current' property
+      %w[next prev].each do |prop|
+        meth = "#{prop}_#{target}"
+
+        define_method meth do |*args|
+          c.__send__(:current).__send__(prop, *args)
+        end
+
+        module_function meth
       end
     end
-  end
+
+  # provide easy access to this module's instance methods
+    module_function(*instance_methods(false))
 end

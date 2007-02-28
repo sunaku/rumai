@@ -1,6 +1,6 @@
-# Abstractions for wmii's {IXP file system}[http://wmii.de/contrib/guide/wmii-3/guide-en/guide_en/node9.html] interface.
+# Abstractions for wmii's IXP file system interface.
 =begin
-  Copyright 2006 Suraj N. Kurapati
+  Copyright 2006, 2007 Suraj N. Kurapati
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License
@@ -17,42 +17,51 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 =end
 
-$:.unshift File.join(File.dirname(__FILE__), 'ruby-ixp', 'lib')
+$: << File.join(File.dirname(__FILE__), 'ruby-ixp', 'lib')
 require 'ixp'
 
 # Encapsulates access to the IXP file system.
 module Ixp
-  Client = IXP::Client.new(ENV['WMII_ADDRESS'])
+  # We use a single, global connection.
+  Client = IXP::Client.new ENV['WMII_ADDRESS']
 
   # An entry in the IXP file system.
   class Node
+    include Enumerable
+      # Iterates through each child of this directory.
+      def each &aBlock
+        children.each(&aBlock)
+      end
+
     attr_reader :path
 
     # Obtains the IXP node at the given path. Unless it already exists, the given path is created when aCreateIt is asserted.
     def initialize aPath, aCreateIt = false
       @path = aPath.to_s.squeeze('/')
-      create! if aCreateIt && !exist?
+      create if aCreateIt && !exist?
     end
 
-    # Open this node for IO operation.
-    def open *aArgs, &aBlock # :yields: IO
-      Client.open @path, *aArgs, &aBlock
-    end
+    # delegate FileSystem methods to the IXP client
+      meths = Client.public_methods(false)
+      meths.delete 'open'
+      meths.delete 'read'
 
-    # Creates this node.
-    def create!
-      Client.create @path
-    end
+      meths.each do |meth|
+        define_method meth do |*args|
+          args.unshift @path
+          Client.__send__(meth, *args)
+        end
+      end
 
-    # Deletes this node.
-    def remove!
-      Client.remove @path
-    end
+      # XXX: We gotta do the following delegation manually because define_method does not support a block arg.
 
-    # Writes the given content to this node.
-    def write! aContent
-      Client.write @path, aContent
-    end
+      # Open this node for IO operation.
+      def open *aArgs, &aBlock # :yields: IO
+        Client.open @path, *aArgs, &aBlock
+      end
+
+    alias << write
+    alias < write
 
     # Returns the contents of this node or the names of all entries if this is a directory.
     def read
@@ -63,21 +72,6 @@ module Ixp
       else
         cont
       end
-    end
-
-    # Tests if this node is a file.
-    def file?
-      Client.file? @path
-    end
-
-    # Tests if this node is a directory.
-    def directory?
-      Client.directory? @path
-    end
-
-    # Tests if this node exists in the file system.
-    def exist?
-      Client.exist? @path
     end
 
     # Returns the basename of this file's path.
@@ -97,15 +91,35 @@ module Ixp
 
     # Writes the given content to the given sub-path.
     def []= aSubPath, aContent
-      self[aSubPath].write! aContent
+      self[aSubPath].write aContent
     end
 
-    # Provides access to sub-nodes through method calls.
+    # Returns the parent node of this node.
+    def parent
+      Node.new File.dirname(@path)
+    end
+
+    # Returns all child nodes of this node.
+    def children
+      if directory?
+        read.map! {|i| self[i]}
+      else
+        []
+      end
+    end
+
+    # Deletes all child nodes.
+    def clear
+      children.each do |c|
+        c.remove
+      end
+    end
+
+    # Provides access to child nodes through method calls.
     #
     # :call-seq:
     #   node.child = value  -> value
-    #   node.child (tree)   -> Node
-    #   node.child (leaf)   -> child.read
+    #   node.child          -> Node
     #
     def method_missing aMeth, *aArgs
       case aMeth.to_s
@@ -117,4 +131,26 @@ module Ixp
       end
     end
   end
+
+  # Makes instance methods accessible through class
+  # methods. This is done to emulate the File class:
+  #
+  #   File.exist? "foo"
+  #   File.new("foo").exist?
+  #
+  # Both of these expressions are equivalent.
+  #
+  module ExternalizeInstanceMethods
+    def self.extended aTarget
+      (class << aTarget; self; end).class_eval do
+        aTarget.instance_methods(false).each do |meth|
+          define_method meth do |path, *args|
+            aTarget.new(path).__send__(meth, *args)
+          end
+        end
+      end
+    end
+  end
+
+  Node.extend ExternalizeInstanceMethods
 end
