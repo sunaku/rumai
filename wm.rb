@@ -554,6 +554,22 @@ module Wmii
       areas[1..-1]
     end
 
+    # Resiliently iterates through possibly destructive changes to each column. That is, if the given block creates new columns, then those will also be processed in the iteration.
+    def each_column aStartingColumnId = 1
+      i = aStartingColumnId
+      loop do
+        a = Area.new i, self
+
+        if a.exist?
+          yield a
+        else
+          break
+        end
+
+        i += 1
+      end
+    end
+
 
     ## visual arrangement of clients
 
