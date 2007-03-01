@@ -90,7 +90,8 @@ module Wmii
 
   # Un-groups all grouped clients so that there is nothing grouped.
   def ungroup_all
-    View.new(GROUPING_TAG).ungroup
+    g = View.new GROUPING_TAG
+    g.ungroup if g.exist?
   end
 
 
