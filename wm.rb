@@ -687,7 +687,7 @@ module Wmii
         meth = "#{prop}_#{target}"
 
         define_method meth do |*args|
-          c.__send__(:current).__send__(prop, *args)
+          c.current.__send__(prop, *args)
         end
 
         module_function meth
