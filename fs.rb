@@ -41,36 +41,39 @@ module Ixp
       create if aCreateIt && !exist?
     end
 
-    # delegate FileSystem methods to the IXP client
+    # delegate file-system operations to the IXP client
       meths = Client.public_methods(false)
-      meths.delete 'open'
+      meths.delete 'write'
       meths.delete 'read'
 
-      meths.each do |meth|
-        define_method meth do |*args|
-          args.unshift @path
-          Client.__send__(meth, *args)
-        end
+      meths.each do |m|
+        class_eval %{
+          def #{m} *a, &b
+            Client.#{m}(@path, *a, &b)
+          end
+        }
       end
 
-      # XXX: We gotta do the following delegation manually because define_method does not support a block arg.
-
-      # Open this node for IO operation.
-      def open *aArgs, &aBlock # :yields: IO
-        Client.open @path, *aArgs, &aBlock
+    # Writes the given text to this file.
+    def write aText
+      if exist? # XXX: protect against needless 'File not found' errors
+        Client.write @path, aText
       end
+    end
 
     alias << write
     alias < write
 
     # Returns the contents of this node or the names of all entries if this is a directory.
     def read
-      cont = Client.read(@path)
+      if exist? # XXX: protect against needless 'File not found' errors
+        val = Client.read(@path)
 
-      if cont.respond_to? :to_ary
-        cont.map {|stat| stat.name}
-      else
-        cont
+        if val.respond_to? :to_ary
+          val.map {|stat| stat.name}
+        else
+          val
+        end
       end
     end
 
