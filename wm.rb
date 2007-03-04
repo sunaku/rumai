@@ -442,7 +442,7 @@ module Wmii
 
     # Ensures that this area has at most the given number of clients. Areas to the right of this one serve as a buffer into which excess clients are evicted and from which deficit clients are imported.
     def length= aMaxClients
-      return if aMaxClients <= 0
+      return unless aMaxClients > 0
       len, out = length, fringe
 
       if len > aMaxClients
@@ -586,69 +586,52 @@ module Wmii
       # determine client distribution
         unless aMaxClientsPerColumn
           numClients = num_managed_clients
-          return unless numClients > 1
-
           numColumns = Math.sqrt(numClients)
           aMaxClientsPerColumn = (numClients / numColumns).round
         end
 
+        return unless aMaxClientsPerColumn > 1
+
       # distribute the clients
-        if aMaxClientsPerColumn <= 0
-          squeeze columns
-        else
-          columns.each do |a|
-            if a.exist?
-              a.length = aMaxClientsPerColumn
-              a.layout = :default
-            else
-              break
-            end
-          end
+        each_column do |a|
+          a.length = aMaxClientsPerColumn
+          a.layout = :default
         end
     end
 
     # Arranges the clients in this view, while maintaining their relative order, in a (at best) equilateral triangle. However, the resulting arrangement appears like a diamond because wmii does not waste screen space.
     def arrange_in_diamond
-      if (numClients = num_managed_clients) > 0
-        subtriArea = numClients / 2
-        crestArea = numClients % subtriArea
+      numClients = num_managed_clients
+      return unless numClients > 1
 
-        # build fist sub-triangle upwards
-          height = area = 0
-          lastCol = nil
+      # determine dimensions of the rising sub-triangle
+        rise = numClients / 2
 
-          columns.each do |col|
-            if area < subtriArea
-              height += 1
-
-              col.length = height
-              area += height
-
-              col.layout = :default
-              lastCol = col
-            else
-              break
-            end
+        span = sum = 0
+        1.upto rise do |h|
+          if sum + h > rise
+            break
+          else
+            sum += h
+            span += 1
           end
+        end
 
-        # build crest of overall triangle
-          if crestArea > 0
-            lastCol.length = height + crestArea
-          end
+        peak = numClients - (sum * 2)
 
-        # build second sub-triangle downwards
-          down = columns
-          down.slice! 0..down.index(lastCol)
-          down.each do |col|
-            if area > 0
-              col.length = height
-              area -= height
+      # describe the overall triangle as a sequence of heights
+        riseSeq = (1..span).to_a
+        fallSeq = riseSeq.reverse
 
-              height -= 1
-            else
-              break
-            end
-          end
+        heights = riseSeq
+        heights << peak if peak > 0
+        heights.concat fallSeq
+
+      each_column do |col|
+        if h = heights.shift
+          col.length = h
+          col.layout = :default
+        end
       end
     end
 
