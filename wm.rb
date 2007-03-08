@@ -586,6 +586,8 @@ module Wmii
       # determine client distribution
         unless aMaxClientsPerColumn
           numClients = num_managed_clients
+          return unless numClients > 0
+
           numColumns = Math.sqrt(numClients)
           aMaxClientsPerColumn = (numClients / numColumns).round
         end
