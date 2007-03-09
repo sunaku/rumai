@@ -119,15 +119,19 @@ module Wmii
     # Returns the object after this one in the chain.
     def next *args
       ary = chain(*args)
-      pos = ary.index(self)
-      ary[(pos + 1) % ary.length]
+
+      if pos = ary.index(self)
+        ary[(pos + 1) % ary.length]
+      end
     end
 
     # Returns the object before this one in the chain.
     def prev *args
       ary = chain(*args)
-      pos = ary.index(self)
-      ary[(pos - 1) % ary.length]
+
+      if pos = ary.index(self)
+        ary[(pos - 1) % ary.length]
+      end
     end
   end
 
@@ -525,7 +529,7 @@ module Wmii
 
     # Returns the manifest of all areas and clients in this view.
     def manifest
-      self[:index].read
+      self[:index].read || ''
     end
 
 

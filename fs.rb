@@ -56,8 +56,10 @@ module Ixp
 
     # Writes the given text to this file.
     def write aText
-      if exist? # XXX: protect against needless 'File not found' errors
+      begin # XXX: protect against needless 'File not found' errors
         Client.write @path, aText
+      rescue IXP::IXPException
+        puts $!.inspect, $!.backtrace
       end
     end
 
@@ -66,7 +68,7 @@ module Ixp
 
     # Returns the contents of this node or the names of all entries if this is a directory.
     def read
-      if exist? # XXX: protect against needless 'File not found' errors
+      begin # XXX: protect against needless 'File not found' errors
         val = Client.read(@path)
 
         if val.respond_to? :to_ary
@@ -74,6 +76,8 @@ module Ixp
         else
           val
         end
+      rescue IXP::IXPException
+        puts $!.inspect, $!.backtrace
       end
     end
 
