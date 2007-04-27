@@ -25,7 +25,9 @@ require 'irb/completion'
 
 module IRB
   # Starts IRB within the context of the given object.
-  # This code was taken from: http://www.therubymine.com/articles/2007/01/29/programmare-dallinterno
+  #--
+  # Adapted from Massimiliano Mirra:
+  # <http://www.therubymine.com/articles/2007/01/29/programmare-dallinterno>
   def IRB.start_session aContextObj
     setup(nil)
     irb = IRB::Irb.new(WorkSpace.new(aContextObj))
