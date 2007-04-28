@@ -35,7 +35,8 @@ module Ixp
 
     attr_reader :path
 
-    # Obtains the IXP node at the given path. Unless it already exists, the given path is created when aCreateIt is asserted.
+    # Obtains the IXP node at the given path. Unless it already exists, the
+    # given path is created when aCreateIt is asserted.
     def initialize aPath, aCreateIt = false
       @path = aPath.to_s.squeeze('/')
       create if aCreateIt && !exist?
@@ -66,7 +67,8 @@ module Ixp
     alias << write
     alias < write
 
-    # Returns the contents of this node or the names of all entries if this is a directory.
+    # If this node is a file, its contents are returned.
+    # If this node is a directory, its contained file names are returned.
     def read
       begin # XXX: protect against needless 'File not found' errors
         val = Client.read(@path)
@@ -91,7 +93,7 @@ module Ixp
       File.dirname @path
     end
 
-    # Accesses the given sub-path and dereferences it (reads its contents) if specified.
+    # Returns the given sub-path as a Node object.
     def [] aSubPath
       Node.new("#{@path}/#{aSubPath}")
     end
@@ -145,7 +147,7 @@ module Ixp
   #   File.exist? "foo"
   #   File.new("foo").exist?
   #
-  # Both of these expressions are equivalent.
+  # Both of the above expressions are equivalent.
   #
   module ExternalizeInstanceMethods
     def self.extended aTarget
