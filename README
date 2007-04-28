@@ -1,0 +1,49 @@
+wmii-irb: Interactive Ruby shell for wmii.
+==========================================
+
+wmii-irb is the continuation of my initial attempt[1] at an interactive Ruby
+shell for wmii. I try to keep it up to date with wmii's hg tip (the latest wmii
+from the Mercurial repository). Thus, it should also work with the latest wmii
+snapshot release.
+
+This package has no dependencies on any wmiirc configuration. Instead, it is
+meant to be a library through which Ruby-based wmiircs can easily interact with
+wmii. In particular, my Ruby-based wmiirc might serve as an example of how the
+wmii-irb API is used. You can obtain it here:
+
+  darcs get http://www.soe.ucsc.edu/~snk/pub/src/wmiirc/
+
+
+Setup instructions
+------------------
+
+If you just want to try out wmii-irb, simply run the following commands:
+
+# obtain wmii-irb
+
+  darcs get http://www.soe.ucsc.edu/~snk/pub/src/wmii-irb/
+  cd wmii-irb/
+
+# satisfy dependencies
+
+  svn co svn://svn.gna.org/svn/rubyixp/trunk ruby-ixp
+
+# view API reference
+
+  rdoc *.rb
+  firefox doc/index.html &
+
+# run the interactive shell
+
+  chmod +x wmii-irb
+  ./wmii-irb
+
+  # type "current" and press TAB
+  # type "next" and press TAB
+  # type "prev" and press TAB
+  # see the API reference for more commands
+
+
+Patches and feedback are welcome. :-)
+
+[1] http://www.soe.ucsc.edu/~snk/2006-07-01-wmii-3.1-configuration-in-ruby.html
