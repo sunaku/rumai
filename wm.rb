@@ -556,6 +556,11 @@ module Wmii
           area_ids.map! {|i| Area.new i, self}
         end
 
+        # Returns the floating area of this view.
+        def floating_area
+          areas.first
+        end
+
         # Returns all columns (managed areas) in this view.
         def columns
           areas[1..-1]
