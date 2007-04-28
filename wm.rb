@@ -205,6 +205,15 @@ module Wmii
 
         # Sends this client to the given destination within the given view.
         def send aDst, aView = View.current
+          if aDst.to_sym != :toggle
+            # XXX: it is an error to send a floating client directly to a
+            # managed area, so we gotta "ground" it first and then send it to
+            # the desired managed area. John-Galt will fix this someday.
+            if area(aView).floating?
+              aView.ctl = "send #{id} toggle"
+            end
+          end
+
           aView.ctl = "send #{id} #{aDst}"
         end
 
@@ -458,7 +467,7 @@ module Wmii
 
       def import_client c
         if exist?
-          @view.ctl = "send #{c.id} #{@id}"
+          @view.ctl = "send #{c.id} #{@id+1}" #XXX: +1 until John-Galt fixes this: right now, index 1 is floating area; but ~ should be floating area.
         else
           # move the client to the nearest existing column
             src = c.area
