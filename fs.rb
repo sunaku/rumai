@@ -65,7 +65,6 @@ module Ixp
     end
 
     alias << write
-    alias < write
 
     # If this node is a file, its contents are returned.
     # If this node is a directory, its contained file names are returned.
