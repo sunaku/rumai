@@ -71,7 +71,7 @@ module Wmii
     # returned in the list.
     def grouped_clients
       list = current_view.clients.select {|c| c.grouped?}
-      list << current_client if list.empty?
+      list << current_client if list.empty? and current_client.exist?
       list
     end
 
