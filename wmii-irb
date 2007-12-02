@@ -1,10 +1,8 @@
-#!/usr/bin/ruby
-#
+#!/usr/bin/env ruby
 # This is an interactive Ruby shell for wmii.
 # - Press the TAB key for command completion.
 
-#--
-# Copyright 2006-2007 Suraj N. Kurapati
+# Copyright 2006 Suraj N. Kurapati
 # See the file named LICENSE for details.
 
 require 'irb'
@@ -25,12 +23,12 @@ end
 
 if __FILE__ == $0
   # show usage info
-    require 'rdoc/usage'
-    RDoc::usage_no_exit
+  require 'rdoc/usage'
+  RDoc::usage_no_exit
 
   # start the IRB session
-    $: << File.dirname(__FILE__)
-    require 'wm'
+  $: << File.dirname(__FILE__)
+  require 'wm'
 
-    IRB.start_session Wmii
+  IRB.start_session Wmii
 end
