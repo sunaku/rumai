@@ -11,7 +11,7 @@ meant to be a library through which Ruby-based wmiircs can easily interact with
 wmii. In particular, my Ruby-based wmiirc might serve as an example of how the
 wmii-irb API is used. You can obtain it here:
 
-  darcs get http://www.soe.ucsc.edu/~snk/pub/src/wmiirc/
+  darcs get http://rassmalog.rubyforge.org/blog/pub/code/wmiirc/
 
 
 Setup instructions
@@ -21,7 +21,7 @@ If you just want to try out wmii-irb, simply run the following commands:
 
 # obtain wmii-irb
 
-  darcs get http://www.soe.ucsc.edu/~snk/pub/src/wmii-irb/
+  darcs get http://rassmalog.rubyforge.org/blog/pub/code/wmii-irb/
   cd wmii-irb/
 
 # satisfy dependencies
@@ -46,4 +46,4 @@ If you just want to try out wmii-irb, simply run the following commands:
 
 Patches and feedback are welcome. :-)
 
-[1] http://www.soe.ucsc.edu/~snk/2006-07-01-wmii-3.1-configuration-in-ruby.html
+[1] http://rassmalog.rubyforge.org/blog/2006-07-01-wmii-3-1-configuration-in-ruby.html
