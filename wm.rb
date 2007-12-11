@@ -27,10 +27,12 @@ module Wmii
       fs['/tag/sel/ctl'].read
     end
 
+    # Returns the name of the next tag.
     def next_tag
       next_view.id
     end
 
+    # Returns the name of the previous tag.
     def prev_tag
       prev_view.id
     end
@@ -48,7 +50,7 @@ module Wmii
       tags.map! {|t| View.new t}
     end
 
-    # Returns the current set of clients.
+    # Returns the IDs of the current set of clients.
     def client_ids
       ary = fs['/client'].read
       ary.delete 'sel'
@@ -438,9 +440,9 @@ module Wmii
           push aArea.clients
         end
 
-        # Ensures that this area has at most the given number of clients. Areas
-        # to the right of this one serve as a buffer into which excess clients
-        # are evicted and from which deficit clients are imported.
+        # Ensures that this area has at most the given number of clients.
+        # Areas to the right of this one serve as a buffer into which excess
+        # clients are evicted and from which deficit clients are imported.
         def length= aMaxClients
           return unless aMaxClients > 0
           len, out = length, fringe

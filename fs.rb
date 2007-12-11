@@ -4,7 +4,7 @@
 # See the file named LICENSE for details.
 
 $: << File.join(File.dirname(__FILE__), 'ruby-ixp', 'lib')
-require 'ixp'
+require 'ruby-ixp/lib/ixp'
 
 # Encapsulates access to the IXP file system.
 module Ixp
