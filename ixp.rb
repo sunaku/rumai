@@ -14,8 +14,7 @@ class IO
 
   # Reads a string encoded in 9P2000 format.
   def unpack_9p_string
-    len = unpack(2, 'v')
-    unpack(len, 'U*')
+    read(unpack(2, 'v'))
   end
 end
 
@@ -37,6 +36,8 @@ module IXP
     }
 
     attr_accessor \
+      :size,    # overall message length (number of bytes)
+
       :type,    # (uchar)
       :fid,     # (u32int)
       :tag,     # (ushort)
@@ -81,8 +82,8 @@ module IXP
       end
     end
 
-    NOTAG = ~0 # (ushort)
-    NOFID = ~0 # (u32int)
+    NOTAG = USHORT_MAX # (ushort)
+    NOFID = UINT32_MAX # (u32int)
     MSIZE = 8192 # magic number used in [TR]version messages... dunno why
 
     Tversion = 100 # size[4] Tversion tag[2] msize[4] version[s]
@@ -120,7 +121,7 @@ module IXP
       pkt = Fcall.new(
         :size => aStream.unpack(4, 'V'),
         :type => aStream.unpack(1, 'C'),
-        :tag => aStream.unpack(2, 'v')
+        :tag  => aStream.unpack(2, 'v')
       )
 
       case pkt.type
