@@ -3,37 +3,44 @@
 # Copyright 2007 Suraj N. Kurapati
 # See the file named LICENSE for details.
 
-UCHAR_BYTES  = 1
-UCHAR_BITS   = 8
-UCHAR_MAX    = 0xFF
-UCHAR_FLAG   = 'C'.freeze
+# uchar
+BYTE1_BITS = 8
+BYTE1_MAX  = 0xFF
 
-USHORT_BYTES = 2
-USHORT_BITS  = 16
-USHORT_MAX   = 0xFF_FF
-USHORT_FLAG  = 'v'.freeze
+# ushort
+BYTE2_BITS = 16
+BYTE2_MAX  = 0xFF_FF
 
-UINT32_BYTES = 4
-UINT32_BITS  = 32
-UINT32_MAX   = 0xFF_FF_FF_FF
-UINT32_FLAG  = 'V'.freeze
+# uint32
+BYTE4_BITS = 32
+BYTE4_MAX  = 0xFF_FF_FF_FF
 
+# uchar, ushort, uint32. everything is little-endian
+PACKING_FLAGS = { 1 => 'C', 2 => 'v', 4 => 'V' }.freeze
 
 class IO
-  # Reads the given number of bytes and unpacks them using String#unpack.
-  def unpack aNumBytes, aPackFormat
-    read(aNumBytes).unpack(aPackFormat).first
+  # Unpacks the given number of bytes from this stream.
+  def load_9p aNumBytes
+    read(aNumBytes).unpack(PACKING_FLAGS[aNumBytes]).first
   end
 
-  # Reads a string encoded in 9P2000 format.
-  def unpack_9p_string
-    read(unpack(USHORT_BYTES, USHORT_FLAG))
+  # Unpacks a string encoded in 9P2000 format.
+  def load_9p_string
+    # count[2] s[count]
+    read(load_9p(2))
+  end
+end
+
+class Object
+  # Returns a string representation of this object in 9P2000 format.
+  def dump_9p aNumBytes
+    [self].pack(PACKING_FLAGS[aNumBytes])
   end
 end
 
 class String
-  def to_9p_string
-    [length].pack(USHORT_FLAG) << self[0, USHORT_MAX]
+  def dump_9p
+    length.dump_9p(2) << self[0, BYTE2_MAX]
   end
 end
 
@@ -52,13 +59,6 @@ module IXP
   class Fcall
     include FieldsMixin
 
-    StorageTypes = {
-      :uchar  => UCHAR_FLAG,
-      :ushort => USHORT_FLAG,
-      :uint32 => UINT32_FLAG,
-      :string => nil
-    }
-
     class Qid
       include FieldsMixin
 
@@ -72,17 +72,13 @@ module IXP
       QTFILE    = 0x00 # type bits for plain file
 
       # type[1] version[4] path[8]
-      attr_accessor \
-        :type,    # (uchar)
-        :version, # (uint32)
-        :path     # (8 bytes, unsigned integer, little-endian)
+      attr_accessor :type, :version, :path
 
-      def self.load_stream aStream
+      def self.load_9p_stream aStream
         qid = Qid.new(
-          :type    => aStream.unpack(UCHAR_BYTES, UCHAR_FLAG),
-          :version => aStream.unpack(UINT32_BYTES, UINT32_FLAG),
-          :path    => aStream.unpack(UINT32_BYTES, UINT32_FLAG) |
-                      (aStream.unpack(UINT32_BYTES, UINT32_FLAG) << UINT32_BITS)
+          :type    => aStream.load_9p(1),
+          :version => aStream.load_9p(4),
+          :path    => aStream.load_9p(4) | (aStream.load_9p(4) << BYTE4_BITS)
         )
 
         p :got_qid => qid
@@ -90,17 +86,15 @@ module IXP
         qid
       end
 
-      def self.dump_stream aStream
-        aStream << dump
+      def self.dump_9p_stream aStream
+        aStream << dump_9p
       end
 
-      def dump
-        [
-          @type,
-          @version,
-          @path & UINT32_MAX,
-          @path & (UINT32_MAX << UINT32_BITS)
-        ].pack(UCHAR_FLAG + UINT32_FLAG + UINT32_FLAG + UINT32_FLAG)
+      def dump_9p
+        @type.dump_9p(1) <<
+        @version.dump_9p(4) <<
+        (@path & BYTE4_MAX).dump_9p(4) << # lower bytes
+        (@path & (BYTE4_MAX << BYTE4_BITS)).dump_9p(4) # higher bytes
       end
     end
 
@@ -145,8 +139,8 @@ module IXP
       :nstat,   # (ushort) Twstat, Rstat
       :stat     # (uchar*) Twstat, Rstat
 
-    NOTAG = USHORT_MAX # (ushort)
-    NOFID = UINT32_MAX # (uint32)
+    NOTAG = BYTE2_MAX # (ushort)
+    NOFID = BYTE4_MAX # (uint32)
     MSIZE = 8192 # magic number used in [TR]version messages... dunno why
 
     # Field = Struct.new
@@ -191,92 +185,126 @@ module IXP
 
     # Parses an Fcall from the given I/O stream.
     # The stream is NOT rewound after reading.
-    def self.load_stream aStream
+    def self.load_9p_stream aStream
       pkt = Fcall.new(
-        :size => aStream.unpack(UINT32_BYTES, UINT32_FLAG),
-        :type => aStream.unpack(UCHAR_BYTES, UCHAR_FLAG),
-        :tag  => aStream.unpack(USHORT_BYTES, USHORT_FLAG)
+        :size => aStream.load_9p(4),
+        :type => aStream.load_9p(1),
+        :tag  => aStream.load_9p(2)
       )
 
       case pkt.type
       # size[4] Tversion tag[2] msize[4] version[s]
       # size[4] Rversion tag[2] msize[4] version[s]
       when Tversion, Rversion
-        pkt.msize = aStream.unpack(UINT32_BYTES, UINT32_FLAG)
-        pkt.version = aStream.unpack_9p_string
+        pkt.msize = aStream.load_9p(4)
+        pkt.version = aStream.load_9p_string
 
       # size[4] Tauth tag[2] afid[4] uname[s] aname[s]
-      # when Tauth
-      #   pkt.afid = aStream.unpack(UINT32_BYTES, UINT32_FLAG)
-      #   pkt.uname = aStream.unpack_9p_string
-      #   pkt.aname = aStream.unpack_9p_string
+      when Tauth
+        pkt.afid = aStream.load_9p(4)
+        pkt.uname = aStream.load_9p_string
+        pkt.aname = aStream.load_9p_string
 
       # size[4] Rauth tag[2] aqid[13]
-      # when Rauth
-      #   pkt.aqid = Qid.load_stream(aStream)
+      when Rauth
+        pkt.aqid = Qid.load_9p_stream(aStream)
 
       # size[4] Tattach tag[2] fid[4] afid[4] uname[s] aname[s]
       when Tattach
-        pkt.fid = aStream.unpack(UINT32_BYTES, UINT32_FLAG)
-        pkt.afid = aStream.unpack(UINT32_BYTES, UINT32_FLAG)
-        pkt.uname = aStream.unpack_9p_string
-        pkt.aname = aStream.unpack_9p_string
+        pkt.fid = aStream.load_9p(4)
+        pkt.afid = aStream.load_9p(4)
+        pkt.uname = aStream.load_9p_string
+        pkt.aname = aStream.load_9p_string
 
       # size[4] Rattach tag[2] qid[13]
       when Rattach
-        pkt.qid = Qid.load_stream(aStream)
+        pkt.qid = Qid.load_9p_stream(aStream)
+
+      when Terror
+        raise 'Terror is an invalid Fcall'
+
+      # size[4] Rerror tag[2] ename[s]
+      when Rerror
+        pkt.ename = aStream.load_9p_string
+
+      # size[4] Tflush tag[2] oldtag[2]
+      when Tflush
+        pkt.oldtag = aStream.load_9p(2)
+
+      # size[4] Rflush tag[2]
+      when Rflush
+
+      # size[4] Twalk tag[2] fid[4] newfid[4] nwname[2] nwname*(wname[s])
+      when Twalk
+        pkt.fid = aStream.load_9p(2)
 
       else
         raise "cannot load Fcall #{pkt} with type #{pkt.type}"
       end
 
-      p :got => pkt, :raw => pkt.dump
+      p :got => pkt, :raw => pkt.dump_9p
 
       pkt
     end
 
     # Writes this Fcall to the given I/O stream.
-    def dump_stream aStream
-      x = dump
+    def dump_9p_stream aStream
+      x = dump_9p
       p :sending => self, :raw => x
       aStream << x
     end
 
     # Tranforms this Fcall into a string of bytes.
-    def dump
+    def dump_9p
       data =
         case @type
         # size[4] Tversion tag[2] msize[4] version[s]
         # size[4] Rversion tag[2] msize[4] version[s]
         when Tversion, Rversion
-          [@msize].pack(UINT32_FLAG) << @version.to_s.to_9p_string
+          @msize.dump_9p(4) <<
+          @version.to_s.dump_9p
 
         # size[4] Tauth tag[2] afid[4] uname[s] aname[s]
-        # when Tauth
-        #   [@afid].pack(UINT32_FLAG) <<
-        #   @uname.to_s.to_9p_string <<
-        #   @aname.to_s.to_9p_string
+        when Tauth
+          @afid.dump_9p(4) <<
+          @uname.to_s.dump_9p <<
+          @aname.to_s.dump_9p
 
         # size[4] Rauth tag[2] aqid[13]
-        # when Rauth
-        #   @aqid.dump
+        when Rauth
+          @aqid.dump_9p
 
         # size[4] Tattach tag[2] fid[4] afid[4] uname[s] aname[s]
         when Tattach
-          [@fid, @afid].pack(UINT32_FLAG + UINT32_FLAG) <<
-          @uname.to_s.to_9p_string <<
-          @aname.to_s.to_9p_string
+          @fid.dump_9p(4) <<
+          @afid.dump_9p(4) <<
+          @uname.to_s.dump_9p <<
+          @aname.to_s.dump_9p
 
         # size[4] Rattach tag[2] qid[13]
         when Rattach
-          @qid.dump
+          @qid.dump_9p
+
+        when Terror
+          raise 'Terror is an invalid Fcall'
+
+        # size[4] Rerror tag[2] ename[s]
+        when Rerror
+          @ename.to_s.dump_9p
+
+        # size[4] Tflush tag[2] oldtag[2]
+        when Tflush
+          @oldtag.dump_9p(2)
+
+        # size[4] Rflush tag[2]
+        when Rflush
 
         else
           raise "cannot dump Fcall #{inspect} with type #{type}"
         end
 
-      data = [@type, @tag].pack(UCHAR_FLAG + USHORT_FLAG) << data
-      size = [data.length + UINT32_BYTES].pack(UINT32_FLAG)
+      data = @type.dump_9p(1) << @tag.dump_9p(2) << data
+      size = (data.length + 4).dump_9p(4)
       size << data
     end
   end

@@ -6,8 +6,8 @@ require 'ixp'
 include IXP
 
 def xmit aRequest
-  aRequest.dump_stream CONN
-  Fcall.load_stream CONN
+  aRequest.dump_9p_stream CONN
+  Fcall.load_9p_stream CONN
 end
 
 describe :Tversion do
