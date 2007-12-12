@@ -40,8 +40,18 @@ end
 module IXP
   PROTOCOL_VERSION = '9P2000'
 
+  module FieldsMixin
+    def initialize aFields = {}
+      aFields.each_pair do |k,v|
+        instance_variable_set :"@#{k}", v
+      end
+    end
+  end
+
   # see <fcall.h> in the 9P2000 protocol.
   class Fcall
+    include FieldsMixin
+
     StorageTypes = {
       :uchar  => UCHAR_FLAG,
       :ushort => USHORT_FLAG,
@@ -50,6 +60,8 @@ module IXP
     }
 
     class Qid
+      include FieldsMixin
+
       QTDIR     = 0x80 # type bit for directories
       QTAPPEND  = 0x40 # type bit for append only files
       QTEXCL    = 0x20 # type bit for exclusive use files
@@ -66,10 +78,16 @@ module IXP
         :path     # (8 bytes, unsigned integer, little-endian)
 
       def self.load_stream aStream
-        @type    = aStream.unpack(UCHAR_BYTES, UCHAR_FLAG)
-        @version = aStream.unpack(UINT32_BYTES, UINT32_FLAG)
-        @path    = aStream.unpack(UINT32_BYTES, UINT32_FLAG) |
-                   (aStream.unpack(UINT32_BYTES, UINT32_FLAG) << UINT32_BITS)
+        qid = Qid.new(
+          :type    => aStream.unpack(UCHAR_BYTES, UCHAR_FLAG),
+          :version => aStream.unpack(UINT32_BYTES, UINT32_FLAG),
+          :path    => aStream.unpack(UINT32_BYTES, UINT32_FLAG) |
+                      (aStream.unpack(UINT32_BYTES, UINT32_FLAG) << UINT32_BITS)
+        )
+
+        p :got_qid => qid
+
+        qid
       end
 
       def self.dump_stream aStream
@@ -126,12 +144,6 @@ module IXP
 
       :nstat,   # (ushort) Twstat, Rstat
       :stat     # (uchar*) Twstat, Rstat
-
-    def initialize aFields = {}
-      aFields.each_pair do |k,v|
-        instance_variable_set :"@#{k}", v
-      end
-    end
 
     NOTAG = USHORT_MAX # (ushort)
     NOFID = UINT32_MAX # (uint32)
@@ -203,6 +215,17 @@ module IXP
       # when Rauth
       #   pkt.aqid = Qid.load_stream(aStream)
 
+      # size[4] Tattach tag[2] fid[4] afid[4] uname[s] aname[s]
+      when Tattach
+        pkt.fid = aStream.unpack(UINT32_BYTES, UINT32_FLAG)
+        pkt.afid = aStream.unpack(UINT32_BYTES, UINT32_FLAG)
+        pkt.uname = aStream.unpack_9p_string
+        pkt.aname = aStream.unpack_9p_string
+
+      # size[4] Rattach tag[2] qid[13]
+      when Rattach
+        pkt.qid = Qid.load_stream(aStream)
+
       else
         raise "cannot load Fcall #{pkt} with type #{pkt.type}"
       end
@@ -214,7 +237,9 @@ module IXP
 
     # Writes this Fcall to the given I/O stream.
     def dump_stream aStream
-      aStream << dump
+      x = dump
+      p :sending => self, :raw => x
+      aStream << x
     end
 
     # Tranforms this Fcall into a string of bytes.
@@ -236,8 +261,15 @@ module IXP
         # when Rauth
         #   @aqid.dump
 
-        when Tattach # size[4] Rerror tag[2] ename[s]
+        # size[4] Tattach tag[2] fid[4] afid[4] uname[s] aname[s]
+        when Tattach
+          [@fid, @afid].pack(UINT32_FLAG + UINT32_FLAG) <<
+          @uname.to_s.to_9p_string <<
+          @aname.to_s.to_9p_string
 
+        # size[4] Rattach tag[2] qid[13]
+        when Rattach
+          @qid.dump
 
         else
           raise "cannot dump Fcall #{inspect} with type #{type}"

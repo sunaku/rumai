@@ -5,36 +5,38 @@ CONN = UNIXSocket.new(ADDR)
 require 'ixp'
 include IXP
 
+def xmit aRequest
+  aRequest.dump_stream CONN
+  Fcall.load_stream CONN
+end
+
 describe :Tversion do
-  before(:each) do
-    @req = Fcall.new(
+  it 'should establish a connection' do
+    req = Fcall.new(
       :type    => Fcall::Tversion,
       :tag     => Fcall::NOTAG,
       :msize   => Fcall::MSIZE,
       :version => PROTOCOL_VERSION
     )
-  end
-
-  it 'should establish a connection' do
-    @req.dump_stream CONN
-    rsp = Fcall.load_stream CONN
+    rsp = xmit(req)
 
     rsp.type.should    == Fcall::Rversion
-    rsp.tag.should     == @req.tag
-    rsp.version.should == @req.version
+    rsp.tag.should     == req.tag
+    rsp.version.should == req.version
+  end
 
+  it 'should attach to FS root' do
+    req = Fcall.new(
+      :type => Fcall::Tattach,
+      :tag => 0,
+      :fid => 0,
+      :afid => Fcall::NOFID,
+      :uname => ENV['USER'],
+      :aname => ''
+    )
+    rsp = xmit(req)
 
-    # # do authentication (NOT impl by wmii)
-    # req = Fcall.new(
-    #   :type => Fcall::Tauth,
-    #   :tag => 0,
-    #   :afid => Fcall::NOFID,
-    #   :uname => ENV['USER'],
-    #   :aname => ''
-    # )
-    # rsp = Fcall.load_stream CONN
-
-    # rsp.type.should    == Fcall::Rauth
-    # rsp.tag.should     == @req.tag
+    rsp.type.should == Fcall::Rattach
+    rsp.tag.should  == req.tag
   end
 end
