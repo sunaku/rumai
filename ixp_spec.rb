@@ -1,5 +1,5 @@
 require 'socket'
-ADDR = ['WMII_ADDRESS'].sub(/.*!/, '') rescue "/tmp/ns.#{ENV['USER']}.#{ENV['DISPLAY'] || ':0'}/wmii"
+ADDR = ENV['WMII_ADDRESS'].sub(/.*!/, '') rescue "/tmp/ns.#{ENV['USER']}.#{ENV['DISPLAY'] || ':0'}/wmii"
 CONN = UNIXSocket.new(ADDR)
 
 require 'ixp'
@@ -8,9 +8,9 @@ include IXP
 describe :Tversion do
   before(:each) do
     @req = Fcall.new(
-      :type => Fcall::Tversion,
-      :tag => Fcall::NOTAG,
-      :msize => Fcall::MSIZE,
+      :type    => Fcall::Tversion,
+      :tag     => Fcall::NOTAG,
+      :msize   => Fcall::MSIZE,
       :version => PROTOCOL_VERSION
     )
   end
@@ -19,8 +19,22 @@ describe :Tversion do
     @req.dump_stream CONN
     rsp = Fcall.load_stream CONN
 
-    rsp.type.should == Fcall::Rversion
-    rsp.tag.should == @req.tag
+    rsp.type.should    == Fcall::Rversion
+    rsp.tag.should     == @req.tag
     rsp.version.should == @req.version
+
+
+    # # do authentication (NOT impl by wmii)
+    # req = Fcall.new(
+    #   :type => Fcall::Tauth,
+    #   :tag => 0,
+    #   :afid => Fcall::NOFID,
+    #   :uname => ENV['USER'],
+    #   :aname => ''
+    # )
+    # rsp = Fcall.load_stream CONN
+
+    # rsp.type.should    == Fcall::Rauth
+    # rsp.tag.should     == @req.tag
   end
 end
