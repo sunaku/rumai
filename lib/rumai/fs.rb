@@ -4,10 +4,14 @@
 # See the file named LICENSE for details.
 
 require 'ixp'
+require 'socket'
 
 module Rumai
+  wmiiAddr = ENV['WMII_ADDRESS'].to_s.sub(/.*!/, '')
+  wmiiSock = UNIXSocket.new(wmiiAddr)
+
   # We use a single, global connection to wmii's IXP server.
-  CLIENT = IXP::Client.new
+  CLIENT = IXP::Agent.new(wmiiSock)
 
   # An entry in the IXP file system.
   class Node

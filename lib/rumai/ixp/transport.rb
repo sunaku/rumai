@@ -5,58 +5,24 @@
 
 require 'message'
 require 'thread' # for Mutex
-require 'socket'
 
 module IXP
   # A proxy that multiplexes many threads onto a single 9P2000 connection.
   # A thread simply uses the #talk method to perform a 9P2000 transaction
   # without worrying about the details of tag collisions and thread safety.
   class Agent
-    attr_reader :stream
+    attr_reader :msize
 
     def initialize aStream
-      @stream = aStream
-
-      @sendLock = Mutex.new
-      @recvLock = Mutex.new
+      @stream    = aStream
+      @sendLock  = Mutex.new
+      @recvLock  = Mutex.new
 
       @responses = {} # tag => message
-      @tagPool = RangePool.new(0...BYTE2_MASK)
-    end
+      @tagPool   = RangePool.new(0...BYTE2_MASK)
 
-    # Sends the given message and returns its response.
-    def talk aRequest
-      # send the messsage
-      aRequest.tag = @tagPool.obtain
-
-      @sendLock.synchronize do
-        @stream << aRequest.to_9p
-      end
-
-      # receive the response
-      loop do
-        # check for *my* response in the bucket
-        if response = @recvLock.synchronize { @responses.delete aRequest.tag }
-          @tagPool.release aRequest.tag
-
-          if response.is_a? Rerror
-            raise IXP::Exception, "#{response.ename.inspect} in response to #{aRequest.inspect}"
-
-          elsif response.type != aRequest.type + 1
-            raise IXP::Exception, "response's type must equal request's type + 1; request=#{aRequest.inspect} response=#{response.inspect}"
-
-          else
-            return response
-          end
-
-        # put the next response into the bucket
-        else
-          @recvLock.synchronize do
-            response = Fcall.from_9p @stream
-            @responses[response.tag] = response
-          end
-        end
-      end
+      @fidPool   = RangePool.new(0...BYTE4_MASK)
+      @msize     = Tversion::MSIZE
     end
 
     # A thread-safe pool of range members.
@@ -90,33 +56,65 @@ module IXP
         end
       end
     end
-  end
 
-  # A complete end-to-end connection to wmii's IXP server.
-  class Client < Agent
-    attr_reader :msize
+    # Sends the given message and returns its response.
+    def talk aRequest
+      # send the messsage
+      aRequest.tag = @tagPool.obtain
 
-    # Creates a new client and connects it to the given wmii IXP server address.
-    def initialize aWmiiAddr = ENV['WMII_ADDRESS'].to_s.sub(/.*!/, '')
-      super UNIXSocket.new(aWmiiAddr)
+      @sendLock.synchronize do
+        @stream << aRequest.to_9p
+      end
 
-      @fidPool = RangePool.new(0...BYTE4_MASK)
+      # receive the response
+      loop do
+        # check for *my* response in the bucket
+        if response = @recvLock.synchronize { @responses.delete aRequest.tag }
+          @tagPool.release aRequest.tag
 
-      # establish connection with 9P2000 server
-        req = Tversion.new(
-          :tag     => Fcall::NOTAG,
-          :msize   => Tversion::MSIZE,
-          :version => Tversion::VERSION
-        )
-        rsp = talk(req)
+          if response.is_a? Rerror
+            raise IXP::Exception, "#{response.ename.inspect} in response to #{aRequest.inspect}"
 
-        unless req.version == rsp.version
-          raise IXP::Exception, "connection refused by server at #{aWmiiAddr.inspect}"
+          elsif response.type != aRequest.type + 1
+            raise IXP::Exception, "response's type must equal request's type + 1; request=#{aRequest.inspect} response=#{response.inspect}"
+
+          else
+            # automatically detect server's desired message length
+            @msize = response.msize if response.is_a? Rversion
+
+            return response
+          end
+
+        # put the next response into the bucket
+        else
+          @recvLock.synchronize do
+            response = Fcall.from_9p @stream
+            @responses[response.tag] = response
+          end
         end
-
-      @msize = rsp.msize
+      end
     end
 
+    # Establishes a new session with the 9P2000 server.
+    def connect
+      req = Tversion.new(
+        :tag     => Fcall::NOTAG,
+        :msize   => Tversion::MSIZE,
+        :version => Tversion::VERSION
+      )
+      rsp = talk(req)
+
+      unless req.version == rsp.version
+        raise IXP::Exception, "version mismatch: agent=#{req.version}, server=#{rsp.version}"
+      end
+
+      # TODO: clear the tag & fid pools, release all locks, etc.
+    end
+
+    # TODO: Authenticates this session with the 9P2000 server.
+    def auth
+      raise NotImplementedError
+    end
 
     MODES = {
       'r' => Topen::OREAD,
@@ -125,6 +123,7 @@ module IXP
       '+' => Topen::ORDWR,
     }
 
+    # Converts the given mode string into an integer.
     def MODES.parse aMode
       if aMode.respond_to? :split
         aMode.split(//).inject(0) { |m,c| m | self[c].to_i }
@@ -141,15 +140,17 @@ module IXP
     def open aPath, aMode = 'r' # :yields: FidStream
       mode = MODES.parse(aMode)
 
+      # open the file
       pathFid = walk(aPath)
 
-      # open the file
       talk Topen.new(
         :fid  => pathFid,
         :mode => mode
       )
+
       stream = FidStream.new(self, pathFid)
 
+      # return the file stream
       if block_given?
         begin
           yield stream
@@ -165,16 +166,16 @@ module IXP
     class FidStream
       attr_reader :fid
 
-      def initialize aClient, aPathFid
-        @client = aClient
+      def initialize aAgent, aPathFid
+        @agent  = aAgent
         @fid    = aPathFid
-        @stat   = @client.stat_fid @fid
+        @stat   = @agent.stat_fid @fid
         @closed = false
       end
 
       # Closes this stream.
       def close
-        @client.clunk @fid unless @closed
+        @agent.clunk @fid unless @closed
         @closed = true
       end
 
@@ -218,9 +219,9 @@ module IXP
         req = Tread.new(
           :fid    => @fid,
           :offset => aOffset,
-          :count  => @client.msize
+          :count  => @agent.msize
         )
-        rsp = @client.talk(req)
+        rsp = @agent.talk(req)
         rsp.data
       end
 
@@ -233,7 +234,7 @@ module IXP
         content = aContent.to_s
 
         while offset < content.length
-          chunk = content[offset, @client.msize]
+          chunk = content[offset, @agent.msize]
 
           req = Twrite.new(
             :fid    => @fid,
@@ -241,13 +242,20 @@ module IXP
             :count  => chunk.length,
             :data   => chunk
           )
-          rsp = @client.talk(req)
+          rsp = @agent.talk(req)
 
           offset += rsp.count
         end
       end
 
       alias << write
+    end
+
+    # Returns the content of the file/directory at the given path.
+    def read aPath
+      open aPath do |f|
+        f.read
+      end
     end
 
     # Returns the names of all files inside the directory whose path is given.
@@ -257,13 +265,6 @@ module IXP
       end
 
       read(aPath).map! {|t| t.name}
-    end
-
-    # Returns the content of the file/directory at the given path.
-    def read aPath
-      open aPath do |f|
-        f.read
-      end
     end
 
     # Returns the content of the file/directory at the given path.
