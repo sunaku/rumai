@@ -3,23 +3,21 @@
 # Copyright 2006 Suraj N. Kurapati
 # See the file named LICENSE for details.
 
-$: << File.dirname(__FILE__)
 require 'fs'
 require 'enumerator'
 
 class Object #:nodoc:
-  # Get rid of this deprecated property so that it does not clash with our usage
-  # in the classes below.
-  undef id
+  # prevent these deprecated properties from clashing with our usage below
+  undef id, type
 end
 
 # Encapsulates access to the window manager.
-module Wmii
+module Rumai
   # access to global WM state
 
     # Returns the root of IXP file system hierarchy.
     def fs
-      Ixp::Node.new '/'
+      Node.new '/'
     end
 
     # Returns the name of the currently focused tag.
@@ -39,10 +37,7 @@ module Wmii
 
     # Returns the current set of tags.
     def tags
-      ary = fs['/tag'].read
-      ary.delete 'sel'
-      ary.sort!
-      ary
+      fs['/tag'].read.sort - %w[sel]
     end
 
     # Returns the current set of views.
@@ -61,7 +56,6 @@ module Wmii
     def clients
       client_ids.map! {|i| Client.new i}
     end
-
 
   # multiple client grouping: allows you to group a set of clients together and
   # perform operations on all of them simultaneously.
@@ -84,7 +78,6 @@ module Wmii
       g = View.new GROUPING_TAG
       g.ungroup if g.exist?
     end
-
 
   # abstraction of WM components
 
@@ -140,21 +133,22 @@ module Wmii
       alias focused? current?
     end
 
-    class FsNode < Ixp::Node #:nodoc:
+    class VisibleNode < Node #:nodoc:
       def initialize aId, aPathPrefix
         super "#{aPathPrefix}/#{aId}"
 
-        @id = if aId.to_sym == :sel
-          self[:ctl].read
-        else
-          basename
-        end
+        @id =
+          if aId.to_sym == :sel
+            self[:ctl].read
+          else
+            basename
+          end
       end
     end
 
 
     # A graphical program that is running in your current X Windows session.
-    class Client < FsNode
+    class Client < VisibleNode
       include Common
         # Returns the currently focused client.
         def Client.current
@@ -492,7 +486,7 @@ module Wmii
     end
 
     # The visualization of a tag.
-    class View < FsNode
+    class View < VisibleNode
       include Common
         # Returns the currently focused view.
         def View.current
@@ -501,12 +495,12 @@ module Wmii
 
         # Focuses this view.
         def focus
-          Wmii.fs.ctl = "view #{id}"
+          Rumai.fs.ctl = "view #{id}"
         end
 
       include Chainable
         def chain
-          Wmii.views
+          Rumai.views
         end
 
       include ClientContainer
@@ -675,21 +669,21 @@ module Wmii
 
   # shortcuts for interactive WM manipulation (via IRB)
 
-    bricks = [Client, Area, View]
+    classes = [Client, Area, View]
 
     # provide easy access to container state information
-      bricks.each do |c|
-        c.extend Ixp::ExternalizeInstanceMethods
+      classes.each do |c|
+        c.extend ExternalizeInstanceMethods
       end
 
     # provide easy access to common WM state information
-      common = bricks.map do |c|
+      common = classes.map do |c|
         c.methods false
       end.inject do |a, b|
         a & b
       end
 
-      bricks.each do |c|
+      classes.each do |c|
         target = c.to_s.sub(/.*::/, '').downcase
 
         common.each do |prop|

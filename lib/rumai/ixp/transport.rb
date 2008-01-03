@@ -6,8 +6,6 @@
 require 'message'
 require 'thread' # for Mutex
 require 'socket'
-require 'stringio'
-require 'enumerator'
 
 module IXP
   # A proxy that multiplexes many threads onto a single 9P2000 connection.

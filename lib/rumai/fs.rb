@@ -3,11 +3,11 @@
 # Copyright 2006 Suraj N. Kurapati
 # See the file named LICENSE for details.
 
-require '9p'
+require 'ixp'
 
-module IXP
-  # We use a single, global connection.
-  Client = IXP::Client.new ENV['WMII_ADDRESS']
+module Rumai
+  # We use a single, global connection to wmii's IXP server.
+  CLIENT = IXP::Client.new
 
   # An entry in the IXP file system.
   class Node
@@ -19,71 +19,61 @@ module IXP
 
     attr_reader :path
 
-    # Obtains the IXP node at the given path. Unless it already exists, the
-    # given path is created when aCreateIt is asserted.
-    def initialize aPath, aCreateIt = false
+    def initialize aPath
       @path = aPath.to_s.squeeze('/')
-      create if aCreateIt && !exist?
     end
 
-    # delegate file-system operations to the IXP client
-      meths = Client.public_methods(false)
-      meths.delete 'write'
-      meths.delete 'read'
+    # Returns file statistics about this node.
+    # See IXP::Client#stat for details.
+    def stat
+      CLIENT.stat @path
+    end
 
-      meths.each do |m|
-        class_eval %{
-          def #{m} *a, &b
-            Client.#{m}(@path, *a, &b)
-          end
-        }
-      end
-
-    # Writes the given text to this file.
-    def write aText
-      begin # XXX: protect against needless 'File not found' errors
-        Client.write @path, aText
-      rescue IXP::IXPException
-        puts $!.inspect, $!.backtrace
+    # Tests if this node exists on the IXP server.
+    def exist?
+      begin
+        true if stat
+      rescue IXP::Exception
+        false
       end
     end
 
-    alias << write
+    # Tests if this node is a directory.
+    def directory?
+      exist? and stat.directory?
+    end
 
-    # If this node is a file, its contents are returned.
-    # If this node is a directory, its contained file names are returned.
+    # Opens this node for I/O access.
+    # See IXP::Client#open for details.
+    def open aMode = 'r', &aBlock
+      CLIENT.open @path, aMode, aBlock
+    end
+
+    # Returns the entire content of this node.
+    # See IXP::Client#read for details.
     def read
-      begin # XXX: protect against needless 'File not found' errors
-        val = Client.read(@path)
-
-        if val.respond_to? :to_ary
-          val.map {|stat| stat.name}
-        else
-          val
-        end
-      rescue IXP::IXPException
-        puts $!.inspect, $!.backtrace
-      end
+      CLIENT.read @path
     end
 
-    # Returns the basename of this file's path.
-    def basename
-      File.basename @path
+    # Writes the given content to this node.
+    def write aContent
+      CLIENT.write @path, aContent
     end
 
-    # Returns the dirname of this file's path.
-    def dirname
-      File.dirname @path
+    # Creates a file corresponding to this node on the IXP server.
+    # See IXP::Client#create for details.
+    def create *aArgs
+      CLIENT.create @path, *aArgs
+    end
+
+    # Deletes the file corresponding to this node on the IXP server.
+    def remove
+      CLIENT.remove @path
     end
 
     # Returns the given sub-path as a Node object.
     def [] aSubPath
-      Node.new("#{@path}/#{aSubPath}")
-    end
-
-    # Writes the given content to the given sub-path.
-    def []= aSubPath, aContent
-      self[aSubPath].write aContent
+      Node.new "#{@path}/#{aSubPath}"
     end
 
     # Returns the parent node of this node.
@@ -93,11 +83,12 @@ module IXP
 
     # Returns all child nodes of this node.
     def children
-      if directory?
-        read.map! {|i| self[i]}
-      else
-        []
-      end
+      ls.map! {|c| Node.new c}
+    end
+
+    # Returns the names of all files in this directory.
+    def ls
+      CLIENT.ls @path rescue []
     end
 
     # Deletes all child nodes.
@@ -110,17 +101,10 @@ module IXP
     # Provides access to child nodes through method calls.
     #
     # :call-seq:
-    #   node.child = value  -> value
-    #   node.child          -> Node
+    #   node.child -> Node
     #
     def method_missing aMeth, *aArgs
-      case aMeth.to_s
-        when /=$/
-          self[$`] = *aArgs
-
-        else
-          self[aMeth]
-      end
+      self[aMeth]
     end
   end
 
@@ -134,8 +118,8 @@ module IXP
   #
   module ExternalizeInstanceMethods
     def self.extended aTarget
-      class << aTarget
-        instance_methods(false).each do |meth|
+      aTarget.instance_methods(false).each do |meth|
+        (class << aTarget; self; end).instance_eval do
           define_method meth do |path, *args|
             new(path).__send__(meth, *args)
           end
