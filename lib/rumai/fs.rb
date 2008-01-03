@@ -1,13 +1,11 @@
-# Abstractions for wmii's IXP file system interface.
+# File system abstractions over the 9P2000 protocol.
 #--
 # Copyright 2006 Suraj N. Kurapati
 # See the file named LICENSE for details.
 
-$: << File.join(File.dirname(__FILE__), 'ruby-ixp', 'lib')
-require 'ruby-ixp/lib/ixp'
+require '9p'
 
-# Encapsulates access to the IXP file system.
-module Ixp
+module IXP
   # We use a single, global connection.
   Client = IXP::Client.new ENV['WMII_ADDRESS']
 
@@ -136,10 +134,10 @@ module Ixp
   #
   module ExternalizeInstanceMethods
     def self.extended aTarget
-      (class << aTarget; self; end).class_eval do
-        aTarget.instance_methods(false).each do |meth|
+      class << aTarget
+        instance_methods(false).each do |meth|
           define_method meth do |path, *args|
-            aTarget.new(path).__send__(meth, *args)
+            new(path).__send__(meth, *args)
           end
         end
       end

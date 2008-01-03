@@ -1,21 +1,25 @@
-# A simple implementation of wmii's IXP library (which, in turn,
-# is a partial implementation of the 9P2000 protocol) for Rumai.
+# Primitives for the 9P2000 protocol.
 #
 # See http://cm.bell-labs.com/sys/man/5/INDEX.html
-# for the 9P2000 protocol documentation.
+# See http://swtch.com/plan9port/man/man9/
 #
 #--
 # Copyright 2007 Suraj N. Kurapati
 # See the file named LICENSE for details.
 
 module IXP
-  # ushort
-  BYTE2_BITS = 16
-  BYTE2_MASK = 0xFF_FF
+  # define constants for easier bit manipulation of 9P2000 field values
+  # uchar (1 byte), ushort (2 bytes), uint32 (4 bytes), uint64 (8 bytes)
+  4.times do |n|
+    bytes = 2 ** n
+    bits  = 8 * bytes
+    limit = 2 ** bits
+    mask  = limit - 1
 
-  # uint32
-  BYTE4_BITS = 32
-  BYTE4_MASK = 0xFF_FF_FF_FF
+    const_set "BYTE#{bytes}_BITS", bits
+    const_set "BYTE#{bytes}_LIMIT", limit
+    const_set "BYTE#{bytes}_MASK", mask
+  end
 
   # A 9P2000 byte stream.
   module Stream
@@ -241,6 +245,28 @@ module IXP
     field :uid    , String
     field :gid    , String
     field :muid   , String
+
+    # from http://swtch.com/usr/local/plan9/include/libc.h
+    DMDIR       = 0x80000000 # mode bit for directories
+    DMAPPEND    = 0x40000000 # mode bit for append only files
+    DMEXCL      = 0x20000000 # mode bit for exclusive use files
+    DMMOUNT     = 0x10000000 # mode bit for mounted channel
+    DMAUTH      = 0x08000000 # mode bit for authentication file
+    DMTMP       = 0x04000000 # mode bit for non-backed-up file
+    DMSYMLINK   = 0x02000000 # mode bit for symbolic link (Unix, 9P2000.u)
+    DMDEVICE    = 0x00800000 # mode bit for device file (Unix, 9P2000.u)
+    DMNAMEDPIPE = 0x00200000 # mode bit for named pipe (Unix, 9P2000.u)
+    DMSOCKET    = 0x00100000 # mode bit for socket (Unix, 9P2000.u)
+    DMSETUID    = 0x00080000 # mode bit for setuid (Unix, 9P2000.u)
+    DMSETGID    = 0x00040000 # mode bit for setgid (Unix, 9P2000.u)
+    DMREAD      = 0x4        # mode bit for read permission
+    DMWRITE     = 0x2        # mode bit for write permission
+    DMEXEC      = 0x1        # mode bit for execute permission
+
+    # Tests if this file is a directory.
+    def directory?
+      @mode & DMDIR > 0
+    end
   end
 
   # Fcall is the basic unit of communication in the 9P2000 protocol.
@@ -267,54 +293,23 @@ module IXP
 
     class << self
       alias __from_9p__ from_9p
+    end
 
-      # Creates a new instance of this class from the
-      # given 9P2000 byte stream and returns the instance.
-      def from_9p aStream
-        size = aStream.read_9p(4)
-        type = aStream.read_9p(1)
+    # Creates a new instance of this class from the
+    # given 9P2000 byte stream and returns the instance.
+    def self.from_9p aStream
+      size = aStream.read_9p(4)
+      type = aStream.read_9p(1)
 
-        unless fcall = TYPES.index(type)
-          raise Exception, "illegal fcall type: #{type}"
-        end
-
-        __from_9p__ aStream, fcall
+      unless fcall = TYPES.index(type)
+        raise IXP::Exception, "illegal fcall type: #{type}"
       end
+
+      __from_9p__ aStream, fcall
     end
 
     NOTAG = BYTE2_MASK # (ushort)
     NOFID = BYTE4_MASK # (uint32)
-    MSIZE = 8192 # magic number used in [TR]version and [TR]read
-
-    # from http://swtch.com/usr/local/plan9/include/libc.h
-    OREAD       = 0          # open for read
-    OWRITE      = 1          # write
-    ORDWR       = 2          # read and write
-    OEXEC       = 3          # execute, == read but check execute permission
-    OTRUNC      = 16         # or'ed in (except for exec), truncate file first
-    OCEXEC      = 32         # or'ed in, close on exec
-    ORCLOSE     = 64         # or'ed in, remove on close
-    ODIRECT     = 128        # or'ed in, direct access
-    ONONBLOCK   = 256        # or'ed in, non-blocking call
-    OEXCL       = 0x1000     # or'ed in, exclusive use (create only)
-    OLOCK       = 0x2000     # or'ed in, lock after opening
-    OAPPEND     = 0x4000     # or'ed in, append only
-
-    DMDIR       = 0x80000000 # mode bit for directories
-    DMAPPEND    = 0x40000000 # mode bit for append only files
-    DMEXCL      = 0x20000000 # mode bit for exclusive use files
-    DMMOUNT     = 0x10000000 # mode bit for mounted channel
-    DMAUTH      = 0x08000000 # mode bit for authentication file
-    DMTMP       = 0x04000000 # mode bit for non-backed-up file
-    DMSYMLINK   = 0x02000000 # mode bit for symbolic link (Unix, 9P2000.u)
-    DMDEVICE    = 0x00800000 # mode bit for device file (Unix, 9P2000.u)
-    DMNAMEDPIPE = 0x00200000 # mode bit for named pipe (Unix, 9P2000.u)
-    DMSOCKET    = 0x00100000 # mode bit for socket (Unix, 9P2000.u)
-    DMSETUID    = 0x00080000 # mode bit for setuid (Unix, 9P2000.u)
-    DMSETGID    = 0x00040000 # mode bit for setgid (Unix, 9P2000.u)
-    DMREAD      = 0x4        # mode bit for read permission
-    DMWRITE     = 0x2        # mode bit for write permission
-    DMEXEC      = 0x1        # mode bit for execute permission
   end
 
   # size[4] Tversion tag[2] msize[4] version[s]
@@ -323,6 +318,7 @@ module IXP
     field     :version , String
 
     VERSION = '9P2000'.freeze
+    MSIZE = 8192 # magic number defined in Plan9 for [TR]version and [TR]read
   end
 
   # size[4] Rversion tag[2] msize[4] version[s]
@@ -359,7 +355,7 @@ module IXP
   # illegal
   class Terror < Fcall
     def to_9p
-      raise Exception, 'Terror is an illegal Fcall; it cannot be transmitted.'
+      raise IXP::Exception, 'the Terror fcall cannot be transmitted'
     end
   end
 
@@ -395,6 +391,20 @@ module IXP
   class Topen < Fcall
     field     :fid     , 4
     field     :mode    , 1
+
+    # from http://swtch.com/usr/local/plan9/include/libc.h
+    OREAD       = 0          # open for read
+    OWRITE      = 1          # write
+    ORDWR       = 2          # read and write
+    OEXEC       = 3          # execute, == read but check execute permission
+    OTRUNC      = 16         # or'ed in (except for exec), truncate file first
+    OCEXEC      = 32         # or'ed in, close on exec
+    ORCLOSE     = 64         # or'ed in, remove on close
+    ODIRECT     = 128        # or'ed in, direct access
+    ONONBLOCK   = 256        # or'ed in, non-blocking call
+    OEXCL       = 0x1000     # or'ed in, exclusive use (create only)
+    OLOCK       = 0x2000     # or'ed in, lock after opening
+    OAPPEND     = 0x4000     # or'ed in, append only
   end
 
   # size[4] Ropen tag[2] qid[13] iounit[4]

@@ -1,7 +1,12 @@
-require 'pp' if $DEBUG
+# Unit test for 9p.rb
+#--
+# Copyright 2007 Suraj N. Kurapati
+# See the file named LICENSE for details.
 
-require 'ixp'
+require 'message'
 include IXP
+
+require 'pp' if $DEBUG
 
 # Transmits the given request and returns the received response.
 def xmit aRequest
@@ -38,7 +43,7 @@ end
     it 'should establish a connection' do
       req = Tversion.new(
         :tag     => Fcall::NOTAG,
-        :msize   => Fcall::MSIZE,
+        :msize   => Tversion::MSIZE,
         :version => Tversion::VERSION
       )
       rsp = xmit(req)
@@ -81,7 +86,7 @@ end
       req = Topen.new(
         :tag  => 0,
         :fid  => 0,
-        :mode => Fcall::OREAD
+        :mode => Topen::OREAD
       )
       rsp = xmit(req)
 
@@ -95,7 +100,7 @@ end
         :tag    => 0,
         :fid    => 0,
         :offset => 0,
-        :count  => Fcall::MSIZE
+        :count  => Tversion::MSIZE
       )
       rsp = xmit(req)
 
@@ -131,7 +136,7 @@ end
         :tag    => 0,
         :fid    => 0,
         :offset => 0,
-        :count  => Fcall::MSIZE
+        :count  => Tversion::MSIZE
       )
       rsp = xmit(req)
 
@@ -139,89 +144,7 @@ end
     end
   end
 
-# read a file
-  describe Tattach do
-    it 'should attach to /' do
-      req = Tattach.new(
-        :tag   => 0,
-        :fid   => 0,
-        :afid  => Fcall::NOFID,
-        :uname => ENV['USER'],
-        :aname => ''
-      )
-      rsp = xmit(req)
-
-      rsp.type.should == Rattach.type
-    end
-  end
-
-  describe Twalk do
-    it 'should walk to /colrules' do
-      req = Twalk.new(
-        :tag    => 0,
-        :fid    => 0,
-        :newfid => 1,
-        :wname => %w[colrules]
-      )
-      rsp = xmit(req)
-
-      rsp.type.should == Rwalk.type
-    end
-  end
-
-  describe Tclunk do
-    it 'should close the fid for FS root' do
-      req = Tclunk.new(
-        :tag    => 0,
-        :fid    => 0
-      )
-      rsp = xmit(req)
-
-      rsp.type.should == Rclunk.type
-    end
-  end
-
-  describe Topen do
-    it 'should open /colrules for reading' do
-      req = Topen.new(
-        :tag  => 0,
-        :fid  => 1,
-        :mode => Fcall::OREAD
-      )
-      rsp = xmit(req)
-
-      rsp.type.should == Ropen.type
-    end
-  end
-
-  describe Tread do
-    it 'should return the file content' do
-      req = Tread.new(
-        :tag    => 0,
-        :fid    => 1,
-        :offset => 0,
-        :count  => Fcall::MSIZE
-      )
-      rsp = xmit(req)
-
-      rsp.type.should == Rread.type
-      rsp.data.should_not be_empty
-    end
-  end
-
-  describe Tclunk do
-    it 'should close the fid for /colrules' do
-      req = Tclunk.new(
-        :tag    => 0,
-        :fid    => 1
-      )
-      rsp = xmit(req)
-
-      rsp.type.should == Rclunk.type
-    end
-  end
-
-# write a file
+# read & write a file
   describe Tattach do
     it 'should attach to /' do
       req = Tattach.new(
@@ -268,7 +191,7 @@ end
       req = Topen.new(
         :tag  => 0,
         :fid  => 1,
-        :mode => Fcall::ORDWR
+        :mode => Topen::ORDWR
       )
       rsp = xmit(req)
 
