@@ -23,6 +23,20 @@ module IXP
 
       @fidPool   = RangePool.new(0...BYTE4_MASK)
       @msize     = Tversion::MSIZE
+
+      # establish connection with 9P2000 server
+      req = Tversion.new(
+        :tag     => Fcall::NOTAG,
+        :msize   => Tversion::MSIZE,
+        :version => Tversion::VERSION
+      )
+      rsp = talk(req)
+
+      unless req.version == rsp.version
+        raise IXP::Exception, "protocol mismatch: self=#{req.version.inspect} server=#{rsp.version.inspect}"
+      end
+
+      @msize = rsp.msize
     end
 
     # A thread-safe pool of range members.
@@ -79,9 +93,6 @@ module IXP
             raise IXP::Exception, "response's type must equal request's type + 1; request=#{aRequest.inspect} response=#{response.inspect}"
 
           else
-            # automatically detect server's desired message length
-            @msize = response.msize if response.is_a? Rversion
-
             return response
           end
 
@@ -93,27 +104,6 @@ module IXP
           end
         end
       end
-    end
-
-    # Establishes a new session with the 9P2000 server.
-    def connect
-      req = Tversion.new(
-        :tag     => Fcall::NOTAG,
-        :msize   => Tversion::MSIZE,
-        :version => Tversion::VERSION
-      )
-      rsp = talk(req)
-
-      unless req.version == rsp.version
-        raise IXP::Exception, "version mismatch: agent=#{req.version}, server=#{rsp.version}"
-      end
-
-      # TODO: clear the tag & fid pools, release all locks, etc.
-    end
-
-    # TODO: Authenticates this session with the 9P2000 server.
-    def auth
-      raise NotImplementedError
     end
 
     MODES = {
@@ -175,8 +165,10 @@ module IXP
 
       # Closes this stream.
       def close
-        @agent.clunk @fid unless @closed
-        @closed = true
+        unless @closed
+          @agent.clunk @fid
+          @closed = true
+        end
       end
 
       # Returns the entire content of this stream.  If this

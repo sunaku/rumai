@@ -37,7 +37,7 @@ module Rumai
 
     # Returns the current set of tags.
     def tags
-      fs['/tag'].read.sort - %w[sel]
+      fs['/tag'].ls.sort - %w[sel]
     end
 
     # Returns the current set of views.
@@ -47,9 +47,7 @@ module Rumai
 
     # Returns the IDs of the current set of clients.
     def client_ids
-      ary = fs['/client'].read
-      ary.delete 'sel'
-      ary
+      fs['/client'].ls - %w[sel]
     end
 
     # Returns the current set of clients.
@@ -141,7 +139,7 @@ module Rumai
           if aId.to_sym == :sel
             self[:ctl].read
           else
-            basename
+            File.basename(@path)
           end
       end
     end
@@ -178,7 +176,7 @@ module Rumai
                   direction = src < dst ? :down : :up
 
                   distance.times do
-                    v.ctl = "select #{direction}"
+                    v.ctl.write "select #{direction}"
                   end
 
                 break
@@ -206,16 +204,16 @@ module Rumai
             # managed area, so we gotta "ground" it first and then send it to
             # the desired managed area. John-Galt will fix this someday.
             if area(aView).floating?
-              aView.ctl = "send #{id} toggle"
+              aView.ctl.write "send #{id} toggle"
             end
           end
 
-          aView.ctl = "send #{id} #{aDst}"
+          aView.ctl.write "send #{id} #{aDst}"
         end
 
         # Swaps this client with the given destination within the given view.
         def swap aDst, aView = View.current
-          aView.ctl = "swap #{id} #{aDst}"
+          aView.ctl.write "swap #{id} #{aDst}"
         end
 
 
@@ -244,7 +242,7 @@ module Rumai
         # Modifies the tags associated with this client.
         def tags= *aTags
           ary = aTags.flatten.compact.uniq
-          self[:tags] = ary.join(TAG_DELIMITER)
+          self[:tags].write ary.join(TAG_DELIMITER)
         end
 
         # Evaluates the given block within the context of this client's list of
@@ -335,7 +333,7 @@ module Rumai
 
         # Puts focus on this area.
         def focus
-          @view.ctl = "select #{ctl_id}"
+          @view.ctl.write "select #{ctl_id}"
         end
 
       include Chainable
@@ -382,7 +380,7 @@ module Rumai
 
       # Sets the layout of clients in this column.
       def layout= aMode
-        @view.ctl = "colmode #{ctl_id} #{aMode}"
+        @view.ctl.write "colmode #{ctl_id} #{aMode}"
       end
 
 
@@ -463,7 +461,7 @@ module Rumai
 
       def import_client c
         if exist?
-          @view.ctl = "send #{c.id} #{@id+1}" #XXX: +1 until John-Galt fixes this: right now, index 1 is floating area; but ~ should be floating area.
+          @view.ctl.write "send #{c.id} #{@id+1}" #XXX: +1 until John-Galt fixes this: right now, index 1 is floating area; but ~ should be floating area.
         else
           # move the client to the nearest existing column
             src = c.area
@@ -495,7 +493,7 @@ module Rumai
 
         # Focuses this view.
         def focus
-          Rumai.fs.ctl = "view #{id}"
+          Rumai.fs.ctl.write "view #{id}"
         end
 
       include Chainable
