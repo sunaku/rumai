@@ -69,6 +69,15 @@ module Rumai
       AGENT.read @path
     end
 
+    # Invokes the given block for every line in the content of this node.
+    def each_line &aBlock #:yields: line
+      open do |file|
+        until (chunk = file.read_partial).empty?
+          chunk.each_line(&aBlock)
+        end
+      end
+    end
+
     # Writes the given content to this node.
     def write aContent
       AGENT.write @path, aContent
