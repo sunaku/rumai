@@ -25,7 +25,7 @@ module Rumai
 
   # Returns the current set of tags.
   def tags
-    fs['/tag'].ls.sort - %w[sel]
+    fs.tag.entries.sort - %w[sel]
   end
 
   # Returns the current set of views.
@@ -40,7 +40,7 @@ module Rumai
   include ClientContainer
     # Returns the IDs of the current set of clients.
     def client_ids
-      fs['/client'].ls - %w[sel]
+      fs.client.entries - %w[sel]
     end
 
   # Returns the name of the currently focused tag.
@@ -557,12 +557,7 @@ module Rumai
 
     # Returns the area which contains the given client in this view.
     def area_of_client aClientOrId
-      arg =
-        if aClientOrId.respond_to? :id
-          aClientOrId.id
-        else
-          aClientOrId
-        end
+      arg = aClientOrId.id rescue aClientOrId
 
       manifest =~ /^(\S+) #{arg}/
       if areaId = $1
@@ -702,46 +697,64 @@ module Rumai
     end
   end
 
+
   ##
   #
   # shortcuts for interactive WM manipulation (via IRB)
   #
   ##
 
-  classes = [Client, Area, View]
-
   # provide easy access to container state information
-  classes.each do |c|
+  [Client, Area, View].each do |c|
     c.extend ExportInstMethods
   end
 
-  # provide easy access to common WM state information
-  common = classes.map {|c| c.methods false }.inject {|a,b| a & b }
+  def current_client
+    Client.current
+  end
 
-  classes.each do |c|
-    target = c.to_s.sub(/.*::/, '').downcase
+  def next_client
+    current_client.next
+  end
 
-    # add methods for accessing the common property
-    common.each do |prop|
-      meth = "#{prop}_#{target}"
+  def prev_client
+    current_client.prev
+  end
 
-      define_method meth do
-        c.__send__(prop)
-      end
+  def current_area
+    Area.current
+  end
 
-      module_function meth
-    end
+  def next_area
+    current_area.next
+  end
 
-    # add next/prev methods -- complementary to current()
-    %w[next prev].each do |prop|
-      meth = "#{prop}_#{target}"
+  def prev_area
+    current_area.prev
+  end
 
-      define_method meth do
-        c.current.__send__(prop)
-      end
+  def current_view
+    View.current
+  end
 
-      module_function meth
-    end
+  def next_view
+    current_view.next
+  end
+
+  def prev_view
+    current_view.prev
+  end
+
+  def focus_client aId
+    Client.focus(aId)
+  end
+
+  def focus_area aId
+    Area.focus(aId)
+  end
+
+  def focus_view aId
+    View.focus(aId)
   end
 
   # provide easy access to this module's instance methods

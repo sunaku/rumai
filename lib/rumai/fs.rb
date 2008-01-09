@@ -8,11 +8,11 @@ require 'socket'
 
 module Rumai
   begin
-    wmiiAddr = ENV['WMII_ADDRESS'].to_s.sub(/.*!/, '')
-    wmiiSock = UNIXSocket.new(wmiiAddr)
+    addr = ENV['WMII_ADDRESS'].to_s.sub(/.*!/, '')
+    sock = UNIXSocket.new(addr)
 
     # We use a single, global connection to wmii's IXP server.
-    AGENT = IXP::Agent.new(wmiiSock)
+    AGENT = IXP::Agent.new(sock)
 
   rescue
     $!.message << %{
@@ -53,8 +53,8 @@ module Rumai
     end
 
     # Returns the names of all files in this directory.
-    def ls
-      AGENT.ls @path rescue []
+    def entries
+      AGENT.entries @path rescue []
     end
 
     # Opens this node for I/O access.
@@ -97,13 +97,13 @@ module Rumai
 
     # Returns all child nodes of this node.
     def children
-      ls.map! {|c| Node.new c }
+      entries.map! {|c| Node.new c }
     end
 
     include Enumerable
       # Iterates through each child of this directory.
       def each &aBlock
-        children.each(&aBlock)
+        children.each &aBlock
       end
 
     # Deletes all child nodes.

@@ -7,9 +7,8 @@ require 'message'
 require 'thread' # for Mutex
 
 module IXP
-  # A proxy that multiplexes many threads onto a single 9P2000 connection.
-  # A thread simply uses the #talk method to perform a 9P2000 transaction
-  # without worrying about the details of tag collisions and thread safety.
+  # A thread-safe proxy that multiplexes many
+  # threads onto a single 9P2000 connection.
   class Agent
     attr_reader :msize
 
@@ -78,7 +77,10 @@ module IXP
       end
     end
 
-    # Sends the given message and returns its response.
+    # Sends the given message (IXP::Fcall) and returns its response.
+    #
+    # This method allows you to perform a 9P2000 transaction without
+    # worrying about the details of tag collisions and thread safety.
     def talk aRequest
       # send the messsage
       aRequest.tag = @tagPool.obtain
@@ -212,6 +214,9 @@ module IXP
 
       # Returns the maximum amount of content that can fit in
       # one 9P2000 message, starting from the given offset.
+      #
+      # The end of file is reached when the returned
+      # content string is empty (has zero length).
       def read_partial aOffset = 0
         raise IXP::Exception, 'cannot read from a closed stream' if @closed
 
@@ -258,7 +263,7 @@ module IXP
     end
 
     # Returns the names of all files inside the directory whose path is given.
-    def ls aPath
+    def entries aPath
       unless stat(aPath).directory?
         raise ArgumentError, "#{aPath.inspect} is not a directory"
       end
@@ -285,13 +290,12 @@ module IXP
         walk_fid prefixFid, prefix
 
         # create the file
-        req = Tcreate.new(
+        talk Tcreate.new(
           :fid => prefixFid,
           :name => target,
           :perm => aPerm,
           :mode => mode
         )
-        rsp = talk(req)
       end
     end
 
@@ -303,8 +307,7 @@ module IXP
 
     # Deletes the file corresponding to the given FID and clunks the given FID.
     def remove_fid aPathFid
-      req = Tremove.new(:fid => aPathFid)
-      rsp = talk(req)
+      talk Tremove.new(:fid => aPathFid)
     end
 
     # Returns information about the file at the given path.
@@ -350,9 +353,8 @@ module IXP
 
     # Retires the given FID from use.
     def clunk aFid
-      req = Tclunk.new(:fid => aFid)
-      rsp = talk(req)
-      @fidPool.release(aFid)
+      talk Tclunk.new(:fid => aFid)
+      @fidPool.release aFid
     end
 
     private

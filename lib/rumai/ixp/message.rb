@@ -34,7 +34,7 @@ module IXP
   end
 
   # A common container for exceptions concerning IXP.
-  class Exception < ::Exception
+  class Exception < StandardError
   end
 
   # A serializable 9P2000 data structure.
