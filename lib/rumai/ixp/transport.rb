@@ -37,6 +37,13 @@ module IXP
       end
 
       @msize = rsp.msize
+
+      # authenticate the connection (not necessary for wmii)
+      @authFid = Fcall::NOFID
+
+      # attach to filesystem root
+      @rootFid = @fidPool.obtain
+      attach @rootFid, @authFid
     end
 
     # A thread-safe pool of range members.
@@ -324,22 +331,15 @@ module IXP
 
     # Associates the given FID to the given path.
     def walk_fid aPathFid, aPath
-      with_fid do |rootFid|
-        # start at the FS root
-        attach rootFid
-
-        # walk down the path
-        req = Twalk.new(
-          :fid    => rootFid,
-          :newfid => aPathFid,
-          :wname  => aPath.to_s.split(%r{/+}).reject { |s| s.empty? }
-        )
-        rsp = talk(req)
-      end
+      talk Twalk.new(
+        :fid    => @rootFid,
+        :newfid => aPathFid,
+        :wname  => aPath.to_s.split(%r{/+}).reject { |s| s.empty? }
+      )
     end
 
     # Associates the given FID with the FS root.
-    def attach aRootFid, aAuthFid = Fcall::NOFID, aAuthName = nil
+    def attach aRootFid, aAuthFid = Fcall::NOFID, aAuthName = ENV['USER']
       talk Tattach.new(
         :fid    => aRootFid,
         :afid   => aAuthFid,
