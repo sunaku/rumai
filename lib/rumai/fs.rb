@@ -7,20 +7,25 @@ require 'ixp'
 require 'socket'
 
 module Rumai
-  wmiiAddr = ENV['WMII_ADDRESS'].to_s.sub(/.*!/, '')
-  wmiiSock = UNIXSocket.new(wmiiAddr)
+  begin
+    wmiiAddr = ENV['WMII_ADDRESS'].to_s.sub(/.*!/, '')
+    wmiiSock = UNIXSocket.new(wmiiAddr)
 
-  # We use a single, global connection to wmii's IXP server.
-  CLIENT = IXP::Agent.new(wmiiSock)
+    # We use a single, global connection to wmii's IXP server.
+    AGENT = IXP::Agent.new(wmiiSock)
+
+  rescue
+    $!.message << %{
+      Ensure that (1) the WMII_ADDRESS environment variable is set and that (2)
+      it correctly specifies the filesystem path of wmii's IXP socket file,
+      which is typically located at "/tmp/ns.$USER.:$DISPLAY/wmii".
+    }.gsub(/^ +/, '').gsub(/\A|\z/, "\n")
+
+    raise
+  end
 
   # An entry in the IXP file system.
   class Node
-    include Enumerable
-      # Iterates through each child of this directory.
-      def each &aBlock
-        children.each(&aBlock)
-      end
-
     attr_reader :path
 
     def initialize aPath
@@ -30,7 +35,7 @@ module Rumai
     # Returns file statistics about this node.
     # See IXP::Client#stat for details.
     def stat
-      CLIENT.stat @path
+      AGENT.stat @path
     end
 
     # Tests if this node exists on the IXP server.
@@ -47,32 +52,37 @@ module Rumai
       exist? and stat.directory?
     end
 
+    # Returns the names of all files in this directory.
+    def ls
+      AGENT.ls @path rescue []
+    end
+
     # Opens this node for I/O access.
     # See IXP::Client#open for details.
     def open aMode = 'r', &aBlock
-      CLIENT.open @path, aMode, aBlock
+      AGENT.open @path, aMode, aBlock
     end
 
     # Returns the entire content of this node.
     # See IXP::Client#read for details.
     def read
-      CLIENT.read @path
+      AGENT.read @path
     end
 
     # Writes the given content to this node.
     def write aContent
-      CLIENT.write @path, aContent
+      AGENT.write @path, aContent
     end
 
     # Creates a file corresponding to this node on the IXP server.
     # See IXP::Client#create for details.
     def create *aArgs
-      CLIENT.create @path, *aArgs
+      AGENT.create @path, *aArgs
     end
 
     # Deletes the file corresponding to this node on the IXP server.
     def remove
-      CLIENT.remove @path
+      AGENT.remove @path
     end
 
     # Returns the given sub-path as a Node object.
@@ -87,13 +97,14 @@ module Rumai
 
     # Returns all child nodes of this node.
     def children
-      ls.map! {|c| Node.new c}
+      ls.map! {|c| Node.new c }
     end
 
-    # Returns the names of all files in this directory.
-    def ls
-      CLIENT.ls @path rescue []
-    end
+    include Enumerable
+      # Iterates through each child of this directory.
+      def each &aBlock
+        children.each(&aBlock)
+      end
 
     # Deletes all child nodes.
     def clear
@@ -104,8 +115,7 @@ module Rumai
 
     # Provides access to child nodes through method calls.
     #
-    # :call-seq:
-    #   node.child -> Node
+    # :call-seq: node.child -> Node
     #
     def method_missing aMeth, *aArgs
       self[aMeth]
@@ -120,7 +130,7 @@ module Rumai
   #
   # Both of the above expressions are equivalent.
   #
-  module ExternalizeInstanceMethods
+  module ExportInstMethods
     def self.extended aTarget
       aTarget.instance_methods(false).each do |meth|
         (class << aTarget; self; end).instance_eval do
@@ -132,5 +142,9 @@ module Rumai
     end
   end
 
-  Node.extend ExternalizeInstanceMethods
+  # We use extend() AFTER all methods have been defined in the class so
+  # that the Externalize* module can do its magic.  If we include()d
+  # the module instead before all methods in the class have been
+  # defined, then the magic would only apply to SOME of the methods!
+  Node.extend ExportInstMethods
 end

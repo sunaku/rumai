@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
-# This is an interactive Ruby shell for wmii.
-# - Press the TAB key for command completion.
-
+# An interactive shell for Rumai.
+#--
 # Copyright 2006 Suraj N. Kurapati
 # See the file named LICENSE for details.
 
@@ -9,26 +8,20 @@ require 'irb'
 require 'irb/completion'
 
 module IRB
-  # Starts an IRB session inside the given object.
+  # Starts an IRB session *inside* the given object.
   #--
-  # Adapted from Massimiliano Mirra:
-  # <http://www.therubymine.com/articles/2007/01/29/programmare-dallinterno>
+  # This code was adapted from a snippet on Massimiliano Mirra's website:
+  # http://www.therubymine.com/articles/2007/01/29/programmare-dallinterno
   def self.start_session aContextObj
-    setup(nil)
-    irb = Irb.new(WorkSpace.new(aContextObj))
-    @CONF[:MAIN_CONTEXT] = irb.context
-    catch(:IRB_EXIT) { irb.eval_input }
+    setup nil
+    session = Irb.new(WorkSpace.new(aContextObj))
+    @CONF[:MAIN_CONTEXT] = session.context
+    catch(:IRB_EXIT) { session.eval_input }
   end
 end
 
 if __FILE__ == $0
-  # show usage info
-  require 'rdoc/usage'
-  RDoc::usage_no_exit
-
-  # start the IRB session
   $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
   require 'rumai'
-
   IRB.start_session Rumai
 end
