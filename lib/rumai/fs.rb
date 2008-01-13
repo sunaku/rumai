@@ -42,7 +42,7 @@ module Rumai
     def exist?
       begin
         true if stat
-      rescue IXP::Exception
+      rescue IXP::Error
         false
       end
     end

@@ -32,7 +32,7 @@ module IXP
       rsp = talk(req)
 
       unless req.version == rsp.version
-        raise IXP::Exception, "protocol mismatch: self=#{req.version.inspect} server=#{rsp.version.inspect}"
+        raise IXP::Error, "protocol mismatch: self=#{req.version.inspect} server=#{rsp.version.inspect}"
       end
 
       @msize = rsp.msize
@@ -96,10 +96,10 @@ module IXP
           @tagPool.release aRequest.tag
 
           if response.is_a? Rerror
-            raise IXP::Exception, "#{response.ename.inspect} in response to #{aRequest.inspect}"
+            raise IXP::Error, "#{response.ename.inspect} in response to #{aRequest.inspect}"
 
           elsif response.type != aRequest.type + 1
-            raise IXP::Exception, "response's type must equal request's type + 1; request=#{aRequest.inspect} response=#{response.inspect}"
+            raise IXP::Error, "response's type must equal request's type + 1; request=#{aRequest.inspect} response=#{response.inspect}"
 
           else
             return response
@@ -185,7 +185,7 @@ module IXP
       # stream corresponds to a directory, then an Array of Stat
       # (one for each file in the directory) will be returned.
       def read
-        raise IXP::Exception, 'cannot read from a closed stream' if @closed
+        raise 'cannot read from a closed stream' if @closed
 
         content = ''
         offset = 0
@@ -218,7 +218,7 @@ module IXP
       # The end of file is reached when the returned
       # content string is empty (has zero length).
       def read_partial aOffset = 0
-        raise IXP::Exception, 'cannot read from a closed stream' if @closed
+        raise 'cannot read from a closed stream' if @closed
 
         req = Tread.new(
           :fid    => @fid,
@@ -231,8 +231,8 @@ module IXP
 
       # Writes the given content to the beginning of this stream.
       def write aContent
-        raise IXP::Exception, 'closed streams cannot be written to' if @closed
-        raise IXP::Exception, 'directories cannot be written to' if @stat.directory?
+        raise 'closed streams cannot be written to' if @closed
+        raise 'directories cannot be written to' if @stat.directory?
 
         offset = 0
         content = aContent.to_s

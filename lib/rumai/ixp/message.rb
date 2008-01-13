@@ -34,7 +34,7 @@ module IXP
   end
 
   # A common container for exceptions concerning IXP.
-  class Exception < StandardError
+  class Error < StandardError
   end
 
   # A serializable 9P2000 data structure.
@@ -302,7 +302,7 @@ module IXP
       type = aStream.read_9p(1)
 
       unless fcall = TYPES.index(type)
-        raise IXP::Exception, "illegal fcall type: #{type}"
+        raise IXP::Error, "illegal fcall type: #{type}"
       end
 
       __from_9p__ aStream, fcall
@@ -355,7 +355,7 @@ module IXP
   # illegal
   class Terror < Fcall
     def to_9p
-      raise IXP::Exception, 'the Terror fcall cannot be transmitted'
+      raise IXP::Error, 'the Terror fcall cannot be transmitted'
     end
   end
 
