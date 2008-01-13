@@ -147,7 +147,7 @@ module IXP
         :mode => mode
       )
 
-      stream = FidStream.new(self, pathFid)
+      stream = FidStream.new(self, pathFid, @msize)
 
       # return the file stream
       if block_given?
@@ -165,9 +165,10 @@ module IXP
     class FidStream
       attr_reader :fid
 
-      def initialize aAgent, aPathFid
+      def initialize aAgent, aPathFid, aMessageSize
         @agent  = aAgent
         @fid    = aPathFid
+        @msize  = aMessageSize
         @stat   = @agent.stat_fid @fid
         @closed = false
       end
@@ -195,8 +196,7 @@ module IXP
 
           count = chunk.length
           offset = (offset + count) % BYTE8_LIMIT
-
-        end until count.zero?
+        end until count < @msize
 
         # the content of a directory is a sequence
         # of Stat for all files in that directory
@@ -223,7 +223,7 @@ module IXP
         req = Tread.new(
           :fid    => @fid,
           :offset => aOffset,
-          :count  => @agent.msize
+          :count  => @msize
         )
         rsp = @agent.talk(req)
         rsp.data
@@ -238,7 +238,7 @@ module IXP
         content = aContent.to_s
 
         while offset < content.length
-          chunk = content[offset, @agent.msize]
+          chunk = content[offset, @msize]
 
           req = Twrite.new(
             :fid    => @fid,
