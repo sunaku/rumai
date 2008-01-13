@@ -109,11 +109,6 @@ module Rumai
         arr[(pos - 1) % arr.length]
       end
     end
-
-    # Checks if this object exists in the chain.
-    def exist?
-      chain.include? self
-    end
   end
 
   # The basic building block of the WM hierarchy.
@@ -375,6 +370,11 @@ module Rumai
     include Chain
       def chain
         @view.areas
+      end
+
+      # Checks if this object exists in the chain.
+      def exist?
+        chain.include? self
       end
 
     include ClientContainer
