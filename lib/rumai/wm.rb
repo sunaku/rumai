@@ -138,8 +138,8 @@ module Rumai
     def initialize aId, aPathPrefix
       super "#{aPathPrefix}/#{aId}"
 
-      if aId.to_sym == :sel and ctl.exist?
-        @id = ctl.read 
+      if aId.to_s == 'sel' and ctl.exist?
+        @id = ctl.read
         @path = File.join(File.dirname(@path), @id)
       else
         @id = File.basename(@path)
@@ -198,7 +198,7 @@ module Rumai
 
     # Sends this client to the given destination within the given view.
     def send aDst, aView = View.current
-      if aDst.to_sym != :toggle
+      if aDst.to_s != 'toggle'
         # XXX: it is an error to send a floating client directly to a
         #      managed area, so we gotta "ground" it first and then send it
         #      to the desired managed area. John-Galt will fix this someday.
