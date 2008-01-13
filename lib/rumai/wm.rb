@@ -143,8 +143,8 @@ module Rumai
     def initialize aId, aPathPrefix
       super "#{aPathPrefix}/#{aId}"
 
-      if aId.to_sym == :sel
-        @id = self[:ctl].read
+      if aId.to_sym == :sel and ctl.exist?
+        @id = ctl.read 
         @path = File.join(File.dirname(@path), @id)
       else
         @id = File.basename(@path)
@@ -546,7 +546,7 @@ module Rumai
 
     # Returns the manifest of all areas and clients in this view.
     def manifest
-      self[:index].read || ''
+      index.read || ''
     end
 
     ##

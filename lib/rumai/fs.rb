@@ -60,7 +60,7 @@ module Rumai
     # Opens this node for I/O access.
     # See IXP::Client#open for details.
     def open aMode = 'r', &aBlock
-      AGENT.open @path, aMode, aBlock
+      AGENT.open @path, aMode, &aBlock
     end
 
     # Returns the entire content of this node.
@@ -106,13 +106,13 @@ module Rumai
 
     # Returns all child nodes of this node.
     def children
-      entries.map! {|c| Node.new c }
+      entries.map! {|c| self[c] }
     end
 
     include Enumerable
       # Iterates through each child of this directory.
       def each &aBlock
-        children.each &aBlock
+        children.each(&aBlock)
       end
 
     # Deletes all child nodes.
