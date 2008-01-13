@@ -172,14 +172,8 @@ module Rumai
 
     # Focuses this client within the given view.
     def focus aView = nil
-      if exist? and not focused?
-        haystack = if aView
-          [aView]
-        else
-          views
-        end
-
-        haystack.each do |v|
+      if exist? and not focus?
+        (aView ? [aView] : self.views).each do |v|
           if a = self.area(v)
             v.focus
             a.focus
