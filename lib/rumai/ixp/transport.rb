@@ -18,9 +18,9 @@ module IXP
       @recvLock  = Mutex.new
 
       @responses = {} # tag => message
-      @tagPool   = RangePool.new(0...BYTE2_MASK)
+      @tagPool   = RangedPool.new(0...BYTE2_MASK)
 
-      @fidPool   = RangePool.new(0...BYTE4_MASK)
+      @fidPool   = RangedPool.new(0...BYTE4_MASK)
       @msize     = Tversion::MSIZE
 
       # establish connection with 9P2000 server
@@ -46,35 +46,26 @@ module IXP
     end
 
     # A thread-safe pool of range members.
-    class RangePool
+    class RangedPool < Queue
       def initialize aRange
-        @range = aRange
-        @used = []
-        @lock = Mutex.new
+        # populates the pool in the background
+        @producer = Thread.new do
+          aRange.each do |x|
+            release x
+            Thread.stop
+          end
+        end
       end
 
-      # Returns an unoccupied member of the
-      # range and marks it as being occupied.
+      # Returns an unoccupied range member from the pool.
       def obtain
-        key = nil
-
-        @lock.synchronize do
-          key = @range.find {|r| not @used.include? r}
-          raise RangeError, 'all members occupied' unless key
-
-          @used << key
-        end
-
-        key
+        @producer.run if @producer.alive?
+        deq
       end
 
       # Marks the given member as being unoccupied so
       # that it may be occupied again in the future.
-      def release aKey
-        @lock.synchronize do
-          @used.delete aKey
-        end
-      end
+      alias release enq
     end
 
     # Sends the given message (IXP::Fcall) and returns its response.
