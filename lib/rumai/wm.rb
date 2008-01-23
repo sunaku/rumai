@@ -44,8 +44,8 @@ module Rumai
     end
 
   # Returns the name of the currently focused tag.
-  def current_tag
-    current_view.id
+  def curr_tag
+    curr_view.id
   end
 
   # Returns the name of the next tag.
@@ -73,8 +73,8 @@ module Rumai
   # no grouped clients, then the currently
   # focused client is returned in the list.
   def grouping
-    list = current_view.clients.select {|c| c.group? }
-    list << current_client if list.empty? and current_client.exist?
+    list = curr_view.clients.select {|c| c.group? }
+    list << curr_client if list.empty? and curr_client.exist?
     list
   end
 
@@ -125,7 +125,7 @@ module Rumai
 
     # Checks if this widget currently has focus.
     def current?
-      self == self.class.current
+      self == self.class.curr
     end
 
     alias focus? current?
@@ -154,14 +154,14 @@ module Rumai
     end
 
     # Returns the currently focused client.
-    def self.current
+    def self.curr
       new :sel
     end
 
     include Chain
       # Returns a list of clients in the current view.
       def chain
-        View.current.clients
+        View.curr.clients
       end
 
     ##
@@ -180,7 +180,7 @@ module Rumai
 
             # slide focus from the current client onto this client
             arr = a.client_ids
-            src = arr.index Client.current.id
+            src = arr.index Client.curr.id
             dst = arr.index @id
 
             distance = (src - dst).abs
@@ -197,7 +197,7 @@ module Rumai
     end
 
     # Sends this client to the given destination within the given view.
-    def send aDst, aView = View.current
+    def send aDst, aView = View.curr
       if aDst.to_s != 'toggle'
         # XXX: it is an error to send a floating client directly to a
         #      managed area, so we gotta "ground" it first and then send it
@@ -211,7 +211,7 @@ module Rumai
     end
 
     # Swaps this client with the given destination within the given view.
-    def swap aDst, aView = View.current
+    def swap aDst, aView = View.curr
       aView.ctl.write "swap #{@id} #{aDst}"
     end
 
@@ -222,7 +222,7 @@ module Rumai
     ##
 
     # Returns the area that contains this client within the given view.
-    def area aView = View.current
+    def area aView = View.curr
       aView.area_of_client self
     end
 
@@ -340,7 +340,7 @@ module Rumai
     attr_reader :view
 
     # aView:: the view which contains this area.
-    def initialize aAreaId, aView = View.current
+    def initialize aAreaId, aView = View.curr
       @id = aAreaId.to_i
       @view = aView
     end
@@ -357,8 +357,8 @@ module Rumai
 
     include WidgetImpl
       # Returns the currently focused area.
-      def self.current
-        View.current.area_of_client Client.current
+      def self.curr
+        View.curr.area_of_client Client.curr
       end
 
     include Chain
@@ -507,7 +507,7 @@ module Rumai
   class View < WidgetNode
     include WidgetImpl
       # Returns the currently focused view.
-      def self.current
+      def self.curr
         new :sel
       end
 
@@ -703,40 +703,40 @@ module Rumai
     c.extend ExportInstMethods
   end
 
-  def current_client
-    Client.current
+  def curr_client
+    Client.curr
   end
 
   def next_client
-    current_client.next
+    curr_client.next
   end
 
   def prev_client
-    current_client.prev
+    curr_client.prev
   end
 
-  def current_area
-    Area.current
+  def curr_area
+    Area.curr
   end
 
   def next_area
-    current_area.next
+    curr_area.next
   end
 
   def prev_area
-    current_area.prev
+    curr_area.prev
   end
 
-  def current_view
-    View.current
+  def curr_view
+    View.curr
   end
 
   def next_view
-    current_view.next
+    curr_view.next
   end
 
   def prev_view
-    current_view.prev
+    curr_view.prev
   end
 
   def focus_client aId
