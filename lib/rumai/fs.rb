@@ -33,7 +33,7 @@ module Rumai
     end
 
     # Returns file statistics about this node.
-    # See IXP::Client#stat for details.
+    # See Rumai::IXP::Client#stat for details.
     def stat
       AGENT.stat @path
     end
@@ -58,13 +58,13 @@ module Rumai
     end
 
     # Opens this node for I/O access.
-    # See IXP::Client#open for details.
+    # See Rumai::IXP::Client#open for details.
     def open aMode = 'r', &aBlock
       AGENT.open @path, aMode, &aBlock
     end
 
     # Returns the entire content of this node.
-    # See IXP::Client#read for details.
+    # See Rumai::IXP::Client#read for details.
     def read
       AGENT.read @path
     end
@@ -84,7 +84,7 @@ module Rumai
     end
 
     # Creates a file corresponding to this node on the IXP server.
-    # See IXP::Client#create for details.
+    # See Rumai::IXP::Client#create for details.
     def create *aArgs
       AGENT.create @path, *aArgs
     end

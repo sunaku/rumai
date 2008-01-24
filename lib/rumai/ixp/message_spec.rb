@@ -5,7 +5,7 @@
 
 $: << File.dirname(__FILE__)
 require 'message'
-include IXP
+include Rumai::IXP
 
 require 'pp' if $DEBUG
 
