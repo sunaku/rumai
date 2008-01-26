@@ -442,6 +442,7 @@ module Rumai
 
       aClients.each do |c|
         import_client c
+        c.send :up
       end
     end
 
