@@ -412,7 +412,7 @@ module Rumai
 
     # Inserts the given clients at the bottom of this area.
     def push *aClients
-      if target = clients.first
+      if target = clients.last
         target.focus
       end
 
@@ -463,7 +463,7 @@ module Rumai
 
       elsif len < aMaxClients
         until (diff = aMaxClients - length) == 0
-          immigrants = out.clients[0...diff]
+          immigrants = out.clients.first(diff)
           break if immigrants.empty?
 
           push immigrants
