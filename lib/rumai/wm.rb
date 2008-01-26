@@ -481,7 +481,7 @@ module Rumai
     # Moves the given client into this area.
     def import_client c
       if exist?
-        @view.ctl.write "send #{c.id} #{@id+1}" #XXX: +1 until John-Galt fixes this: right now, index 1 is floating area; but ~ should be floating area.
+        c.send @id+1 # XXX: +1 until John-Galt fixes this: right now, index 1 is floating area; but ~ should be floating area.
 
       else
         # move the client to the nearest existing column
