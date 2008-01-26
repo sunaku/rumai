@@ -442,7 +442,7 @@ module Rumai
 
       aClients.each do |c|
         import_client c
-        c.send :up
+        c.send :up if target
       end
     end
 
@@ -459,7 +459,7 @@ module Rumai
       len, out = length, fringe
 
       if len > aMaxClients
-        out.unshift clients[aMaxClients..-1]
+        out.unshift clients[aMaxClients..-1].reverse
 
       elsif len < aMaxClients
         until (diff = aMaxClients - length) == 0
