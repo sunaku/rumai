@@ -26,6 +26,8 @@ module Rumai
 
   # An entry in the IXP file system.
   class Node
+    @@cache = Hash.new {|h,k| h[k] = Node.new(k) }
+
     attr_reader :path
 
     def initialize aPath
@@ -96,12 +98,12 @@ module Rumai
 
     # Returns the given sub-path as a Node object.
     def [] aSubPath
-      Node.new "#{@path}/#{aSubPath}"
+      @@cache[ File.join(@path, aSubPath.to_s) ]
     end
 
     # Returns the parent node of this node.
     def parent
-      Node.new File.dirname(@path)
+      @@cache[ File.dirname(@path) ]
     end
 
     # Returns all child nodes of this node.
@@ -127,7 +129,16 @@ module Rumai
     # :call-seq: node.child -> Node
     #
     def method_missing aMeth, *aArgs
-      self[aMeth]
+      child = self[aMeth]
+
+      # speed up future accesses
+      (class << self; self; end).instance_eval do
+        define_method aMeth do
+          child
+        end
+      end
+
+      child
     end
   end
 

@@ -46,53 +46,69 @@ module Rumai
         attach @rootFid, @authFid
       end
 
-      # A thread-safe pool of range members.
-      class RangedPool < Queue
+      # A finite, thread-safe pool of range members.
+      class RangedPool
+        # how many new members should be added to the pool when the pool is empty?
+        FILL_RATE = 10
+
         def initialize aRange
-          # populates the pool in the background
-          @producer = Thread.new do
-            aRange.each do |x|
-              release x
-              Thread.stop
-            end
-          end
+          @pos = aRange.first
+          @lim = aRange.last
+          @lim = @lim.succ unless aRange.exclude_end?
+
+          @pool = Array.new
+          @lock = Mutex.new
         end
 
         # Returns an unoccupied range member from the pool.
         def obtain
-          @producer.run if @producer.alive?
-          deq
+          until member = @lock.synchronize { @pool.shift }
+            # the pool is empty, so fill it
+            @lock.synchronize do
+              FILL_RATE.times do
+                if @pos != @lim
+                  @pool.push @pos
+                  @pos = @pos.succ
+                else
+                  break
+                end
+              end
+            end or Thread.pass # range is exhausted, so wait for other threads to fill the pool
+          end
+
+          member
         end
 
         # Marks the given member as being unoccupied so
         # that it may be occupied again in the future.
-        alias release enq
+        def release aMember
+          @lock.synchronize do
+            @pool.push aMember
+          end
+        end
       end
 
       # Sends the given message (Rumai::IXP::Fcall) and returns its response.
       #
       # This method allows you to perform a 9P2000 transaction without
       # worrying about the details of tag collisions and thread safety.
+      #
       def talk aRequest
         # send the messsage
-        aRequest.tag = @tagPool.obtain
+        ticket = aRequest.tag = @tagPool.obtain
 
         @sendLock.synchronize do
           @stream << aRequest.to_9p
         end
 
         # receive the response
-        loop do
+        while true
           # check for *my* response in the bucket
-          if response = @recvLock.synchronize { @responses.delete aRequest.tag }
-            @tagPool.release aRequest.tag
+          if response = @recvLock.synchronize { @responses.delete ticket }
+            @tagPool.release ticket
 
             if response.is_a? Rerror
               raise Error, "#{response.ename.inspect} in response to #{aRequest.inspect}"
-
-            elsif response.type != aRequest.type + 1
-              raise Error, "response's type must equal request's type + 1; request=#{aRequest.inspect} response=#{response.inspect}"
-
             else
               return response
             end

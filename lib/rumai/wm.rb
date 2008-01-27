@@ -18,9 +18,11 @@ module Rumai
   #
   ##
 
+  ROOT = Node.new '/'
+
   # Returns the root of IXP file system hierarchy.
   def fs
-    Node.new '/'
+    ROOT
   end
 
   # Returns the current set of tags.
