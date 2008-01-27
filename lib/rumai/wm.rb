@@ -94,19 +94,21 @@ module Rumai
 
     # Returns the object after this one in the chain.
     def next
-      arr = chain
-
-      if pos = arr.index(self)
-        arr[(pos + 1) % arr.length]
-      end
+      sibling(+1)
     end
 
     # Returns the object before this one in the chain.
     def prev
+      sibling(-1)
+    end
+
+    private
+
+    def sibling aOffset
       arr = chain
 
       if pos = arr.index(self)
-        arr[(pos - 1) % arr.length]
+        arr[(pos + aOffset) % arr.length]
       end
     end
   end
@@ -197,8 +199,8 @@ module Rumai
     end
 
     # Sends this client to the given destination within the given view.
-    def send aDst, aView = View.curr
-      if aDst.to_s != 'toggle'
+    def send aAreaOrId, aView = View.curr
+      if aAreaOrId.to_s != 'toggle'
         # XXX: it is an error to send a floating client directly to a
         #      managed area, so we gotta "ground" it first and then send it
         #      to the desired managed area. John-Galt will fix this someday.
@@ -207,12 +209,14 @@ module Rumai
         end
       end
 
-      aView.ctl.write "send #{@id} #{aDst}"
+      dst = area_to_id(aAreaOrId)
+      aView.ctl.write "send #{@id} #{dst}"
     end
 
     # Swaps this client with the given destination within the given view.
-    def swap aDst, aView = View.curr
-      aView.ctl.write "swap #{@id} #{aDst}"
+    def swap aAreaOrId, aView = View.curr
+      dst = area_to_id(aAreaOrId)
+      aView.ctl.write "swap #{@id} #{dst}"
     end
 
     ##
@@ -303,6 +307,18 @@ module Rumai
         ungroup
       else
         group
+      end
+    end
+
+    private
+
+    def area_to_id aAreaOrId
+      if aAreaOrId.respond_to? :id
+        # XXX: +1 until John-Galt fixes this: right now, index 1
+        #      is floating area; but ~ (0) should be floating area.
+        aAreaOrId.id+1
+      else
+        aAreaOrId
       end
     end
   end
@@ -481,14 +497,14 @@ module Rumai
     # Moves the given client into this area.
     def import_client c
       if exist?
-        c.send @id+1 # XXX: +1 until John-Galt fixes this: right now, index 1 is floating area; but ~ should be floating area.
+        c.send self
 
       else
         # move the client to the nearest existing column
         src = c.area
         dst = chain.last
 
-        dst.insert c unless src == dst
+        c.send dst unless src == dst
 
         # slide the client over to this column
         c.send :right
@@ -552,7 +568,12 @@ module Rumai
 
     # Returns the area which contains the given client in this view.
     def area_of_client aClientOrId
-      arg = aClientOrId.id rescue aClientOrId
+      arg =
+        if aClientOrId.respond_to? :id
+          aClientOrId.id
+        else
+          aClientOrId
+        end
 
       manifest =~ /^(\S+) #{arg}/
       if areaId = $1

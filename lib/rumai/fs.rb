@@ -140,7 +140,7 @@ module Rumai
   # Both of the above expressions are equivalent.
   #
   module ExportInstMethods
-    def self.extended aTarget
+    def self.extended aTarget #:nodoc:
       aTarget.instance_methods(false).each do |meth|
         (class << aTarget; self; end).instance_eval do
           define_method meth do |path, *args|
