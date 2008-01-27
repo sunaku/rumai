@@ -20,8 +20,19 @@ module IRB
   end
 end
 
-if __FILE__ == $0
+# the basename() is for being launched by a RubyGems executable
+if __FILE__ == $0 or File.basename(__FILE__) == File.basename($0)
   $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
-  require 'rumai'
-  IRB.start_session Rumai
+
+  if ARGV.first =~ /-v|--version/i
+    require 'rumai/nfo'
+
+    puts "%s %s (%s) %s %s" % [
+      :name, :version, :release, :website, :home
+    ].map {|m| Rumai::NFO[m] }
+
+  else
+    require 'rumai'
+    IRB.start_session Rumai
+  end
 end
