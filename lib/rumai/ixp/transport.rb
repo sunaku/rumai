@@ -14,15 +14,21 @@ module Rumai
       attr_reader :msize
 
       def initialize aStream
-        @stream    = aStream
-        @sendLock  = Mutex.new
-        @recvLock  = Mutex.new
+        @stream   = aStream
+        @sendLock = Mutex.new
+        @recvBays = Hash.new {|h,k| h[k] = Queue.new } # tag => Queue(message)
 
-        @responses = {} # tag => message
-        @tagPool   = RangedPool.new(0...BYTE2_MASK)
+        # background thread which continuously receives
+        # and dispatches messages from the 9P2000 server
+        Thread.new do
+          while true
+            msg = Fcall.from_9p @stream
+            @recvBays[msg.tag] << msg
+          end
+        end.priority = -1
 
-        @fidPool   = RangedPool.new(0...BYTE4_MASK)
-        @msize     = Tversion::MSIZE
+        @tagPool = RangedPool.new(0...BYTE2_MASK)
+        @fidPool = RangedPool.new(0...BYTE4_MASK)
 
         # establish connection with 9P2000 server
         req = Tversion.new(
@@ -94,32 +100,24 @@ module Rumai
       # worrying about the details of tag collisions and thread safety.
       #
       def talk aRequest
-        # send the messsage
-        ticket = aRequest.tag = @tagPool.obtain
+        # send the request
+        tag = @tagPool.obtain
+        bay = @recvBays[tag]
 
+        aRequest.tag = tag
+        output = aRequest.to_9p
         @sendLock.synchronize do
-          @stream << aRequest.to_9p
+          @stream << output
         end
 
         # receive the response
-        while true
-          # check for *my* response in the bucket
-          if response = @recvLock.synchronize { @responses.delete ticket }
-            @tagPool.release ticket
+        response = bay.shift
+        @tagPool.release tag
 
-            if response.is_a? Rerror
-              raise Error, "#{response.ename.inspect} in response to #{aRequest.inspect}"
-            else
-              return response
-            end
-
-          # put the next response into the bucket
-          else
-            @recvLock.synchronize do
-              response = Fcall.from_9p @stream
-              @responses[response.tag] = response
-            end
-          end
+        if response.is_a? Rerror
+          raise Error, "#{response.ename.inspect} in response to #{aRequest.inspect}"
+        else
+          return response
         end
       end
 
