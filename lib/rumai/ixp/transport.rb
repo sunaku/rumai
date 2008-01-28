@@ -62,35 +62,36 @@ module Rumai
           @lim = aRange.last
           @lim = @lim.succ unless aRange.exclude_end?
 
-          @pool = Array.new
-          @lock = Mutex.new
+          @pool = Queue.new
         end
 
         # Returns an unoccupied range member from the pool.
         def obtain
-          until member = @lock.synchronize { @pool.shift }
-            # the pool is empty, so fill it
-            @lock.synchronize do
-              FILL_RATE.times do
-                if @pos != @lim
-                  @pool.push @pos
-                  @pos = @pos.succ
-                else
-                  break
-                end
-              end
-            end or Thread.pass # range is exhausted, so wait for other threads to fill the pool
-          end
+          begin
+            @pool.deq true
 
-          member
+          rescue ThreadError
+            # pool is empty, so fill it
+            FILL_RATE.times do
+              if @pos != @lim
+                @pool << @pos
+                @pos = @pos.succ
+              else
+                # range is exhausted, so give other threads
+                # a chance to fill the pool before retrying
+                Thread.pass
+                break
+              end
+            end
+
+            retry
+          end
         end
 
         # Marks the given member as being unoccupied so
         # that it may be occupied again in the future.
         def release aMember
-          @lock.synchronize do
-            @pool.push aMember
-          end
+          @pool << aMember
         end
       end
 
