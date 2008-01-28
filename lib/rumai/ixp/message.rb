@@ -29,8 +29,7 @@ module Rumai
 
       # Unpacks the given number of bytes from this 9P2000 byte stream.
       def read_9p aNumBytes
-        fmt = PACKING_FLAGS[aNumBytes]
-        read(aNumBytes).unpack(fmt)[0]
+        read(aNumBytes).unpack(PACKING_FLAGS[aNumBytes])[0]
       end
     end
 
@@ -61,13 +60,13 @@ module Rumai
 
       # Transforms this object into a string of 9P2000 bytes.
       def to_9p
-        fields.inject('') {|s,f| s << f.to_9p(self) }
+        @fields.inject('') {|s,f| s << f.to_9p(self) }
       end
 
       # Populates this object with information
       # from the given 9P2000 byte stream.
       def load_9p aStream
-        fields.each do |f|
+        @fields.each do |f|
           f.load_9p aStream, self
         end
       end
@@ -119,14 +118,9 @@ module Rumai
 
       private
 
-      # A field inside a Struct.
-      #
-      # * A field's value is considered to be:
-      #   * array of format when <code>counter && format.is_a? Class</code>
-      #   * raw byte string when <code>counter && format.nil?</code>
-      #
-      # Field values are stored as instance variables inside a structure.
-      #
+      # A field inside a Struct.  A field's value is considered to be:
+      # * array of format when <code>counter && format.is_a? Class</code>
+      # * raw byte string when <code>counter && format.nil?</code>
       class Field
         attr_reader :name, :format, :counter, :countee
 
@@ -614,8 +608,7 @@ class String
   # Creates a new instance of this class from the
   # given 9P2000 byte stream and returns the instance.
   def self.from_9p aStream
-    count = aStream.read_9p(2)
-    aStream.read(count)
+    aStream.read(aStream.read_9p(2))
   end
 end
 

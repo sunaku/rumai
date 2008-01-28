@@ -54,7 +54,8 @@ module Rumai
 
       # A finite, thread-safe pool of range members.
       class RangedPool
-        # how many new members should be added to the pool when the pool is empty?
+        # how many new members should be added
+        # to the pool when the pool is empty?
         FILL_RATE = 10
 
         def initialize aRange
