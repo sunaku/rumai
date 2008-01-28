@@ -144,7 +144,7 @@
           Close the terminals we launched earlier:
           <code>
           terms = curr_view.clients.select {|c| colors.include? c.label.read }
-          terms.each {|c| c.ctl.write "kill" }
+          terms.each {|c| c.kill }
           </code>
         }.gsub(/^\s+/, '')
       %>

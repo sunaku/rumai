@@ -221,6 +221,11 @@ module Rumai
       aView.ctl.write "swap #{@id} #{dst}"
     end
 
+    # Terminates this client nicely (requests this window to be closed).
+    def kill
+      ctl.write :kill
+    end
+
     ##
     #
     # WM hierarchy
