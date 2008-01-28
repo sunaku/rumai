@@ -48,26 +48,16 @@ module Rumai
         @values = aFieldValues
       end
 
-      # Returns the value of the given field inside this structure.
-      def [] aField
-        @values[aField.name]
-      end
-
-      # Sets the value of the given field inside this structure.
-      def []= aField, aValue
-        @values[aField.name] = aValue
-      end
-
       # Transforms this object into a string of 9P2000 bytes.
       def to_9p
-        @fields.inject('') {|s,f| s << f.to_9p(self) }
+        @fields.inject('') {|s,f| s << f.to_9p(@values) }
       end
 
       # Populates this object with information
       # from the given 9P2000 byte stream.
       def load_9p aStream
         @fields.each do |f|
-          f.load_9p aStream, self
+          f.load_9p aStream, @values
         end
       end
 
@@ -168,14 +158,14 @@ module Rumai
         end
 
         # Transforms this object into a string of 9P2000 bytes.
-        def to_9p aStruct
-          value_to_9p aStruct[self]
+        def to_9p aFieldValues
+          value_to_9p aFieldValues[@name]
         end
 
         # Populates this object with information
         # taken from the given 9P2000 byte stream.
-        def load_9p aStream, aStruct
-          aStruct[self] = value_from_9p aStream
+        def load_9p aStream, aFieldValues
+          aFieldValues[@name] = value_from_9p aStream
         end
 
         private
@@ -194,15 +184,15 @@ module Rumai
 
         # Methods for a field that counts the length of another field.
         module CounterField
-          def to_9p aStruct
-            value_to_9p aStruct[@countee].length
+          def to_9p aFieldValues
+            value_to_9p aFieldValues[@countee.name].length
           end
         end
 
         # Methods for a field whose length is counted by another field.
         module CounteeField
-          def to_9p aStruct
-            value = aStruct[self]
+          def to_9p aFieldValues
+            value = aFieldValues[@name]
 
             if @format
               value.map {|v| value_to_9p v}.join
@@ -211,10 +201,10 @@ module Rumai
             end
           end
 
-          def load_9p aStream, aStruct
-            count = aStruct[@counter].to_i
+          def load_9p aStream, aFieldValues
+            count = aFieldValues[@counter.name].to_i
 
-            aStruct[self] =
+            aFieldValues[@name] =
               if @format
                 Array.new(count) { value_from_9p aStream }
               else
