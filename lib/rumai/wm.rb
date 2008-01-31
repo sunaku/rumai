@@ -143,7 +143,7 @@ module Rumai
       super "#{aPathPrefix}/#{aId}"
 
       if aId.to_s == 'sel' and ctl.exist?
-        @id = ctl.read
+        @id = ctl.read.split.first
         @path = File.join(File.dirname(@path), @id)
       else
         @id = File.basename(@path)
