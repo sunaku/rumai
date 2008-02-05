@@ -584,7 +584,7 @@ module Rumai
     end
 
     # Returns the floating area of this view.
-    def floating_area
+    def floater
       areas.first
     end
 
