@@ -178,7 +178,7 @@ module Rumai
     def focus aView = nil
       if exist? and not focus?
         (aView ? [aView] : self.views).each do |v|
-          if a = self.area(v)
+          if a = self.area(v) and a.exist?
             v.focus
             a.focus
 
@@ -202,15 +202,6 @@ module Rumai
 
     # Sends this client to the given destination within the given view.
     def send aAreaOrId, aView = View.curr
-      if aAreaOrId.to_s != 'toggle'
-        # XXX: it is an error to send a floating client directly to a
-        #      managed area, so we gotta "ground" it first and then send it
-        #      to the desired managed area. John-Galt will fix this someday.
-        if area(aView).float?
-          aView.ctl.write "send #{@id} toggle"
-        end
-      end
-
       dst = area_to_id(aAreaOrId)
       aView.ctl.write "send #{@id} #{dst}"
     end
@@ -321,9 +312,8 @@ module Rumai
 
     def area_to_id aAreaOrId
       if aAreaOrId.respond_to? :id
-        # XXX: +1 until John-Galt fixes this: right now, index 1
-        #      is floating area; but ~ (0) should be floating area.
-        aAreaOrId.id+1
+        id = aAreaOrId.id
+        id == '~' ? :toggle : id
       else
         aAreaOrId
       end
@@ -364,13 +354,13 @@ module Rumai
 
     # aView:: the view which contains this area.
     def initialize aAreaId, aView = View.curr
-      @id = aAreaId.to_i
+      @id = Integer(aAreaId) rescue aAreaId
       @view = aView
     end
 
     # Checks if this area is the floating area.
     def float?
-      @id == 0
+      @id == '~'
     end
 
     # Checks if this area is a column in the managed area.
@@ -397,7 +387,7 @@ module Rumai
     include ClientContainer
       # Returns the IDs of the clients in this area.
       def client_ids
-        @view.client_ids ctl_id
+        @view.client_ids @id
       end
 
     include Enumerable
@@ -408,7 +398,7 @@ module Rumai
 
     # Sets the layout of clients in this column.
     def layout= aMode
-      @view.ctl.write "colmode #{ctl_id} #{aMode}"
+      @view.ctl.write "colmode #{@id} #{aMode}"
     end
 
     ##
@@ -419,7 +409,7 @@ module Rumai
 
     # Puts focus on this area.
     def focus
-      @view.ctl.write "select #{ctl_id}"
+      @view.ctl.write "select #{@id}"
     end
 
     ##
@@ -495,11 +485,6 @@ module Rumai
     end
 
     private
-
-    # Makes the ID usable in wmii's /ctl commands.
-    def ctl_id
-      float? ? '~' : @id
-    end
 
     # Moves the given client into this area.
     def import_client c
