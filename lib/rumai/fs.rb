@@ -67,14 +67,14 @@ module Rumai
 
     # Returns the entire content of this node.
     # See Rumai::IXP::Client#read for details.
-    def read
-      AGENT.read @path
+    def read *aArgs
+      AGENT.read @path, *aArgs
     end
 
     # Invokes the given block for every line in the content of this node.
     def each_line &aBlock #:yields: line
       open do |file|
-        until (chunk = file.read_partial).empty?
+        until (chunk = file.read(true)).empty?
           chunk.each_line(&aBlock)
         end
       end

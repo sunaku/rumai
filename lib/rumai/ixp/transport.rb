@@ -170,8 +170,15 @@ module Rumai
       end
 
       # Encapsulates I/O access over a file handle (fid).
+      # NOTE that this class is NOT thread-safe.
       class FidStream
-        attr_reader :fid
+        attr_reader :fid, :stat
+
+        attr_reader :eof
+        alias eof? eof
+
+        attr_accessor :pos
+        alias tell pos
 
         def initialize aAgent, aPathFid, aMessageSize
           @agent  = aAgent
@@ -179,6 +186,13 @@ module Rumai
           @msize  = aMessageSize
           @stat   = @agent.stat_fid @fid
           @closed = false
+          rewind
+        end
+
+        # Rewinds the stream to the beginning.
+        def rewind
+          @pos = 0
+          @eof = false
         end
 
         # Closes this stream.
@@ -186,25 +200,41 @@ module Rumai
           unless @closed
             @agent.clunk @fid
             @closed = true
+            @eof = true
           end
         end
 
-        # Returns the entire content of this stream.  If this
-        # stream corresponds to a directory, then an Array of Stat
-        # (one for each file in the directory) will be returned.
-        def read
+        # Returns true if this stream is closed.
+        def closed?
+          @closed
+        end
+
+        # Reads some data from this stream at the current position.
+        #
+        # aPartial:: When false, the entire content of this stream
+        #            is read and returned.  When true, the maximum
+        #            amount of content that can fit inside a
+        #            single 9P2000 message is read and returned.
+        #
+        # If this stream corresponds to a directory, then an Array of
+        # Stat (one for each file in the directory) will be returned.
+        #
+        def read aPartial = false
           raise 'cannot read from a closed stream' if @closed
 
           content = ''
-          offset = 0
-
           begin
-            chunk = read_partial(offset)
-            content << chunk
+            req = Tread.new(
+              :fid    => @fid,
+              :offset => @pos,
+              :count  => @msize
+            )
+            rsp = @agent.talk(req)
 
-            count = chunk.length
-            offset = (offset + count) % BYTE8_LIMIT
-          end until count < @msize
+            content << rsp.data
+            count = rsp.count
+            @pos += count
+          end until @eof = count.zero? or aPartial
 
           # the content of a directory is a sequence
           # of Stat for all files in that directory
@@ -220,43 +250,26 @@ module Rumai
           content
         end
 
-        # Returns the maximum amount of content that can fit in
-        # one 9P2000 message, starting from the given offset.
-        #
-        # The end of file is reached when the returned
-        # content string is empty (has zero length).
-        def read_partial aOffset = 0
-          raise 'cannot read from a closed stream' if @closed
-
-          req = Tread.new(
-            :fid    => @fid,
-            :offset => aOffset,
-            :count  => @msize
-          )
-          rsp = @agent.talk(req)
-          rsp.data
-        end
-
-        # Writes the given content to the beginning of this stream.
+        # Writes the given content at the current position in this stream.
         def write aContent
           raise 'closed streams cannot be written to' if @closed
           raise 'directories cannot be written to' if @stat.directory?
 
-          offset = 0
-          content = aContent.to_s
+          data = aContent.to_s
+          limit = data.length + @pos
 
-          while offset < content.length
-            chunk = content[offset, @msize]
+          while @pos < limit
+            chunk = data[@pos, @msize]
 
             req = Twrite.new(
               :fid    => @fid,
-              :offset => offset,
+              :offset => @pos,
               :count  => chunk.length,
               :data   => chunk
             )
             rsp = @agent.talk(req)
 
-            offset += rsp.count
+            @pos += rsp.count
           end
         end
 
@@ -264,9 +277,9 @@ module Rumai
       end
 
       # Returns the content of the file/directory at the given path.
-      def read aPath
+      def read aPath, *aArgs
         open aPath do |f|
-          f.read
+          f.read(*aArgs)
         end
       end
 
