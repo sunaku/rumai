@@ -31,7 +31,7 @@ require 'rake/gempackagetask'
   spec = Gem::Specification.new do |s|
     s.name              = Rumai::NFO[:name].downcase
     s.version           = Rumai::NFO[:version]
-    s.summary           = 'Ruby interface to wmii.'
+    s.summary           = 'Ruby interface to the wmii window manager.'
     s.description       = s.summary
     s.homepage          = Rumai::NFO[:website]
     s.files             = FileList['**/*'].exclude('_darcs')

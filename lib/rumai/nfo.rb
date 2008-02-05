@@ -6,8 +6,8 @@
 module Rumai
   NFO = {
     :name    => 'Rumai',
-    :version => '1.0.0',
-    :release => '2008-01-26',
+    :version => '2.0.0',
+    :release => '2008-02-04',
     :website => 'http://rumai.rubyforge.org',
     :home    => File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
   }
