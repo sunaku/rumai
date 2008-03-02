@@ -8,7 +8,8 @@ require 'enumerator'
 
 class Object
   # prevent these deprecated properties from clashing with our usage below
-  undef id, type
+  undef id if respond_to? :id
+  undef type if respond_to? :type
 end
 
 module Rumai
