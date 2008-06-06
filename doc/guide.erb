@@ -2,43 +2,43 @@
   require 'lib/rumai/nfo'
 
   # local variables for this document
-  download_url    = 'http://rubyforge.org/frs/?group_id=5005'
-  source_repo_url = File.join(Rumai::NFO[:website], 'src')
-  feed_url        = File.join(Rumai::NFO[:website], 'news.xml')
+  pkg_url = File.join(Rumai::NFO[:website], 'pkg')
+  src_url = File.join(Rumai::NFO[:website], 'src')
+  ann_url = File.join(Rumai::NFO[:website], 'ann')
+  dev_url = File.join(Rumai::NFO[:website], 'dev')
+  log_url = File.join(Rumai::NFO[:website], 'log')
 
-  ruby_url        = 'http://ruby-lang.org'
-  wmii_url        = 'http://www.suckless.org/wiki/wmii'
-  wmii_ixp_url    = 'http://www.suckless.org/wiki/libs/libixp'
-  p9p_url         = 'http://cm.bell-labs.com/magic/man2html/5/intro'
+  ruby_url     = 'http://ruby-lang.org'
+  wmii_url     = 'http://www.suckless.org/wiki/wmii'
+  wmii_ixp_url = 'http://www.suckless.org/wiki/libs/libixp'
+  p9p_url      = 'http://cm.bell-labs.com/magic/man2html/5/intro'
 
   # parameters for the HTML format
   $title   = "#{Rumai::NFO} user guide"
-  $authors = { 'Suraj N. Kurapati' => 'http://snk.tuxfamily.org' }
-  $feeds   = { feed_url => :rss }
-
-  # parameters for Gerbil
-  $unindent = '  '
+  $authors = { 'Suraj N. Kurapati' => 'http://snk.rubyforge.org' }
+  $feeds   = { ann_url => :rss }
 %>
+
+<% header_inside_below do %>
+  "Release notes and project news":<%= log_url %> &mdash; "Subscribe !feed-icon-28x28.png!":<%= ann_url %>
+
+  "Downloads":<%= pkg_url %> - obtain the newest release package.
+
+  "Reference":api/index.html - API documentation for source code.
+
+  "Developer feed":<%= dev_url %> - news about repository commits.
+
+  To get help or provide feedback, simply <%= xref "License", "contact the author" %>.
+<% end %>
 
 <% chapter "Introduction" do %>
   Rumai is a library for manipulating the "wmii":<%= wmii_url %> window manager through "Ruby":<%= ruby_url %>. It excels at *dynamic arrangement* of clients, columns, views, and tags.
 
   Rumai also provides (1) an <%= xref 'shell', 'interactive shell' %> for live entertainment, and (2) a *pure Ruby client* for the "9P2000 protocol":<%= p9p_url %>, which it uses to communicate with wmii's "IXP file-system interface":<%= wmii_ixp_url %>.
 
-  Rumai is *open-source software* (see <%= xref "License" %>) so feel free to contribute your improvements to and discuss your ideas with the author. You can obtain the source code from the project "Darcs":http://darcs.net repository by running the following command:
+  Rumai is *open-source software* (see <%= xref "License" %>) so feel free to contribute your improvements to and discuss your ideas with the author (see address in <%= xref "License" %>). You can obtain the source code from the project "Darcs":http://darcs.net repository by running the following command:
 
-    darcs get <%= source_repo_url %> rumai
-
-  <% section "Resources" do %>
-    * "News feed":<%= feed_url %>
-      - project news and release announcements.
-    * "Download area":<%= download_url %>
-      - place to obtain release packages.
-    * "API reference":api/index.html
-      - documentation for all provided Ruby code.
-    * Support / feedback
-      - send an e-mail to the author (see address in <%= xref "License" %>).
-  <% end %>
+    darcs get <%= src_url %> rumai
 
   <% section "License" do %>
     <%=h File.read('LICENSE') %>
@@ -61,7 +61,7 @@
       rumai -v
 
     Otherwise, follow these instructions:
-    # Download the newest release package from "the download area":<%= download_url %>.
+    # Download the newest release package from "the download area":<%= pkg_url %>.
     # Extract the release package anywhere you want on your system.
     # Go inside the extracted directory and run the following command:
 
@@ -69,7 +69,7 @@
 
     If the installation was successful, then you will see output like this: <pre><%=h `ruby bin/rumai -v` %></pre>
 
-    Otherwise, you can e-mail the author (see address in <%= xref "License" %>) for help.
+    Otherwise, you can <%= xref "License", "contact the author" %> for help.
   <% end %>
 
   <% section "Manifest" do %>
