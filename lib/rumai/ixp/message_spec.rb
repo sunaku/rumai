@@ -1,7 +1,4 @@
 # Unit test for 9p.rb
-#--
-# Copyright 2007 Suraj N. Kurapati
-# See the file named LICENSE for details.
 
 $: << File.dirname(__FILE__)
 require 'message'

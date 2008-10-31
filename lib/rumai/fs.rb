@@ -1,7 +1,4 @@
 # File system abstractions over the 9P2000 protocol.
-#--
-# Copyright 2006 Suraj N. Kurapati
-# See the file named LICENSE for details.
 
 require 'ixp'
 require 'socket'

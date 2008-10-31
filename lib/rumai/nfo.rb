@@ -1,7 +1,4 @@
 # Project information.
-#--
-# Copyright 2007 Suraj N. Kurapati
-# See the file named LICENSE for details.
 
 module Rumai
   NFO = {

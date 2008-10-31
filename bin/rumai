@@ -1,8 +1,5 @@
 #!/usr/bin/env ruby
 # An interactive shell for Rumai.
-#--
-# Copyright 2006 Suraj N. Kurapati
-# See the file named LICENSE for details.
 
 require 'irb'
 require 'irb/completion'

@@ -1,7 +1,4 @@
 # Transport layer for 9P2000 protocol.
-#--
-# Copyright 2007 Suraj N. Kurapati
-# See the file named LICENSE for details.
 
 require 'message'
 require 'thread' # for Mutex

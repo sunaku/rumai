@@ -1,7 +1,4 @@
 # Abstractions for the window manager.
-#--
-# Copyright 2006 Suraj N. Kurapati
-# See the file named LICENSE for details.
 
 require 'fs'
 require 'enumerator'
