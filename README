@@ -1,1 +1,9 @@
-Please see the ./doc/guide.html file in your web browser.
+Rumai is a Ruby library for manipulating the wmii window manager.
+It excels at dynamic arrangement of clients, columns, and views.
+
+It also provides an interactive shell for live entertainment
+and a pure Ruby client for the 9P2000 protocol, which it
+uses to communicate with wmii’s IXP file-system interface.
+
+Please see the ./doc/index.html file in your web browser or
+visit http://snk.tuxfamily.org/lib/rumai/ for more information.
