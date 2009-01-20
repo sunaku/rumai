@@ -573,7 +573,9 @@ module Rumai
 
     # Returns the IDs of all areas in this view.
     def area_ids
-      manifest.scan(/^# (\S+)/).flatten
+      ids = manifest.scan(/^# (\d+)/).flatten
+      ids.unshift '~' # always exists in output
+      ids
     end
 
     # Returns all areas in this view.
