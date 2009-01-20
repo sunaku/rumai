@@ -1,6 +1,6 @@
 # Transport layer for 9P2000 protocol.
 
-require 'message'
+require 'rumai/ixp/message'
 require 'thread' # for Mutex
 
 module Rumai

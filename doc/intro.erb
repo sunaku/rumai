@@ -1,0 +1,86 @@
+<% chapter "Introduction" do %>
+  <% project_summary do %>
+    **<%= $project %>** is a [Ruby](<%= ruby_url %>) interface to the [wmii](<%= wmii_url %>) window manager.
+  <% end %>
+
+  **<%= $project %>** is exciting because:
+  * It excels at *dynamic arrangement* of clients, columns, views, and tags.
+  * It provides an <%= xref 'shell', 'interactive shell' %> for live entertainment.
+  * It contains a *pure Ruby client* for the [9P2000 protocol](<%= p9p_url %>) on which wmii's [IXP file-system interface](<%= wmii_ixp_url %>) is built.
+
+  These features distinguish **<%= $project %>** from the competition:
+  * [ruby-wmii](http://eigenclass.org/hiki.rb?wmii+ruby)
+  * [Rii](http://)
+  * [Ruby-IXP](http://)
+
+  <% paragraph "Etymology" do %>
+    The word "wmii" is incredibly difficult to pronounce because it is an abbreviation, not an acronym.  If we were to treat it as an acronym, the closest pronounciation would be, in my mind, something like "vim-eye".
+
+    Since this is a Ruby library, I added a "roo" and worked it through:
+
+        vim-eye
+        roo-vim-eye
+        roovm-eye
+        roo-mai
+
+    And thus we get "Rumai".
+  <% end %>
+
+  <% section "Logistics" do %>
+    * <%= xref "History", "Release notes" %> --- history of project releases.
+    * [Source code](http://github.com/sunaku/<%= $program %>) --- obtain via [Git](http://git.or.cz) or browse online.
+    * [API reference](api/index.html) --- documentation for source code.
+
+    To get help or provide feedback, simply
+    <%= xref "License", "contact the author(s)" %>.
+
+    <% paragraph "Version numbers" do %>
+      **<%= $project %>** releases are numbered in *major.minor.patch*
+      form according to the [RubyGems rational versioning
+      policy](http://www.rubygems.org/read/chapter/7), which
+      can be summarized thus:
+
+      <table markdown="1">
+        <thead>
+          <tr>
+            <td rowspan="2">What increased in the version number?</td>
+            <td colspan="3">The increase indicates that the release:</td>
+          </tr>
+          <tr>
+            <th>Is backward compatible?</th>
+            <th>Has new features?</th>
+            <th>Has bug fixes?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>major</th>
+            <td style="background-color: #FFE4E1;">No</td>
+            <td>Yes</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <th>minor</th>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <th>patch</th>
+            <td>Yes</td>
+            <td style="background-color: #FFE4E1;">No</td>
+            <td>Yes</td>
+          </tr>
+        </tbody>
+      </table>
+    <% end %>
+  <% end %>
+
+  <% section "License" do %>
+    <%# include ../LICENSE #%>
+  <% end %>
+
+  <% section "Credits" do %>
+    > TODO: give attribution to your predecessors and contributors
+  <% end %>
+<% end %>

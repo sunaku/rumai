@@ -1,9 +1,26 @@
-#!/usr/bin/env ruby
-# An interactive shell for Rumai.
+#!/usr/bin/ruby -w
+#
+# This program is an interactive shell for Rumai.
+#
+# Usage:
+#
+#   rumai [Options]
+#   rumai [Options] -- irb_args
+#
+#   irb_args:   Command-line options and arguments that should
+#               be passed to `irb`, the interactive Ruby shell.
+#
+# Options:
+#
+
+require 'rubygems'
+gem 'inochi', '~> 0'
+require 'inochi'
+
+Inochi.main :Rumai
 
 require 'irb'
 require 'irb/completion'
-
 module IRB
   # Starts an IRB session *inside* the given object.
   #--
@@ -17,19 +34,4 @@ module IRB
   end
 end
 
-# the basename() is for being launched by a RubyGems executable
-if __FILE__ == $0 or File.basename(__FILE__) == File.basename($0)
-  $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
-
-  if ARGV.first =~ /-v|--version/i
-    require 'rumai/nfo'
-
-    puts "%s %s (%s) %s %s" % [
-      :name, :version, :release, :website, :home
-    ].map {|m| Rumai::NFO[m] }
-
-  else
-    require 'rumai'
-    IRB.start_session Rumai
-  end
-end
+IRB.start_session Rumai

@@ -1,6 +1,6 @@
 # File system abstractions over the 9P2000 protocol.
 
-require 'ixp'
+require 'rumai/ixp'
 require 'socket'
 
 module Rumai

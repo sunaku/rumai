@@ -1,6 +1,6 @@
 # Abstractions for the window manager.
 
-require 'fs'
+require 'rumai/fs'
 require 'enumerator'
 
 class Object

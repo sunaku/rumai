@@ -1,0 +1,285 @@
+<% chapter "Usage" do %>
+  <% section "Concepts" do %>
+    If you wish to wield the power of **<%= $project %>** more effectively, you should understand the following basic concepts:
+
+    * A *client* is any graphical program that is running in your X session.  In other words, any *window* in your wmii session is a *client*.
+
+    * A *tag* is an arbitrary string (a label) that can be associated with one or more clients.
+
+    * A *view* is a graphical representation of a *tag*.  It shows all clients associated with a particular tag.
+
+    * An *area* is a region inside a *view*. It contains clients.
+
+      * A *managed area* or *column* is a region where clients cannot overlap each other.
+
+      * The *floating area* is an area whose clients (1) can overlap each other and (2) _float above_ the managed areas.
+  <% end %>
+
+  <% section "Command-line interface" do %>
+    When you run this command:
+
+        <%= $program %> --help
+
+    You will see this output:
+
+    <pre><%= verbatim `ruby bin/#{$program} --help` %></pre>
+
+    <% paragraph "Interactive shell", "shell" do %>
+      When you run this command:
+
+          <%= $program %>
+
+      An IRB session will begin, showing you a command prompt like this:
+
+          irb(Rumai):001:0>
+
+      The <tt>irb(Rumai)</tt> token in the command prompt indicates that commands will be evaluated _inside_ the `Rumai` module.  As a result, you can omit the "Rumai" prefix from your commands if you wish.
+
+      For example, to get the current client object, you can type `curr_client` instead of having to type `Rumai.curr_client` at the prompt.  Both commands achieve the same effect.
+
+      The next thing to note is that **tab completion** is enabled by default. So you can type part of a command and press the TAB key to see a list of possible completions.
+    <% end %>
+  <% end %>
+
+  <% section "Tutorial" do %>
+    Now that you know <%= xref "shell", "how to start the interactive shell" %>, let us walk through a quick demonstration that highlights the main features of **<%= $project %>**.  You can follow along by copying & pasting the presented commands into the interactive shell.
+
+    <%
+      open_terms = %q{
+        Launch a few terminals so that we have something to work with:
+        <code>
+        colors = %w[ red green blue black orange brown gray navy gold ]
+        colors.each {|c| system "xterm -bg #{c} -title #{c} -e read &" }
+        </code>
+      }.gsub(/^\s+/, '')
+
+      close_terms = %q{
+        Close the terminals we launched earlier:
+        <code>
+        terms = curr_view.clients.select {|c| colors.include? c.label.read }
+        terms.each {|c| c.kill }
+        </code>
+      }.gsub(/^\s+/, '')
+    %>
+
+    <% section "Automated client arrangement" do %>
+      <%= open_terms %>
+
+      Arrange all clients in a grid:
+      <code>
+      curr_view.arrange_in_grid
+      </code>
+
+      Arrange all clients in a diamond shape:
+      <code>
+      curr_view.arrange_in_diamond
+      </code>
+
+      Arrange all clients like LarsWM does:
+      <code>
+      curr_view.arrange_as_larswm
+      </code>
+
+      <%= close_terms %>
+    <% end %>
+
+    <% section "Multiple client grouping" do %>
+      <%= open_terms %>
+
+      Add the red, green, and blue terminals into the "grouping":
+      <code>
+      terms = curr_view.clients.select {|c| %w[red green blue].include? c.label.read }
+      terms.each {|c| c.group }
+      </code>
+
+      You should now see a new button labelled as "<notextile>@</notextile>" on the left-hand side of wmii's bar, indicating that there is now a new view labelled "<notextile>@</notextile>" in wmii. Let us inspect what clients this mysterious view contains:
+      <code>
+      v = View.new "@"
+      puts v.clients.map {|c| c.label.read }
+      </code>
+
+      Aha! The mysterious view contains the red, green, and blue clients we recently "grouped". Thus, by adding a client to the "grouping", we are simply tagging the client with the "@" token.
+
+      Now that we have put some clients into the "grouping", let us move all clients in the grouping to the floating area in the current view:
+      <code>
+      grouping.each {|c| c.send "toggle" }
+      </code>
+
+      Neat! Let us bring them back into the managed area:
+      <code>
+      grouping.each {|c| c.send "toggle" }
+      </code>
+
+      <%= close_terms %>
+
+      In summary, you can select multiple clients (by adding them to the "grouping") and perform operations on them. This is useful when you want to do something with a group of clients but do not want to manually focus one, perform the action, focus the next one, and so on.
+
+      Another important aspect is that selected clients stay selected until they are unselected. This allows you to continue performing tasks on the selection without having to reselect the same clients after every operation.
+    <% end %>
+
+    <% section "Easy column manipulation" do %>
+      <%= open_terms %>
+
+      You can insert a group of clients to the top, bottom, or after the currently focused client of _any_ column using Array-like methods.
+
+      Give each client its own column (one client per column):
+      <code>
+      curr_view.each_column {|c| c.length = 1 }
+      </code>
+
+      Put (at most) three clients in every column:
+      <code>
+      curr_view.each_column {|c| c.length = 3 }
+      </code>
+
+      Move the red, green, and blue clients into the floating area:
+      <code>
+      rgb = %w[red green blue]
+      terms = curr_view.clients.select {|c| rgb.include? c.label.read }
+      curr_view.areas[0].push terms
+      </code>
+
+      Slurp all floating clients into the last column:
+      <code>
+      list = curr_view.areas
+      a, b = list.first, list.last
+      b.concat a
+      </code>
+
+      Set the last column's layout to stacking mode:
+      <code>
+      b.layout = 'stack'
+      </code>
+
+      Move the red, green, and blue clients to the top of the second column:
+      <code>
+      curr_view.areas[2].unshift terms
+      </code>
+
+      Move the red, green, and blue clients to the bottom of the third column:
+      <code>
+      curr_view.areas[3].push terms
+      </code>
+
+      <%= close_terms %>
+    <% end %>
+
+    <% section "Easy client manipulation" do %>
+      <%= open_terms %>
+
+      Obtain a reference to the red client:
+      <code>
+      red = curr_view.clients.find {|c| c.label.read == "red" }
+      </code>
+
+      Show the red client's current tags:
+      <code>
+      red.tags
+      </code>
+
+      Add the "foo" and "bar" tags to the red client:
+      <code>
+      red.tag "foo", "bar"
+      </code>
+
+      Remove the "bar" tag from the red client:
+      <code>
+      red.untag "bar"
+      </code>
+
+      Do complex operations on the red client's tags:
+      <code>
+      red.with_tags { concat %w[a b c]; push 'z'; delete 'c' }
+      </code>
+
+      Focus the next client after the red client:
+      <code>
+      red.next.focus ; curr_client == red.next #=> true
+      </code>
+
+      Notice that by focusing a client, we make it the current client.
+
+      Focus the red client on a different view:
+      <code>
+      orig = curr_view
+      v = red.views.last
+      red.focus v
+      </code>
+
+      Return to the original view:
+      <code>
+      orig.focus
+      </code>
+
+      Send the red client to the last column:
+      <code>
+      red.send curr_view.areas.last
+      </code>
+
+      <%= close_terms %>
+    <% end %>
+
+    <% section "Traversing the file system" do %>
+      Show the root node of wmii's IXP file system:
+      <code>
+      fs
+      </code>
+
+      Show the names of all files at the root level:
+      <code>
+      fs.entries
+      </code>
+
+      Show the parent of the root node:
+      <code>
+      fs.parent
+      </code>
+
+      Show the children of the root node:
+      <code>
+      fs.children
+      </code>
+
+      Navigate into to the <tt>/lbar/</tt> directory:
+      <code>
+      n1 = fs.lbar
+      n2 = fs['lbar']
+      n1 == n2 #=> true
+      left_bar = n1
+      </code>
+
+      Notice that you can traverse the file system hierarchy by simply calling methods on node objects.  Alternatively, you can traverse by specifying an arbitrary sub-path (relative path) using the `[]` operator on a node.
+
+      Create a new temporary button:
+      <code>
+      b = left_bar.rumai_example # path of new button
+      b.exist? #=> false
+      b.create
+      b.exist? #=> true
+      </code>
+
+      You should now see an empty button on the left-hand side of the wmii bar.
+
+      Color the button black-on-white and label it as "hello world":
+      <code>
+      content = "#000000 #ffffff #000000 hello world"
+      b.write content
+      b.read == content #=> true
+      </code>
+
+      Remove the temporary button:
+      <code>
+      b.remove
+      b.exist? #=> false
+      </code>
+    <% end %>
+
+    <% section "Available commands" do %>
+      Refer to the `Rumai` module in the [API documentation](api/index.html) for a complete list of commands (method calls, really) and their documentation.
+    <% end %>
+  <% end %>
+
+  <% section "Scripting your wmiirc", 'wmiirc' do %>
+    One important application of **<%= $project %>** is the support of Ruby-based <tt>wmiirc</tt> configuration files.  For a solid example of such application, take a look at [my personal <tt>wmiirc</tt>](http://github.com/sunaku/wmiirc/tree/master).
+  <% end %>
+<% end %>
