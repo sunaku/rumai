@@ -10,7 +10,7 @@ module Rumai
 
   begin
     # We use a single, global connection to wmii's IXP server.
-    AGENT = IXP::Agent.new UNIXSocket.new(IXP_SOCK_ADDR)
+    IXP_AGENT = IXP::Agent.new UNIXSocket.new(IXP_SOCK_ADDR)
 
   rescue
     $!.message << %{
@@ -35,7 +35,7 @@ module Rumai
     # Returns file statistics about this node.
     # See Rumai::IXP::Client#stat for details.
     def stat
-      AGENT.stat @path
+      IXP_AGENT.stat @path
     end
 
     # Tests if this node exists on the IXP server.
@@ -54,19 +54,19 @@ module Rumai
 
     # Returns the names of all files in this directory.
     def entries
-      AGENT.entries @path rescue []
+      IXP_AGENT.entries @path rescue []
     end
 
     # Opens this node for I/O access.
     # See Rumai::IXP::Client#open for details.
     def open aMode = 'r', &aBlock
-      AGENT.open @path, aMode, &aBlock
+      IXP_AGENT.open @path, aMode, &aBlock
     end
 
     # Returns the entire content of this node.
     # See Rumai::IXP::Client#read for details.
     def read *aArgs
-      AGENT.read @path, *aArgs
+      IXP_AGENT.read @path, *aArgs
     end
 
     # Invokes the given block for every line in the content of this node.
@@ -80,18 +80,18 @@ module Rumai
 
     # Writes the given content to this node.
     def write aContent
-      AGENT.write @path, aContent
+      IXP_AGENT.write @path, aContent
     end
 
     # Creates a file corresponding to this node on the IXP server.
     # See Rumai::IXP::Client#create for details.
     def create *aArgs
-      AGENT.create @path, *aArgs
+      IXP_AGENT.create @path, *aArgs
     end
 
     # Deletes the file corresponding to this node on the IXP server.
     def remove
-      AGENT.remove @path
+      IXP_AGENT.remove @path
     end
 
     # Returns the given sub-path as a Node object.
