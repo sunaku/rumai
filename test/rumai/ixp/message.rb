@@ -20,11 +20,8 @@ class The_IXP_library < MiniTest::Spec
   before do
     unless defined? @conn
       # connect to the wmii IXP server
-      addr = ENV['WMII_ADDRESS'].sub(/.*!/, '') rescue
-      "/tmp/ns.#{ENV['USER']}.#{ENV['DISPLAY'] || ':0'}/wmii"
-
       require 'socket'
-      @conn = UNIXSocket.new(addr)
+      @conn = UNIXSocket.new(Rumai::IXP_SOCK_ADDR)
     end
 
     # at_exit do

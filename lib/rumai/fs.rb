@@ -4,12 +4,13 @@ require 'rumai/ixp'
 require 'socket'
 
 module Rumai
-  begin
-    addr = ENV['WMII_ADDRESS'].to_s.sub(/.*!/, '')
-    sock = UNIXSocket.new(addr)
+  # address of the IXP server socket on this machine
+  IXP_SOCK_ADDR = ENV['WMII_ADDRESS'].sub(/.*!/, '') rescue
+    "/tmp/ns.#{ENV['USER']}.#{ENV['DISPLAY'] || ':0'}/wmii"
 
+  begin
     # We use a single, global connection to wmii's IXP server.
-    AGENT = IXP::Agent.new(sock)
+    AGENT = IXP::Agent.new UNIXSocket.new(IXP_SOCK_ADDR)
 
   rescue
     $!.message << %{
