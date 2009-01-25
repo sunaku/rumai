@@ -1,4 +1,17 @@
 <% chapter "History" do %>
   <% project_history do %>
+    <% section "Version 2.0.1 (2009-01-20)" do %>
+      This release simplifies project administrivia using [<%= Inochi::PROJECT %>](<%= Inochi::WEBSITE %>), improves the unit tests, and revises the user manual.
+
+      <% paragraph "Bug fixes" do %>
+        * The <tt>lib/rumai/ixp/message.rb</tt> library's unit test would fail if <tt>/rbar/status</tt> did not already exist in wmii.
+      <% end %>
+
+      <% paragraph "Housekeeping" do %>
+        * Store IXP socket address in `Rumai::IXP_SOCK_ADDR`.
+
+        * Added missing test cases for (TR)create and (TR)remove messages in the unit test for the <tt>lib/rumai/ixp/message.rb</tt> library.
+      <% end %>
+    <% end %>
   <% end %>
 <% end %>
