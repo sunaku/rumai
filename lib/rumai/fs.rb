@@ -5,8 +5,9 @@ require 'socket'
 
 module Rumai
   # address of the IXP server socket on this machine
+  display = ENV['DISPLAY'] || ':0.0'
   IXP_SOCK_ADDR = ENV['WMII_ADDRESS'].sub(/.*!/, '') rescue
-    "/tmp/ns.#{ENV['USER']}.#{ENV['DISPLAY'] || ':0'}/wmii"
+    "/tmp/ns.#{ENV['USER']}.#{display[/:\d+/]}/wmii"
 
   begin
     # We use a single, global connection to wmii's IXP server.
