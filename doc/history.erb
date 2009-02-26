@@ -1,6 +1,16 @@
 <% chapter "History" do %>
   <% project_history do %>
-    <% section "Version 2.0.1 (2009-01-20)" do %>
+    <% section "Version 2.0.2 (2009-02-26)" do %>
+      This release fixes a connection bug.
+
+      <% paragraph "Bug fixes" do %>
+        * wmii omits the fractional portion of `$DISPLAY` in its socket file path.  Rumai was trying to connect with the entire `$DISPLAY` value (including the fractional portion) and thus could not find wmii's socket file.
+
+          Thanks to Simon Hafner for helping me debug this.
+      <% end %>
+    <% end %>
+
+    <% section "Version 2.0.1 (2009-01-25)" do %>
       This release simplifies project administrivia using [<%= Inochi::PROJECT %>](<%= Inochi::WEBSITE %>), improves the unit tests, and revises the user manual.
 
       <% paragraph "Bug fixes" do %>
