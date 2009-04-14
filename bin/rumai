@@ -14,7 +14,7 @@
 #
 
 require 'rubygems'
-gem 'inochi', '~> 0'
+gem 'inochi', '~> 1'
 require 'inochi'
 
 Inochi.main :Rumai

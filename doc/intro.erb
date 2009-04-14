@@ -1,40 +1,43 @@
-<% chapter "Introduction" do %>
-  <% project_summary do %>
+% api_url = './api/index.html'
+% repo_url = 'http://github.com/sunaku/' + $program
+% repo_scm = '[Git](http://git-scm.com)'
+
+%|chapter "Introduction"
+  %|project
     **<%= $project %>** is a [Ruby](<%= ruby_url %>) interface to the [wmii](<%= wmii_url %>) window manager.
-  <% end %>
 
   **<%= $project %>** is exciting because:
-  * It excels at *dynamic arrangement* of clients, columns, views, and tags.
+  * It excels at dynamic arrangement of clients, columns, views, and tags.
   * It provides an <%= xref 'shell', 'interactive shell' %> for live entertainment.
-  * It contains a *pure Ruby client* for the [9P2000 protocol](<%= p9p_url %>) on which wmii's [IXP file-system interface](<%= wmii_ixp_url %>) is built.
+  * It contains a pure Ruby client for the [9P2000 protocol](<%= p9p_url %>) on which wmii's [IXP file-system interface](<%= wmii_ixp_url %>) is built.
 
   These features distinguish **<%= $project %>** from the competition:
   * [ruby-wmii](http://eigenclass.org/hiki.rb?wmii+ruby)
   * [Rii](http://)
   * [Ruby-IXP](http://)
 
-  <% paragraph "Etymology" do %>
+  %|paragraph "Etymology"
     The word "wmii" is incredibly difficult to pronounce because it is an abbreviation, not an acronym.  If we were to treat it as an acronym, the closest pronounciation would be, in my mind, something like "vim-eye".
 
     Since this is a Ruby library, I added a "roo" and worked it through:
 
-        vim-eye
-        roo-vim-eye
-        roovm-eye
-        roo-mai
+    * vim-eye
+    * roo-vim-eye
+    * roovm-eye
+    * roo-mai
 
     And thus we get "Rumai".
-  <% end %>
 
-  <% section "Logistics" do %>
+  %|section "Logistics"
     * <%= xref "History", "Release notes" %> --- history of project releases.
-    * [Source code](http://github.com/sunaku/<%= $program %>) --- obtain via [Git](http://git.or.cz) or browse online.
-    * [API reference](api/index.html) --- documentation for source code.
+    * [Source code](<%= repo_url %>) --- obtain via <%= repo_scm %> or browse online.
+    * [API reference](<%= api_url %>) --- documentation for source code.
+    * [Project home](<%= $website %>) --- the <%= $project %> project home page.
 
     To get help or provide feedback, simply
     <%= xref "License", "contact the author(s)" %>.
 
-    <% paragraph "Version numbers" do %>
+    %|paragraph "Version numbers"
       **<%= $project %>** releases are numbered in *major.minor.patch*
       form according to the [RubyGems rational versioning
       policy](http://www.rubygems.org/read/chapter/7), which
@@ -73,18 +76,13 @@
           </tr>
         </tbody>
       </table>
-    <% end %>
-  <% end %>
 
-  <% section "License" do %>
-    <%# include ../LICENSE #%>
-  <% end %>
+  %|section "License"
+    %< "../LICENSE"
 
-  <% section "Credits" do %>
+  %|section "Credits"
     **<%= $project %>** is made possible by
     <%= xref "History", "contributions" %>
     from users like you:
 
     * [Simon Hafner](http://github.com/Tass)
-  <% end %>
-<% end %>

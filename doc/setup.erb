@@ -1,5 +1,5 @@
-<% chapter "Setup" do %>
-  <% section "Requirements" do %>
+%|chapter "Setup"
+  %|section "Requirements"
     Your system needs the following software to run **<%= $project %>**.
 
     | Software                        | Description               | Notes                               |
@@ -7,9 +7,8 @@
     | [Ruby](http://ruby-lang.org)    | Ruby language interpreter | Version 1.8.6 or newer is required. |
     | [RubyGems](http://rubygems.org) | Ruby packaging system     | Version 1.3.1 or newer is required. |
     | [wmii](<%= wmii_url %>)         | Window manager            | Version 3.6 or newer is required.   |
-  <% end %>
 
-  <% section "Installation" do %>
+  %|section "Installation"
     You can install **<%= $project %>** by running this command:
 
         gem install <%= $program %>
@@ -24,9 +23,8 @@
 
     If you do not see such output, you may
     <%= xref "License", "ask the author(s)" %> for help.
-  <% end %>
 
-  <% section "Manifest" do %>
+  %|section "Manifest"
     You will see the following items inside **<%= $project %>**'s installation
     directory, whose path you can determine by running this command:
 
@@ -51,5 +49,3 @@
       * <tt>index.erb</tt> --- source of this user manual.
 
     * <tt>LICENSE</tt> --- copyright notice and legal conditions.
-  <% end %>
-<% end %>
