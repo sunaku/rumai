@@ -29,8 +29,8 @@ module Rumai
 
     attr_reader :path
 
-    def initialize aPath
-      @path = aPath.to_s.squeeze('/')
+    def initialize path
+      @path = path.to_s.squeeze('/')
     end
 
     # Returns file statistics about this node.
@@ -60,34 +60,34 @@ module Rumai
 
     # Opens this node for I/O access.
     # See Rumai::IXP::Client#open for details.
-    def open aMode = 'r', &aBlock
-      IXP_AGENT.open @path, aMode, &aBlock
+    def open mode = 'r', &block
+      IXP_AGENT.open @path, mode, &block
     end
 
     # Returns the entire content of this node.
     # See Rumai::IXP::Client#read for details.
-    def read *aArgs
-      IXP_AGENT.read @path, *aArgs
+    def read *args
+      IXP_AGENT.read @path, *args
     end
 
     # Invokes the given block for every line in the content of this node.
-    def each_line &aBlock #:yields: line
+    def each_line &block #:yields: line
       open do |file|
         until (chunk = file.read(true)).empty?
-          chunk.each_line(&aBlock)
+          chunk.each_line(&block)
         end
       end
     end
 
     # Writes the given content to this node.
-    def write aContent
-      IXP_AGENT.write @path, aContent
+    def write content
+      IXP_AGENT.write @path, content
     end
 
     # Creates a file corresponding to this node on the IXP server.
     # See Rumai::IXP::Client#create for details.
-    def create *aArgs
-      IXP_AGENT.create @path, *aArgs
+    def create *args
+      IXP_AGENT.create @path, *args
     end
 
     # Deletes the file corresponding to this node on the IXP server.
@@ -96,8 +96,8 @@ module Rumai
     end
 
     # Returns the given sub-path as a Node object.
-    def [] aSubPath
-      @@cache[ File.join(@path, aSubPath.to_s) ]
+    def [] sub_path
+      @@cache[ File.join(@path, sub_path.to_s) ]
     end
 
     # Returns the parent node of this node.
@@ -112,8 +112,8 @@ module Rumai
 
     include Enumerable
       # Iterates through each child of this directory.
-      def each &aBlock
-        children.each(&aBlock)
+      def each &block
+        children.each(&block)
       end
 
     # Deletes all child nodes.
@@ -127,12 +127,12 @@ module Rumai
     #
     # :call-seq: node.child -> Node
     #
-    def method_missing aMeth, *aArgs
-      child = self[aMeth]
+    def method_missing meth, *args
+      child = self[meth]
 
       # speed up future accesses
       (class << self; self; end).instance_eval do
-        define_method aMeth do
+        define_method meth do
           child
         end
       end
@@ -150,9 +150,9 @@ module Rumai
   # Both of the above expressions are equivalent.
   #
   module ExportInstMethods
-    def self.extended aTarget #:nodoc:
-      aTarget.instance_methods(false).each do |meth|
-        (class << aTarget; self; end).instance_eval do
+    def self.extended target #:nodoc:
+      target.instance_methods(false).each do |meth|
+        (class << target; self; end).instance_eval do
           define_method meth do |path, *args|
             new(path).__send__(meth, *args)
           end

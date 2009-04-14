@@ -104,11 +104,11 @@ module Rumai
 
     private
 
-    def sibling aOffset
+    def sibling offset
       arr = chain
 
       if pos = arr.index(self)
-        arr[(pos + aOffset) % arr.length]
+        arr[(pos + offset) % arr.length]
       end
     end
   end
@@ -121,8 +121,8 @@ module Rumai
   module WidgetImpl #:nodoc:
     attr_reader :id
 
-    def == aOther
-      @id == aOther.id
+    def == other
+      @id == other.id
     end
 
     # Checks if this widget currently has focus.
@@ -137,10 +137,10 @@ module Rumai
   class WidgetNode < Node #:nodoc:
     include WidgetImpl
 
-    def initialize aId, aPathPrefix
-      super "#{aPathPrefix}/#{aId}"
+    def initialize id, path_prefix
+      super "#{path_prefix}/#{id}"
 
-      if aId.to_s == 'sel' and ctl.exist?
+      if id.to_s == 'sel' and ctl.exist?
         @id = ctl.read.split.first
         @path = File.join(File.dirname(@path), @id)
       else
@@ -151,8 +151,8 @@ module Rumai
 
   # A graphical program that is running in your current X Windows session.
   class Client < WidgetNode
-    def initialize aClientId
-      super aClientId, '/client'
+    def initialize client_id
+      super client_id, '/client'
     end
 
     # Returns the currently focused client.
@@ -173,9 +173,9 @@ module Rumai
     ##
 
     # Focuses this client within the given view.
-    def focus aView = nil
+    def focus view = nil
       if exist? and not focus?
-        (aView ? [aView] : self.views).each do |v|
+        (view ? [view] : self.views).each do |v|
           if a = self.area(v) and a.exist?
             v.focus
             a.focus
@@ -199,15 +199,15 @@ module Rumai
     end
 
     # Sends this client to the given destination within the given view.
-    def send aAreaOrId, aView = View.curr
-      dst = area_to_id(aAreaOrId)
-      aView.ctl.write "send #{@id} #{dst}"
+    def send area_or_id, view = View.curr
+      dst = area_to_id(area_or_id)
+      view.ctl.write "send #{@id} #{dst}"
     end
 
     # Swaps this client with the given destination within the given view.
-    def swap aAreaOrId, aView = View.curr
-      dst = area_to_id(aAreaOrId)
-      aView.ctl.write "swap #{@id} #{dst}"
+    def swap area_or_id, view = View.curr
+      dst = area_to_id(area_or_id)
+      view.ctl.write "swap #{@id} #{dst}"
     end
 
     # Terminates this client nicely (requests this window to be closed).
@@ -222,8 +222,8 @@ module Rumai
     ##
 
     # Returns the area that contains this client within the given view.
-    def area aView = View.curr
-      aView.area_of_client self
+    def area view = View.curr
+      view.area_of_client self
     end
 
     # Returns the views that contain this client.
@@ -245,30 +245,30 @@ module Rumai
     end
 
     # Modifies the tags associated with this client.
-    def tags= *aTags
-      arr = aTags.flatten.compact.uniq
+    def tags= *tags
+      arr = tags.flatten.compact.uniq
       self[:tags].write arr.join(TAG_DELIMITER)
     end
 
     # Evaluates the given block within the
     # context of this client's list of tags.
-    def with_tags &aBlock
+    def with_tags &block
       arr = self.tags
-      arr.instance_eval(&aBlock)
+      arr.instance_eval(&block)
       self.tags = arr
     end
 
     # Adds the given tags to this client.
-    def tag *aTags
+    def tag *tags
       with_tags do
-        concat aTags
+        concat tags
       end
     end
 
     # Removes the given tags from this client.
-    def untag *aTags
+    def untag *tags
       with_tags do
-        aTags.flatten.each do |tag|
+        tags.flatten.each do |tag|
           delete tag.to_s
         end
       end
@@ -308,12 +308,12 @@ module Rumai
 
     private
 
-    def area_to_id aAreaOrId
-      if aAreaOrId.respond_to? :id
-        id = aAreaOrId.id
+    def area_to_id area_or_id
+      if area_or_id.respond_to? :id
+        id = area_or_id.id
         id == '~' ? :toggle : id
       else
-        aAreaOrId
+        area_or_id
       end
     end
   end
@@ -350,10 +350,10 @@ module Rumai
   class Area
     attr_reader :view
 
-    # aView:: the view which contains this area.
-    def initialize aAreaId, aView = View.curr
-      @id = Integer(aAreaId) rescue aAreaId
-      @view = aView
+    # view:: the view which contains this area.
+    def initialize area_id, view = View.curr
+      @id = Integer(area_id) rescue area_id
+      @view = view
     end
 
     # Checks if this area is the floating area.
@@ -390,13 +390,13 @@ module Rumai
 
     include Enumerable
       # Iterates through each client in this container.
-      def each &aBlock
-        clients.each(&aBlock)
+      def each &block
+        clients.each(&block)
       end
 
     # Sets the layout of clients in this column.
-    def layout= aMode
-      @view.ctl.write "colmode #{@id} #{aMode}"
+    def layout= mode
+      @view.ctl.write "colmode #{@id} #{mode}"
     end
 
     ##
@@ -422,58 +422,58 @@ module Rumai
     end
 
     # Inserts the given clients at the bottom of this area.
-    def push *aClients
+    def push *clients
       if target = clients.last
         target.focus
       end
 
-      insert aClients
+      insert clients
     end
 
     alias << push
 
     # Inserts the given clients after the currently focused client in this area.
-    def insert *aClients
-      aClients.flatten!
-      return if aClients.empty?
+    def insert *clients
+      clients.flatten!
+      return if clients.empty?
 
-      aClients.each do |c|
+      clients.each do |c|
         import_client c
       end
     end
 
     # Inserts the given clients at the top of this area.
-    def unshift *aClients
-      aClients.flatten!
-      return if aClients.empty?
+    def unshift *clients
+      clients.flatten!
+      return if clients.empty?
 
       if target = clients.first
         target.focus
       end
 
-      aClients.each do |c|
+      clients.each do |c|
         import_client c
         c.send :up if target
       end
     end
 
     # Concatenates the given area to the bottom of this area.
-    def concat aArea
-      push aArea.clients
+    def concat area
+      push area.clients
     end
 
     # Ensures that this area has at most the given number of clients.
     # Areas to the right of this one serve as a buffer into which excess
     # clients are evicted and from which deficit clients are imported.
-    def length= aMaxClients
-      return unless aMaxClients > 0
+    def length= max_clients
+      return unless max_clients > 0
       len, out = length, fringe
 
-      if len > aMaxClients
-        out.unshift clients[aMaxClients..-1].reverse
+      if len > max_clients
+        out.unshift clients[max_clients..-1].reverse
 
-      elsif len < aMaxClients
-        until (diff = aMaxClients - length) == 0
+      elsif len < max_clients
+        until (diff = max_clients - length) == 0
           immigrants = out.clients.first(diff)
           break if immigrants.empty?
 
@@ -531,18 +531,18 @@ module Rumai
     include ClientContainer
       # Returns the IDs of the clients contained
       # in the given area within this view.
-      def client_ids aAreaId = '\S+'
-        manifest.scan(/^#{aAreaId} (0x\S+)/).flatten
+      def client_ids area_id = '\S+'
+        manifest.scan(/^#{area_id} (0x\S+)/).flatten
       end
 
     include Enumerable
       # Iterates through each area in this view.
-      def each &aBlock
-        areas.each(&aBlock)
+      def each &block
+        areas.each(&block)
       end
 
-    def initialize aViewId
-      super aViewId, '/tag'
+    def initialize view_id
+      super view_id, '/tag'
     end
 
     # Returns the manifest of all areas and clients in this view.
@@ -557,17 +557,17 @@ module Rumai
     ##
 
     # Returns the area which contains the given client in this view.
-    def area_of_client aClientOrId
+    def area_of_client client_or_id
       arg =
-        if aClientOrId.respond_to? :id
-          aClientOrId.id
+        if client_or_id.respond_to? :id
+          client_or_id.id
         else
-          aClientOrId
+          client_or_id
         end
 
       manifest =~ /^(\S+) #{arg}/
-      if areaId = $1
-        Area.new areaId, self
+      if area_id = $1
+        Area.new area_id, self
       end
     end
 
@@ -596,8 +596,8 @@ module Rumai
     # Resiliently iterates through possibly destructive changes to
     # each column.  That is, if the given block creates new
     # columns, then those will also be processed in the iteration.
-    def each_column aStartingColumnId = 1
-      i = aStartingColumnId
+    def each_column starting_column_id = 1
+      i = starting_column_id
       loop do
         a = Area.new i, self
 
@@ -631,21 +631,21 @@ module Rumai
 
     # Arranges the clients in this view, while maintaining
     # their relative order, in a (at best) square grid.
-    def arrange_in_grid aMaxClientsPerColumn = nil
+    def arrange_in_grid max_clients_per_column = nil
       # compute client distribution
-      unless aMaxClientsPerColumn
-        numClients = num_managed_clients
-        return unless numClients > 0
+      unless max_clients_per_column
+        num_clients = num_managed_clients
+        return unless num_clients > 0
 
-        numColumns = Math.sqrt(numClients)
-        aMaxClientsPerColumn = (numClients / numColumns).round
+        num_columns = Math.sqrt(num_clients)
+        max_clients_per_column = (num_clients / num_columns).round
       end
 
-      return unless aMaxClientsPerColumn > 1
+      return unless max_clients_per_column > 1
 
       # apply the distribution
       each_column do |a|
-        a.length = aMaxClientsPerColumn
+        a.length = max_clients_per_column
         a.layout = :default
       end
     end
@@ -654,11 +654,11 @@ module Rumai
     # in a (at best) equilateral triangle.  However, the resulting arrangement
     # appears like a diamond because wmii does not waste screen space.
     def arrange_in_diamond
-      numClients = num_managed_clients
-      return unless numClients > 1
+      num_clients = num_managed_clients
+      return unless num_clients > 1
 
       # determine dimensions of the rising sub-triangle
-      rise = numClients / 2
+      rise = num_clients / 2
 
       span = sum = 0
       1.upto rise do |h|
@@ -670,15 +670,15 @@ module Rumai
         end
       end
 
-      peak = numClients - (sum * 2)
+      peak = num_clients - (sum * 2)
 
       # describe the overall triangle as a sequence of heights
-      riseSeq = (1..span).to_a
-      fallSeq = riseSeq.reverse
+      rise_seq = (1..span).to_a
+      fall_seq = rise_seq.reverse
 
-      heights = riseSeq
+      heights = rise_seq
       heights << peak if peak > 0
-      heights.concat fallSeq
+      heights.concat fall_seq
 
       # apply the heights
       each_column do |col|
@@ -698,8 +698,8 @@ module Rumai
 
     # Smashes the given list of areas into the first one.
     # The relative ordering of clients is preserved.
-    def squeeze aAreas
-      aAreas.reverse.each_cons(2) do |src, dst|
+    def squeeze areas
+      areas.reverse.each_cons(2) do |src, dst|
         dst.concat src
       end
     end
@@ -753,16 +753,16 @@ module Rumai
     curr_view.prev
   end
 
-  def focus_client aId
-    Client.focus(aId)
+  def focus_client id
+    Client.focus id
   end
 
-  def focus_area aId
-    Area.focus(aId)
+  def focus_area id
+    Area.focus id
   end
 
-  def focus_view aId
-    View.focus(aId)
+  def focus_view id
+    View.focus id
   end
 
   # provide easy access to this module's instance methods

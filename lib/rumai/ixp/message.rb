@@ -25,8 +25,8 @@ module Rumai
       PACKING_FLAGS = { 1 => 'C', 2 => 'v', 4 => 'V' }.freeze
 
       # Unpacks the given number of bytes from this 9P2000 byte stream.
-      def read_9p aNumBytes
-        read(aNumBytes).unpack(PACKING_FLAGS[aNumBytes])[0]
+      def read_9p num_bytes
+        read(num_bytes).unpack(PACKING_FLAGS[num_bytes])[0]
       end
     end
 
@@ -39,10 +39,10 @@ module Rumai
       attr_reader :fields
 
       # Allows field values to be initialized via the constructor.
-      # aFieldValues:: a mapping from field name to field value
-      def initialize aFieldValues = {}
+      # field_values:: a mapping from field name to field value
+      def initialize field_values = {}
         @fields = self.class.fields
-        @values = aFieldValues
+        @values = field_values
       end
 
       # Transforms this object into a string of 9P2000 bytes.
@@ -52,16 +52,16 @@ module Rumai
 
       # Populates this object with information
       # from the given 9P2000 byte stream.
-      def load_9p aStream
+      def load_9p stream
         @fields.each do |f|
-          f.load_9p aStream, @values
+          f.load_9p stream, @values
         end
       end
 
       # Provides a convenient DSL (for defining fields)
       # to all objects which *include* this module.
-      def self.included aTarget
-        class << aTarget
+      def self.included target
+        class << target
           # Returns a list of fields which compose this Struct.
           def fields
             @fields ||=
@@ -73,10 +73,10 @@ module Rumai
           end
 
           # Defines a new field in this Struct.
-          # aArgs:: arguments for Field.new()
-          def field aName, aFormat = nil, *aArgs
-            c = Field.factory(aFormat)
-            f = c.new(aName.to_sym, aFormat, *aArgs)
+          # args:: arguments for Field.new()
+          def field name, format = nil, *args
+            c = Field.factory(format)
+            f = c.new(name.to_sym, format, *args)
             fields << f # register field as being part of this structure
 
             # provide accessor methods to field values
@@ -85,8 +85,8 @@ module Rumai
                 @values[#{f.name.inspect}]
               end
 
-              def #{f.name}= aValue
-                @values[#{f.name.inspect}] = aValue
+              def #{f.name}= value
+                @values[#{f.name.inspect}] = value
               end
             }
 
@@ -95,9 +95,9 @@ module Rumai
 
           # Creates a new instance of this class from the
           # given 9P2000 byte stream and returns the instance.
-          def from_9p aStream, aMsgClass = self
-            msg = aMsgClass.new
-            msg.load_9p(aStream)
+          def from_9p stream, msg_class = self
+            msg = msg_class.new
+            msg.load_9p(stream)
             msg
           end
         end
@@ -111,20 +111,20 @@ module Rumai
       class Field
         attr_reader :name, :format, :counter, :countee
 
-        # aName:: unique (among all fields in a struct) name for the field
-        # aFormat:: number of bytes, a class, or nil
-        # aCounter:: field which counts the length of this field's value
-        def initialize aName, aFormat = nil, aCounter = nil
-          @name = aName
-          @format = aFormat
+        # name:: unique (among all fields in a struct) name for the field
+        # format:: number of bytes, a class, or nil
+        # counter:: field which counts the length of this field's value
+        def initialize name, format = nil, counter = nil
+          @name = name
+          @format = format
           @countee = nil
-          self.counter = aCounter
+          self.counter = counter
         end
 
         # Sets the counter for this field (implying that the
         # length of this field is counted by the given field).
-        def counter= aField
-          if @counter = aField
+        def counter= field
+          if @counter = field
             extend CounteeField
             @counter.countee = self
           end
@@ -132,21 +132,21 @@ module Rumai
 
         # Sets the countee for this field (implying that
         # this field counts the length of the given field).
-        def countee= aField
-          if @countee = aField
+        def countee= field
+          if @countee = field
             extend CounterField
           end
         end
 
         # Returns a Field class that best represents the given format.
-        def self.factory aFormat
-          if aFormat == String
+        def self.factory format
+          if format == String
             StringField
 
-          elsif aFormat.is_a? Class
+          elsif format.is_a? Class
             ClassField
 
-          elsif aFormat == 8
+          elsif format == 8
             Integer8Field
 
           else
@@ -155,41 +155,41 @@ module Rumai
         end
 
         # Transforms this object into a string of 9P2000 bytes.
-        def to_9p aFieldValues
-          value_to_9p aFieldValues[@name]
+        def to_9p field_values
+          value_to_9p field_values[@name]
         end
 
         # Populates this object with information
         # taken from the given 9P2000 byte stream.
-        def load_9p aStream, aFieldValues
-          aFieldValues[@name] = value_from_9p aStream
+        def load_9p stream, field_values
+          field_values[@name] = value_from_9p stream
         end
 
         private
 
         # Converts the given value, according to the format
         # of this field, into a string of 9P2000 bytes.
-        def value_to_9p aValue
-          aValue.to_i.to_9p @format.to_i
+        def value_to_9p value
+          value.to_i.to_9p @format.to_i
         end
 
         # Parses a value, according to the format of
         # this field, from the given 9P2000 byte stream.
-        def value_from_9p aStream
-          aStream.read_9p @format.to_i
+        def value_from_9p stream
+          stream.read_9p @format.to_i
         end
 
         # Methods for a field that counts the length of another field.
         module CounterField
-          def to_9p aFieldValues
-            value_to_9p aFieldValues[@countee.name].length
+          def to_9p field_values
+            value_to_9p field_values[@countee.name].length
           end
         end
 
         # Methods for a field whose length is counted by another field.
         module CounteeField
-          def to_9p aFieldValues
-            value = aFieldValues[@name]
+          def to_9p field_values
+            value = field_values[@name]
 
             if @format
               value.map {|v| value_to_9p v}.join
@@ -198,14 +198,14 @@ module Rumai
             end
           end
 
-          def load_9p aStream, aFieldValues
-            count = aFieldValues[@counter.name].to_i
+          def load_9p stream, field_values
+            count = field_values[@counter.name].to_i
 
-            aFieldValues[@name] =
+            field_values[@name] =
               if @format
-                Array.new(count) { value_from_9p aStream }
+                Array.new(count) { value_from_9p stream }
               else
-                aStream.read(count) # raw byte sequence
+                stream.read(count) # raw byte sequence
               end
           end
         end
@@ -213,32 +213,32 @@ module Rumai
 
       # A field whose value knows how to convert itself to and from 9p.
       class ClassField < Field #:nodoc:
-        def value_to_9p aValue
-          aValue.to_9p
+        def value_to_9p value
+          value.to_9p
         end
 
-        def value_from_9p aStream
-          @format.from_9p aStream
+        def value_from_9p stream
+          @format.from_9p stream
         end
       end
 
       # A field whose value is a string.
       class StringField < ClassField #:nodoc:
-        def value_to_9p aValue
-          aValue.to_s.to_9p
+        def value_to_9p value
+          value.to_s.to_9p
         end
       end
 
       # A field whose value is a 8-byte integer.
       class Integer8Field < Field #:nodoc:
-        def value_to_9p aValue
-          v = aValue.to_i
+        def value_to_9p value
+          v = value.to_i
           (BYTE4_MASK & v).to_9p(4) <<               # lower bytes
           (BYTE4_MASK & (v >> BYTE4_BITS)).to_9p(4)  # higher bytes
         end
 
-        def value_from_9p aStream
-          aStream.read_9p(4) | (aStream.read_9p(4) << BYTE4_BITS)
+        def value_from_9p stream
+          stream.read_9p(4) | (stream.read_9p(4) << BYTE4_BITS)
         end
       end
     end
@@ -335,15 +335,15 @@ module Rumai
 
       # Creates a new instance of this class from the
       # given 9P2000 byte stream and returns the instance.
-      def self.from_9p aStream
-        size = aStream.read_9p(4)
-        type = aStream.read_9p(1)
+      def self.from_9p stream
+        size = stream.read_9p(4)
+        type = stream.read_9p(1)
 
         unless fcall = TYPE_TO_CLASS[type]
           raise Error, "illegal fcall type: #{type}"
         end
 
-        __from_9p__ aStream, fcall
+        __from_9p__ stream, fcall
       end
 
       NOTAG = BYTE2_MASK # (ushort)
@@ -580,8 +580,8 @@ end
 
 class Integer
   # Transforms this object into a string of 9P2000 bytes.
-  def to_9p aNumBytes
-    [self].pack Rumai::IXP::Stream::PACKING_FLAGS[aNumBytes]
+  def to_9p num_bytes
+    [self].pack Rumai::IXP::Stream::PACKING_FLAGS[num_bytes]
   end
 end
 
@@ -594,8 +594,8 @@ class String
 
   # Creates a new instance of this class from the
   # given 9P2000 byte stream and returns the instance.
-  def self.from_9p aStream
-    aStream.read(aStream.read_9p(2))
+  def self.from_9p stream
+    stream.read(stream.read_9p(2))
   end
 end
 
@@ -607,8 +607,8 @@ class Time
 
   # Creates a new instance of this class from the
   # given 9P2000 byte stream and returns the instance.
-  def self.from_9p aStream
-    at aStream.read_9p(4)
+  def self.from_9p stream
+    at stream.read_9p(4)
   end
 end
 
