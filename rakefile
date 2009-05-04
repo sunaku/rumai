@@ -6,4 +6,4 @@ Inochi.rake :Rumai,
   :rubyforge_project => 'sunaku',
   :upload_target     => File.expand_path('~/www/lib/rumai/'),
   :upload_delete     => true,
-  :test_with         => :mini_test
+  :test_with         => :dfect
