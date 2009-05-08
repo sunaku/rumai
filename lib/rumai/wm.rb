@@ -453,7 +453,7 @@ module Rumai
 
       clients.each do |c|
         import_client c
-        c.send :up if target
+        c.send :up if target && !target.empty?
       end
     end
 
