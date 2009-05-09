@@ -69,10 +69,12 @@ class << Object.new
       if $DEBUG
         s = StringIO.new(rsp.data, 'r')
         a = []
+
         until s.eof?
           t = Stat.from_9p(s)
           a << t
         end
+
         pp a
       end
     end
@@ -194,7 +196,9 @@ class << Object.new
     end
   end
 
+  ##
   # Transmits the given request and returns the received response.
+  #
   def self.send_and_recv request
     # send the request
       if $DEBUG

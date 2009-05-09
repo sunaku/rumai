@@ -1,6 +1,7 @@
 # Primitives for the 9P2000 protocol.
 #
 # See http://cm.bell-labs.com/sys/man/5/INDEX.html
+#
 # See http://swtch.com/plan9port/man/man9/
 #
 #--
@@ -23,47 +24,65 @@ module Rumai
       const_set "BYTE#{bytes}_MASK", mask
     end
 
+    ##
     # A 9P2000 byte stream.
+    #
     module Stream
       # uchar, ushort, uint32 (all of them little-endian)
       PACKING_FLAGS = { 1 => 'C', 2 => 'v', 4 => 'V' }.freeze
 
+      ##
       # Unpacks the given number of bytes from this 9P2000 byte stream.
+      #
       def read_9p num_bytes
         read(num_bytes).unpack(PACKING_FLAGS[num_bytes])[0]
       end
     end
 
+    ##
     # A common container for exceptions concerning IXP.
+    #
     class Error < StandardError
     end
 
+    ##
     # A serializable 9P2000 data structure.
+    #
     module Struct
       attr_reader :fields
 
+      ##
       # Allows field values to be initialized via the constructor.
-      # field_values:: a mapping from field name to field value
+      #
+      # [field_values]
+      #   a mapping from field name to field value
+      #
       def initialize field_values = {}
         @fields = self.class.fields
         @values = field_values
       end
 
+      ##
       # Transforms this object into a string of 9P2000 bytes.
+      #
       def to_9p
         @fields.inject('') {|s,f| s << f.to_9p(@values) }
       end
 
+      ##
       # Populates this object with information
       # from the given 9P2000 byte stream.
+      #
       def load_9p stream
         @fields.each do |f|
           f.load_9p stream, @values
         end
       end
 
+      ##
       # Provides a convenient DSL (for defining fields)
       # to all objects which *include* this module.
+      #
       def self.included target
         class << target
           # Returns a list of fields which compose this Struct.
@@ -76,8 +95,11 @@ module Rumai
               end
           end
 
+          ##
           # Defines a new field in this Struct.
-          # args:: arguments for Field.new()
+          #
+          # [args] arguments for Field.new()
+          #
           def field name, format = nil, *args
             c = Field.factory(format)
             f = c.new(name.to_sym, format, *args)
@@ -97,8 +119,10 @@ module Rumai
             return f
           end
 
+          ##
           # Creates a new instance of this class from the
           # given 9P2000 byte stream and returns the instance.
+          #
           def from_9p stream, msg_class = self
             msg = msg_class.new
             msg.load_9p(stream)
@@ -109,15 +133,26 @@ module Rumai
 
       private
 
-      # A field inside a Struct.  A field's value is considered to be:
+      ##
+      # A field inside a Struct.
+      #
+      # A field's value is considered to be either:
       # * array of format when <code>counter && format.is_a? Class</code>
       # * raw byte string when <code>counter && format.nil?</code>
+      #
       class Field
         attr_reader :name, :format, :counter, :countee
 
-        # name:: unique (among all fields in a struct) name for the field
-        # format:: number of bytes, a class, or nil
-        # counter:: field which counts the length of this field's value
+        ##
+        # [name]
+        #   unique (among all fields in a struct) name for the field
+        #
+        # [format]
+        #   number of bytes, a class, or nil
+        #
+        # [counter]
+        #   field which counts the length of this field's value
+        #
         def initialize name, format = nil, counter = nil
           @name = name
           @format = format
@@ -125,8 +160,10 @@ module Rumai
           self.counter = counter
         end
 
+        ##
         # Sets the counter for this field (implying that the
         # length of this field is counted by the given field).
+        #
         def counter= field
           if @counter = field
             extend CounteeField
@@ -134,15 +171,19 @@ module Rumai
           end
         end
 
+        ##
         # Sets the countee for this field (implying that
         # this field counts the length of the given field).
+        #
         def countee= field
           if @countee = field
             extend CounterField
           end
         end
 
+        ##
         # Returns a Field class that best represents the given format.
+        #
         def self.factory format
           if format == String
             StringField
@@ -158,39 +199,51 @@ module Rumai
           end
         end
 
+        ##
         # Transforms this object into a string of 9P2000 bytes.
+        #
         def to_9p field_values
           value_to_9p field_values[@name]
         end
 
+        ##
         # Populates this object with information
         # taken from the given 9P2000 byte stream.
+        #
         def load_9p stream, field_values
           field_values[@name] = value_from_9p stream
         end
 
         private
 
+        ##
         # Converts the given value, according to the format
         # of this field, into a string of 9P2000 bytes.
+        #
         def value_to_9p value
           value.to_i.to_9p @format.to_i
         end
 
+        ##
         # Parses a value, according to the format of
         # this field, from the given 9P2000 byte stream.
+        #
         def value_from_9p stream
           stream.read_9p @format.to_i
         end
 
+        ##
         # Methods for a field that counts the length of another field.
+        #
         module CounterField
           def to_9p field_values
             value_to_9p field_values[@countee.name].length
           end
         end
 
+        ##
         # Methods for a field whose length is counted by another field.
+        #
         module CounteeField
           def to_9p field_values
             value = field_values[@name]
@@ -215,8 +268,12 @@ module Rumai
         end
       end
 
+      #:stopdoc:
+
+      ##
       # A field whose value knows how to convert itself to and from 9p.
-      class ClassField < Field #:nodoc:
+      #
+      class ClassField < Field
         def value_to_9p value
           value.to_9p
         end
@@ -226,15 +283,19 @@ module Rumai
         end
       end
 
+      ##
       # A field whose value is a string.
-      class StringField < ClassField #:nodoc:
+      #
+      class StringField < ClassField
         def value_to_9p value
           value.to_s.to_9p
         end
       end
 
+      ##
       # A field whose value is a 8-byte integer.
-      class Integer8Field < Field #:nodoc:
+      #
+      class Integer8Field < Field
         def value_to_9p value
           v = value.to_i
           (BYTE4_MASK & v).to_9p(4) <<               # lower bytes
@@ -245,11 +306,15 @@ module Rumai
           stream.read_9p(4) | (stream.read_9p(4) << BYTE4_BITS)
         end
       end
+
+      #:startdoc:
     end
 
+    ##
     # Holds information about a file being accessed on a 9P2000 server.
     #
     # See http://cm.bell-labs.com/magic/man2html/5/intro
+    #
     class Qid
       include Struct
 
@@ -269,9 +334,11 @@ module Rumai
       QTFILE      = 0x00       # type bits for plain file
     end
 
+    ##
     # Holds information about a file on a 9P2000 server.
     #
     # See http://cm.bell-labs.com/magic/man2html/5/stat
+    #
     class Stat
       include Struct
 
@@ -305,16 +372,20 @@ module Rumai
       DMWRITE     = 0x2        # mode bit for write permission
       DMEXEC      = 0x1        # mode bit for execute permission
 
+      ##
       # Tests if this file is a directory.
+      #
       def directory?
         mode & DMDIR > 0
       end
     end
 
+    ##
     # Fcall is the basic unit of communication in the 9P2000 protocol.
     # It is analogous to a "packet" in the Internetwork Protocol (IP).
     #
     # See http://cm.bell-labs.com/magic/man2html/2/fcall
+    #
     class Fcall
       include Struct
 
@@ -326,7 +397,9 @@ module Rumai
       #
       field   :tag  , 2
 
+      ##
       # Transforms this object into a string of 9P2000 bytes.
+      #
       def to_9p
         data = type.to_9p(1) << super
         size = (data.length + 4).to_9p(4)
@@ -335,19 +408,22 @@ module Rumai
 
       class << self
         alias __from_9p__ from_9p
-      end
+        undef from_9p
 
-      # Creates a new instance of this class from the
-      # given 9P2000 byte stream and returns the instance.
-      def self.from_9p stream
-        size = stream.read_9p(4)
-        type = stream.read_9p(1)
+        ##
+        # Creates a new instance of this class from the
+        # given 9P2000 byte stream and returns the instance.
+        #
+        def from_9p stream
+          size = stream.read_9p(4)
+          type = stream.read_9p(1)
 
-        unless fcall = TYPE_TO_CLASS[type]
-          raise Error, "illegal fcall type: #{type}"
+          unless fcall = TYPE_TO_CLASS[type]
+            raise Error, "illegal fcall type: #{type}"
+          end
+
+          __from_9p__ stream, fcall
         end
-
-        __from_9p__ stream, fcall
       end
 
       NOTAG = BYTE2_MASK # (ushort)
@@ -535,6 +611,9 @@ module Rumai
     class Rwstat < Fcall
     end
 
+    ##
+    # A remote function call (fcall).
+    #
     class Fcall
       CLASS_TO_TYPE = {
         Tversion => 100,
@@ -569,12 +648,16 @@ module Rumai
 
       TYPE_TO_CLASS = CLASS_TO_TYPE.invert.freeze
 
+      ##
       # Returns the value of the 'type' field for this fcall.
+      #
       def self.type
         CLASS_TO_TYPE[self]
       end
 
+      ##
       # Returns the value of the 'type' field for this fcall.
+      #
       def type
         self.class.type
       end
@@ -583,7 +666,9 @@ module Rumai
 end
 
 class Integer
+  ##
   # Transforms this object into a string of 9P2000 bytes.
+  #
   def to_9p num_bytes
     [self].pack Rumai::IXP::Stream::PACKING_FLAGS[num_bytes]
   end
@@ -591,26 +676,34 @@ end
 
 # count[2] s[count]
 class String
+  ##
   # Transforms this object into a string of 9P2000 bytes.
+  #
   def to_9p
     length.to_9p(2) << self[0, Rumai::IXP::BYTE2_MASK]
   end
 
+  ##
   # Creates a new instance of this class from the
   # given 9P2000 byte stream and returns the instance.
+  #
   def self.from_9p stream
     stream.read(stream.read_9p(2))
   end
 end
 
 class Time
+  ##
   # Transforms this object into a string of 9P2000 bytes.
+  #
   def to_9p
     to_i.to_9p(4)
   end
 
+  ##
   # Creates a new instance of this class from the
   # given 9P2000 byte stream and returns the instance.
+  #
   def self.from_9p stream
     at stream.read_9p(4)
   end

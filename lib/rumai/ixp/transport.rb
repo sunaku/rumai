@@ -9,8 +9,10 @@ require 'thread' # for Mutex
 
 module Rumai
   module IXP
+    ##
     # A thread-safe proxy that multiplexes many
     # threads onto a single 9P2000 connection.
+    #
     class Agent
       attr_reader :msize
 
@@ -53,7 +55,9 @@ module Rumai
         attach @root_fid, @auth_fid
       end
 
+      ##
       # A finite, thread-safe pool of range members.
+      #
       class RangedPool
         # how many new members should be added
         # to the pool when the pool is empty?
@@ -97,6 +101,7 @@ module Rumai
         end
       end
 
+      ##
       # Sends the given message (Rumai::IXP::Fcall) and returns its response.
       #
       # This method allows you to perform a 9P2000 transaction without
@@ -131,20 +136,24 @@ module Rumai
         '+' => Topen::ORDWR,
       }
 
+      ##
       # Converts the given mode string into an integer.
+      #
       def MODES.parse mode
         if mode.respond_to? :split
-          mode.split(//).inject(0) { |m,c| m | self[c].to_i }
+          mode.split(//).inject(0) {|m,c| m | self[c].to_i }
         else
           mode.to_i
         end
       end
 
+      ##
       # Opens the given path for I/O access through a FidStream
       # object.  If a block is given, it is invoked with a
       # FidStream object and the stream is closed afterwards.
       #
       # See File::open in the Ruby documentation.
+      #
       def open path, mode = 'r' # :yields: FidStream
         mode = MODES.parse(mode)
 
@@ -170,8 +179,11 @@ module Rumai
         end
       end
 
+      ##
       # Encapsulates I/O access over a file handle (fid).
-      # NOTE that this class is NOT thread-safe.
+      #
+      # NOTE: this class is NOT thread-safe.
+      #
       class FidStream
         attr_reader :fid, :stat
 
@@ -185,18 +197,22 @@ module Rumai
           @agent  = agent
           @fid    = path_fid
           @msize  = message_size
-          @stat   = @agent.stat_fid @fid
+          @stat   = @agent.stat_fid(@fid)
           @closed = false
           rewind
         end
 
+        ##
         # Rewinds the stream to the beginning.
+        #
         def rewind
           @pos = 0
           @eof = false
         end
 
+        ##
         # Closes this stream.
+        #
         def close
           unless @closed
             @agent.clunk @fid
@@ -205,17 +221,22 @@ module Rumai
           end
         end
 
+        ##
         # Returns true if this stream is closed.
+        #
         def closed?
           @closed
         end
 
+        ##
         # Reads some data from this stream at the current position.
         #
-        # partial:: When false, the entire content of this stream
-        #            is read and returned.  When true, the maximum
-        #            amount of content that can fit inside a
-        #            single 9P2000 message is read and returned.
+        # [partial]
+        #   When false, the entire content of
+        #   this stream is read and returned.
+        #
+        #   When true, the maximum amount of content that can fit
+        #   inside a single 9P2000 message is read and returned.
         #
         # If this stream corresponds to a directory, then an Array of
         # Stat (one for each file in the directory) will be returned.
@@ -251,7 +272,9 @@ module Rumai
           content
         end
 
+        ##
         # Writes the given content at the current position in this stream.
+        #
         def write content
           raise 'closed streams cannot be written to' if @closed
           raise 'directories cannot be written to' if @stat.directory?
@@ -277,14 +300,18 @@ module Rumai
         alias << write
       end
 
+      ##
       # Returns the content of the file/directory at the given path.
+      #
       def read path, *args
         open path do |f|
           f.read(*args)
         end
       end
 
+      ##
       # Returns the names of all files inside the directory whose path is given.
+      #
       def entries path
         unless stat(path).directory?
           raise ArgumentError, "#{path.inspect} is not a directory"
@@ -293,15 +320,19 @@ module Rumai
         read(path).map! {|t| t.name}
       end
 
+      ##
       # Returns the content of the file/directory at the given path.
+      #
       def write path, content
         open path, 'w' do |f|
           f << content
         end
       end
 
+      ##
       # Creates a new file at the given path that is accessible using
       # the given modes for a user having the given permission bits.
+      #
       def create path, mode = 'rw', perm = 0644
         prefix = File.dirname(path)
         target = File.basename(path)
@@ -321,19 +352,25 @@ module Rumai
         end
       end
 
+      ##
       # Deletes the file at the given path.
+      #
       def remove path
         path_fid = walk(path)
         remove_fid path_fid # remove also does clunk
       end
 
+      ##
       # Deletes the file corresponding to the
       # given FID and clunks the given FID.
+      #
       def remove_fid path_fid
         talk Tremove.new(:fid => path_fid)
       end
 
+      ##
       # Returns information about the file at the given path.
+      #
       def stat path
         with_fid do |path_fid|
           walk_fid path_fid, path
@@ -341,30 +378,38 @@ module Rumai
         end
       end
 
+      ##
       # Returns information about the file referenced by the given FID.
+      #
       def stat_fid path_fid
         req = Tstat.new(:fid => path_fid)
         rsp = talk(req)
         rsp.stat
       end
 
+      ##
       # Returns an FID corresponding to the given path.
+      #
       def walk path
         fid = @fid_pool.obtain
         walk_fid fid, path
         fid
       end
 
+      ##
       # Associates the given FID to the given path.
+      #
       def walk_fid path_fid, path
         talk Twalk.new(
           :fid    => @root_fid,
           :newfid => path_fid,
-          :wname  => path.to_s.split(%r{/+}).reject { |s| s.empty? }
+          :wname  => path.to_s.split(%r{/+}).reject {|s| s.empty? }
         )
       end
 
+      ##
       # Associates the given FID with the FS root.
+      #
       def attach root_fid, auth_fid = Fcall::NOFID, auth_name = ENV['USER']
         talk Tattach.new(
           :fid    => root_fid,
@@ -374,7 +419,9 @@ module Rumai
         )
       end
 
+      ##
       # Retires the given FID from use.
+      #
       def clunk fid
         talk Tclunk.new(:fid => fid)
         @fid_pool.release fid
@@ -382,7 +429,9 @@ module Rumai
 
       private
 
+      ##
       # Invokes the given block with a temporary FID.
+      #
       def with_fid # :yields: fid
         begin
           fid = @fid_pool.obtain
