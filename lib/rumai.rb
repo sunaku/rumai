@@ -8,8 +8,8 @@ gem 'inochi', '~> 1'
 require 'inochi'
 
 Inochi.init :Rumai,
-  :version => '2.0.2',
-  :release => '2009-02-26',
+  :version => '2.1.0',
+  :release => '2009-05-09',
   :website => 'http://snk.tuxfamily.org/lib/rumai/',
   :tagline => 'Ruby interface to the wmii window manager',
   :develop => {

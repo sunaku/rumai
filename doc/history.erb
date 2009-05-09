@@ -5,13 +5,40 @@
 
 %|chapter "History"
   %|history
+    %|section "Version 2.1.0 (2009-05-09)"
+      This release improves client arrangement, fixes several bugs, and cleans up the code.
+
+      %|paragraph "Thank you"
+        * Simon Hafner reported several bugs.
+        * Michael Andrus verified bug fixes.
+
+      %|paragraph "New features"
+        * Focus is now restored on the initially focused client after applying <%= xref "Automated client arrangement" %>s.
+
+        * The push(), insert(), and unshift() instance methods of the `Rumai::Area` class now preserve the order of inserted clients.
+
+        * The `Rumai::View#arrange_in_grid()` method now accepts 1 as a parameter.  This invocation causes every column to contain at most 1 client.
+
+      %|paragraph "Bug fixes"
+        * Fix error caused by focusing the top/bottom client in the destination area before sending new clients into that area.
+
+        * Fix error when importing clients into an empty area.
+
+      %|paragraph "Housekeeping"
+        * Use snake_case instead of camelCase for variable names.
+
+        * Add copyright notice at the top of every file.
+
+        * Plenty of code formatting and beautification.
+
     %|section "Version 2.0.2 (2009-02-26)"
       This release fixes a connection bug.
 
+      %|paragraph "Thank you"
+        * Simon Hafner reported and helped debug the `$DISPLAY` bug.
+
       %|paragraph "Bug fixes"
         * wmii omits the fractional portion of `$DISPLAY` in its socket file path.  Rumai was trying to connect with the entire `$DISPLAY` value (including the fractional portion) and thus could not find wmii's socket file.
-
-          Thanks to Simon Hafner for helping me debug this.
 
     %|section "Version 2.0.1 (2009-01-25)"
       This release simplifies project administrivia using [<%= Inochi::PROJECT %>](<%= Inochi::WEBSITE %>), improves the unit tests, and revises the user manual.
