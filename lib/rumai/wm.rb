@@ -423,11 +423,18 @@ module Rumai
 
     # Inserts the given clients at the bottom of this area.
     def push *clients
-      if target = clients.last
-        target.focus
-      end
+      clients.flatten!
+      return if clients.empty?
 
       insert clients
+
+      # adjust the order of clients in this
+      # area to reflect the tail-wise insertion
+      clients.each do |c|
+        until c.id == self.client_ids.last
+          c.swap :down
+        end
+      end
     end
 
     alias << push
@@ -447,13 +454,14 @@ module Rumai
       clients.flatten!
       return if clients.empty?
 
-      if target = clients.first
-        target.focus
-      end
+      insert clients
 
-      clients.each do |c|
-        import_client c
-        c.send :up if target && !target.empty?
+      # adjust the order of clients in this
+      # area to reflect the head-wise insertion
+      clients.reverse_each do |c|
+        until c.id == self.client_ids.first
+          c.swap :up
+        end
       end
     end
 
