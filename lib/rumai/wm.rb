@@ -430,8 +430,8 @@ module Rumai
 
       # adjust the order of clients in this
       # area to reflect the tail-wise insertion
-      clients.each do |c|
-        until c.id == self.client_ids.last
+      clients.each_with_index do |c, i|
+        until c.id == self.client_ids[-i.succ]
           c.swap :down
         end
       end
@@ -458,8 +458,8 @@ module Rumai
 
       # adjust the order of clients in this
       # area to reflect the head-wise insertion
-      clients.reverse_each do |c|
-        until c.id == self.client_ids.first
+      clients.each_with_index do |c, i|
+        until c.id == self.client_ids[i]
           c.swap :up
         end
       end
@@ -478,7 +478,7 @@ module Rumai
       len, out = length, fringe
 
       if len > max_clients
-        out.unshift clients[max_clients..-1].reverse
+        out.unshift clients[max_clients..-1]
 
       elsif len < max_clients
         until (diff = max_clients - length) == 0
