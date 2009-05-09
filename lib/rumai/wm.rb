@@ -487,11 +487,10 @@ module Rumai
 
           insert clients
 
-          # adjust the order of clients in this
-          # area to reflect the tail-wise insertion
+          # move inserted clients to bottom
           clients.each_with_index do |c, i|
             until c.id == self.client_ids[-i.succ]
-              c.swap :down
+              c.send :down
             end
           end
         end
@@ -520,11 +519,10 @@ module Rumai
 
           insert clients
 
-          # adjust the order of clients in this
-          # area to reflect the head-wise insertion
+          # move inserted clients to top
           clients.each_with_index do |c, i|
             until c.id == self.client_ids[i]
-              c.swap :up
+              c.send :up
             end
           end
         end
