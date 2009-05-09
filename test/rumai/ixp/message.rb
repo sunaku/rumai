@@ -1,3 +1,8 @@
+#--
+# Copyright 2007 Suraj N. Kurapati
+# See the LICENSE file for details.
+#++
+
 require 'pp' if $DEBUG
 
 class << Object.new

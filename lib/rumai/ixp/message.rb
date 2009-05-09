@@ -3,6 +3,10 @@
 # See http://cm.bell-labs.com/sys/man/5/INDEX.html
 # See http://swtch.com/plan9port/man/man9/
 #
+#--
+# Copyright 2007 Suraj N. Kurapati
+# See the LICENSE file for details.
+#++
 
 module Rumai
   module IXP

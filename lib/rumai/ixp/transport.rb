@@ -1,4 +1,8 @@
 # Transport layer for 9P2000 protocol.
+#--
+# Copyright 2007 Suraj N. Kurapati
+# See the LICENSE file for details.
+#++
 
 require 'rumai/ixp/message'
 require 'thread' # for Mutex
