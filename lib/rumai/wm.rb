@@ -15,67 +15,10 @@ class Object #:nodoc:
 end
 
 module Rumai
-  # access to global WM state
-
-    ROOT = Node.new '/'
-
-    # Returns the root of IXP file system hierarchy.
-    def fs
-      ROOT
-    end
-
-    # Returns the current set of tags.
-    def tags
-      fs.tag.entries.sort - %w[sel]
-    end
-
-    # Returns the current set of views.
-    def views
-      tags.map! {|t| View.new t }
-    end
-
-    module ClientContainer
-      # see definition below!
-    end
-
-    include ClientContainer
-
-      # Returns the IDs of the current set of clients.
-      def client_ids
-        fs.client.entries - %w[sel]
-      end
-
-    # Returns the name of the currently focused tag.
-    def curr_tag
-      curr_view.id
-    end
-
-    # Returns the name of the next tag.
-    def next_tag
-      next_view.id
-    end
-
-    # Returns the name of the previous tag.
-    def prev_tag
-      prev_view.id
-    end
-
-
-  # multiple client grouping: allows you to group a set of clients
-  # together and perform operations on all of them simultaneously.
-
-    GROUPING_TAG = '@'
-
-    # Returns a list of all grouped clients in
-    # the currently focused view. If there are
-    # no grouped clients, then the currently
-    # focused client is returned in the list.
-    def grouping
-      list = curr_view.clients.select {|c| c.group? }
-      list << curr_client if list.empty? and curr_client.exist?
-      list
-    end
-
+  IXP_FS_ROOT         = Node.new('/')
+  FOCUSED_WIDGET_ID   = 'sel'.freeze
+  FLOATING_AREA_ID    = '~'.freeze
+  CLIENT_GROUPING_TAG = '@'.freeze
 
   # abstraction of WM components
 
@@ -118,7 +61,7 @@ module Rumai
     ##
     # The basic building block of the WM hierarchy.
     #
-    # NOTE: Inheritors must have a 'current' class method.
+    # NOTE: Inheritors must define a 'curr' class method.
     # NOTE: Inheritors must override the 'focus' method.
     #
     module WidgetImpl #:nodoc:
@@ -147,11 +90,11 @@ module Rumai
       def initialize id, path_prefix
         super "#{path_prefix}/#{id}"
 
-        if id.to_s == 'sel' and ctl.exist?
+        if id == FOCUSED_WIDGET_ID and ctl.exist?
           @id = ctl.read.split.first
-          @path = File.join(File.dirname(@path), @id)
+          super "#{path_prefix}/#{@id}"
         else
-          @id = File.basename(@path)
+          @id = id.to_s
         end
       end
     end
@@ -168,7 +111,7 @@ module Rumai
       # Returns the currently focused client.
       #
       def self.curr
-        new :sel
+        new FOCUSED_WIDGET_ID
       end
 
       include Chain
@@ -200,9 +143,7 @@ module Rumai
                 distance = (src - dst).abs
                 direction = src < dst ? :down : :up
 
-                distance.times do
-                  v.ctl.write "select #{direction}"
-                end
+                distance.times { v.move_focus direction }
 
                 break
               end
@@ -304,7 +245,7 @@ module Rumai
         # Checks if this client is included in the current grouping.
         #
         def group?
-          tags.include? GROUPING_TAG
+          tags.include? CLIENT_GROUPING_TAG
         end
 
         ##
@@ -312,7 +253,7 @@ module Rumai
         #
         def group
           with_tags do
-            push GROUPING_TAG
+            push CLIENT_GROUPING_TAG
           end
         end
 
@@ -320,7 +261,7 @@ module Rumai
         # Removes this client to the current grouping.
         #
         def ungroup
-          untag GROUPING_TAG
+          untag CLIENT_GROUPING_TAG
         end
 
         ##
@@ -336,10 +277,13 @@ module Rumai
 
       private
 
+      ##
+      # Returns the wmii ID of the given area.
+      #
       def area_to_id area_or_id
         if area_or_id.respond_to? :id
           id = area_or_id.id
-          id == '~' ? :toggle : id
+          id == FLOATING_AREA_ID ? :toggle : id
         else
           area_or_id
         end
@@ -400,7 +344,7 @@ module Rumai
       # Checks if this area is the floating area.
       #
       def float?
-        @id == '~'
+        @id == FLOATING_AREA_ID
       end
 
       ##
@@ -599,14 +543,14 @@ module Rumai
         # Returns the currently focused view.
         #
         def self.curr
-          new :sel
+          new FOCUSED_WIDGET_ID
         end
 
         ##
         # Focuses this view.
         #
         def focus
-          Rumai.fs.ctl.write "view #{@id}"
+          IXP_FS_ROOT.ctl.write "view #{@id}"
         end
 
       include Chain
@@ -641,12 +585,14 @@ module Rumai
         super view_id, '/tag'
       end
 
-      ##
-      # Returns the manifest of all areas and clients in this view.
-      #
-      def manifest
-        index.read || ''
-      end
+      # WM operations
+
+        ##
+        # Returns the manifest of all areas and clients in this view.
+        #
+        def manifest
+          index.read || ''
+        end
 
       # WM hierarchy
 
@@ -671,9 +617,7 @@ module Rumai
         # Returns the IDs of all areas in this view.
         #
         def area_ids
-          ids = manifest.scan(/^# (\d+)/).flatten
-          ids.unshift '~' # the floating area
-          ids
+          manifest.scan(/^# (\d+)/).flatten.unshift(FLOATING_AREA_ID)
         end
 
         ##
@@ -729,16 +673,22 @@ module Rumai
         #
         def arrange_as_larswm
           maintain_focus do
-            float, main, *extra = areas
-
             # keep only one client in the primary column
+            main = Area.new(1, self)
             main.length = 1
+            main.layout = :default
+
+            # collapse remaining areas into secondary column
+            extra = columns[1..-1]
 
             if extra.length > 1
-              # collapse remaining areas into secondary column
               extra.reverse.each_cons(2) do |src, dst|
                 dst.concat src
               end
+            end
+
+            if dock = extra.first
+              dock.layout = :default
             end
           end
         end
@@ -821,7 +771,7 @@ module Rumai
       # before the given block was executed.
       #
       def maintain_focus
-        c = Rumai.curr_client
+        c = Client.curr
         yield
         c.focus
       end
@@ -834,46 +784,74 @@ module Rumai
       end
     end
 
+  # access to global WM state
+
+    ##
+    # Returns the root of IXP file system hierarchy.
+    #
+    def fs
+      IXP_FS_ROOT
+    end
+
+    ##
+    # Returns the current set of tags.
+    #
+    def tags
+      ary = IXP_FS_ROOT.tag.entries.sort
+      ary.delete FOCUSED_WIDGET_ID
+      ary
+    end
+
+    ##
+    # Returns the current set of views.
+    #
+    def views
+      tags.map! {|t| View.new t }
+    end
+
+    include ClientContainer
+
+      ##
+      # Returns the IDs of the current set of clients.
+      #
+      def client_ids
+        ary = IXP_FS_ROOT.client.entries
+        ary.delete FOCUSED_WIDGET_ID
+        ary
+      end
+
+    def curr_client ; Client.curr       ; end
+    def next_client ; curr_client.next  ; end
+    def prev_client ; curr_client.prev  ; end
+
+    def curr_area   ; Area.curr         ; end
+    def next_area   ; curr_area.next    ; end
+    def prev_area   ; curr_area.prev    ; end
+
+    def curr_view   ; View.curr         ; end
+    def next_view   ; curr_view.next    ; end
+    def prev_view   ; curr_view.prev    ; end
+
+    def curr_tag    ; curr_view.id      ; end
+    def next_tag    ; next_view.id      ; end
+    def prev_tag    ; prev_view.id      ; end
+
+    ##
+    # Returns a list of all grouped clients in
+    # the currently focused view. If there are
+    # no grouped clients, then the currently
+    # focused client is returned in the list.
+    #
+    def grouping
+      list = curr_view.clients.select {|c| c.group? }
+      list << curr_client if list.empty? and curr_client.exist?
+      list
+    end
+
   # shortcuts for interactive WM manipulation (via IRB)
 
     # provide easy access to container state information
     [Client, Area, View].each {|c| c.extend ExportInstanceMethods }
-
-    def curr_client
-      Client.curr
-    end
-
-    def next_client
-      curr_client.next
-    end
-
-    def prev_client
-      curr_client.prev
-    end
-
-    def curr_area
-      Area.curr
-    end
-
-    def next_area
-      curr_area.next
-    end
-
-    def prev_area
-      curr_area.prev
-    end
-
-    def curr_view
-      View.curr
-    end
-
-    def next_view
-      curr_view.next
-    end
-
-    def prev_view
-      curr_view.prev
-    end
 
     def focus_client id
       Client.focus id
@@ -888,5 +866,5 @@ module Rumai
     end
 
     # provide easy access to this module's instance methods
-    module_function(*instance_methods)
+    module_function(*instance_methods(false))
 end
