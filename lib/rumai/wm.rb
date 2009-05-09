@@ -632,9 +632,19 @@ module Rumai
     # secondary column.  Any subsequent columns are
     # squeezed into the *bottom* of the secondary column.
     def arrange_as_larswm
-      float, main, *extra = areas
-      main.length = 1
-      squeeze extra
+      maintain_focus do
+        float, main, *extra = areas
+
+        # keep only one client in the primary column
+        main.length = 1
+
+        unless extra.empty?
+          # collapse remaining areas into secondary column
+          extra.reverse.each_cons(2) do |src, dst|
+            dst.concat src
+          end
+        end
+      end
     end
 
     # Arranges the clients in this view, while maintaining
@@ -652,9 +662,11 @@ module Rumai
       return unless max_clients_per_column > 1
 
       # apply the distribution
-      each_column do |a|
-        a.length = max_clients_per_column
-        a.layout = :default
+      maintain_focus do
+        each_column do |a|
+          a.length = max_clients_per_column
+          a.layout = :default
+        end
       end
     end
 
@@ -689,15 +701,26 @@ module Rumai
       heights.concat fall_seq
 
       # apply the heights
-      each_column do |col|
-        if h = heights.shift
-          col.length = h
-          col.layout = :default
+      maintain_focus do
+        each_column do |col|
+          if h = heights.shift
+            col.length = h
+            col.layout = :default
+          end
         end
       end
     end
 
     private
+
+    # Executes the given block and restores
+    # focus to the client that had focus
+    # before the given block was executed.
+    def maintain_focus
+      c = Rumai.curr_client
+      yield
+      c.focus
+    end
 
     # Returns the number of clients in the non-floating areas of this view.
     def num_managed_clients
