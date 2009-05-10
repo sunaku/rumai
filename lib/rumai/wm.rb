@@ -187,7 +187,7 @@ module Rumai
         #
         def focus view = nil
           if exist? and not focus?
-            Array(view || self.views).each do |v|
+            (view ? [view] : self.views).each do |v|
               if a = self.area(v) and a.exist?
                 v.focus
                 a.focus
