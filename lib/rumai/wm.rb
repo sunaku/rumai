@@ -19,6 +19,7 @@ module Rumai
   FOCUSED_WIDGET_ID   = 'sel'.freeze
   FLOATING_AREA_ID    = '~'.freeze
   CLIENT_GROUPING_TAG = '@'.freeze
+  CLIENT_STICKY_TAG   = '/./'.freeze
 
   # abstraction of WM components
 
@@ -213,6 +214,38 @@ module Rumai
           # floating area, then we know it is fullscreen.
           #
           View.curr.manifest =~ /^# #{FLOATING_AREA_ID} (\d+) (\d+)\n.*^#{FLOATING_AREA_ID} #{@id} \d+ \d+ \1 \2 /m
+        end
+
+        ##
+        # Checks if this client is sticky (appears in all views).
+        #
+        def stick?
+          tags.include? CLIENT_STICKY_TAG
+        end
+
+        ##
+        # Makes this client sticky (appears in all views).
+        #
+        def stick
+          tag CLIENT_STICKY_TAG
+        end
+
+        ##
+        # Makes this client unsticky (does not appear in all views).
+        #
+        def unstick
+          untag CLIENT_STICKY_TAG
+        end
+
+        ##
+        # Toggles the stickyness of this client.
+        #
+        def stick!
+          if stick?
+            unstick
+          else
+            stick
+          end
         end
 
       # WM hierarchy
