@@ -395,6 +395,8 @@ module Rumai
         not floating?
       end
 
+      alias managed? column?
+
       include WidgetImpl
 
         ##
@@ -696,6 +698,8 @@ module Rumai
           areas[1..-1]
         end
 
+        alias managed_areas columns
+
         ##
         # Resiliently iterates through possibly destructive changes to
         # each column.  That is, if the given block creates new
@@ -715,6 +719,8 @@ module Rumai
             i += 1
           end
         end
+
+        alias each_managed_area each_column
 
       # visual arrangement of clients
 
