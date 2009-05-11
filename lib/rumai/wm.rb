@@ -176,6 +176,38 @@ module Rumai
           ctl.write :kill
         end
 
+        ##
+        # Maximizes this client to occupy the entire screen on the current view.
+        #
+        def fullscreen
+          ctl.write 'Fullscreen on'
+        end
+
+        ##
+        # Restores this client back to its original size on the current view.
+        #
+        def unfullscreen
+          ctl.write 'Fullscreen off'
+        end
+
+        ##
+        # Toggles the fullscreen status of this client on the current view.
+        #
+        def toggle_fullscreen
+          ctl.write 'Fullscreen toggle'
+        end
+
+        ##
+        # Checks if this client is currently fullscreen on the current view.
+        #
+        def fullscreen?
+          #
+          # If the client's dimensions match those of the
+          # floating area, then we know it is fullscreen.
+          #
+          View.curr.manifest =~ /^# #{FLOATING_AREA_ID} (\d+) (\d+)\n.*^#{FLOATING_AREA_ID} #{@id} \d+ \d+ \1 \2 /m
+        end
+
       # WM hierarchy
 
         ##
