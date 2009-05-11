@@ -159,6 +159,8 @@ module Rumai
           view.ctl.write "send #{@id} #{dst}"
         end
 
+        alias move send
+
         ##
         # Swaps this client with the given destination within the given view.
         #
@@ -592,6 +594,13 @@ module Rumai
         #
         def manifest
           index.read || ''
+        end
+
+        ##
+        # Moves the focus from the current client in the given direction.
+        #
+        def select direction
+          ctl.write "select #{direction}"
         end
 
       # WM hierarchy
