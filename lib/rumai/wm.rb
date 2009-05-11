@@ -177,6 +177,13 @@ module Rumai
         end
 
         ##
+        # Terminates this client forcefully.
+        #
+        def slay
+          ctl.write :slay
+        end
+
+        ##
         # Maximizes this client to occupy the entire screen on the current view.
         #
         def fullscreen
