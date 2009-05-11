@@ -5,6 +5,41 @@
 
 %|chapter "History"
   %|history
+    %|section "Version 3.0.0 (2009-05-11)"
+      This release revises method names, adds new methods, and fixes a bug.
+
+      %|paragraph "Incompatible changes"
+        * Rename `#toggle_` methods to use `!` suffix in their names.
+
+        * Rename `#float` methods to `#floating`.
+
+        * Rename `View#floater` method to `View#floating_area`.
+
+      %|paragraph "New features"
+        * Add `Client#stick` methods to manipulate sticky status.
+
+        * Add `Client#fullscreen` methods to manipulate fullscreen status.
+
+        * Add `Client#slay` method which is a forceful version of `#kill`.
+
+        * Add `View#select` method to move focus relatively inside a view.
+
+        * Add `Area::floating` method for symmetry with `Area::curr`.
+
+        * Add `View#managed_area` aliases for `View#column` methods.
+
+      %|paragraph "Bug fixes"
+        * Fix error when unzooming clients from temporary view.
+
+        * Fix code that launches temporary terminals in <%= xref "Tutorial"  %>.
+
+          Use the <tt>/bin/sh</tt> version of the **read** command for portability.
+
+      %|paragraph "Housekeeping"
+        * Use `Client#send` instead of `#swap` in automated arrangements because it causes less traffic on /event/.
+
+        * Add old release notes from blog to user manual.
+
     %|section "Version 2.1.0 (2009-05-09)"
       This release improves client arrangement, fixes several bugs, and cleans up the code.
 
