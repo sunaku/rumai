@@ -200,7 +200,7 @@ module Rumai
         ##
         # Toggles the fullscreen status of this client on the current view.
         #
-        def toggle_fullscreen
+        def fullscreen!
           ctl.write 'Fullscreen toggle'
         end
 
@@ -308,7 +308,7 @@ module Rumai
         ##
         # Toggles the presence of this client in the current grouping.
         #
-        def toggle_group
+        def group!
           if group?
             ungroup
           else
@@ -350,7 +350,7 @@ module Rumai
       end
 
       # multiple client grouping
-      %w[group ungroup toggle_group].each do |meth|
+      %w[group ungroup group!].each do |meth|
         define_method meth do
           clients.each do |c|
             c.__send__ meth
