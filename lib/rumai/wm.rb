@@ -384,7 +384,7 @@ module Rumai
       ##
       # Checks if this area is the floating area.
       #
-      def float?
+      def floating?
         @id == FLOATING_AREA_ID
       end
 
@@ -392,7 +392,7 @@ module Rumai
       # Checks if this is a managed area (a column).
       #
       def column?
-        not float?
+        not floating?
       end
 
       include WidgetImpl
@@ -402,6 +402,13 @@ module Rumai
         #
         def self.curr
           View.curr.area_of_client Client.curr
+        end
+
+        ##
+        # Returns the floating area in the given view.
+        #
+        def self.floating view = View.curr
+          new FLOATING_AREA_ID, view
         end
 
       include Chain
@@ -678,8 +685,8 @@ module Rumai
         ##
         # Returns the floating area of this view.
         #
-        def floater
-          areas.first
+        def floating_area
+          Area.floating self
         end
 
         ##
