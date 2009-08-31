@@ -3,8 +3,12 @@
 %# See LICENSE file for details.
 %#++
 
+
 %|chapter "Usage"
+
+
   %|section "Concepts"
+
     Client
     : Any graphical program (a "window") that is running in your X session.
 
@@ -26,7 +30,9 @@
         * can overlap each other
         * float above clients in the managed areas
 
+
   %|section "Command-line interface"
+
     When you run this command:
 
         <%= $program %> --help
@@ -35,10 +41,12 @@
 
     <pre><%= verbatim `ruby bin/#{$program} --help` %></pre>
 
+
     %|paragraph "Interactive shell", "shell"
+
       When you run this command:
 
-          <%= $program %>
+          %= $program
 
       An IRB session will begin, showing you a command prompt like this:
 
@@ -50,7 +58,9 @@
 
       The next thing to note is that **tab completion** is enabled by default. So you can type part of a command and press the TAB key to see a list of possible completions.
 
+
   %|section "Tutorial"
+
     Now that you know <%= xref "shell", "how to start the interactive shell" %>, let us walk through a quick demonstration that highlights the main features of <%= $project %>.  You can follow along by copying & pasting the presented commands into the interactive shell.
 
     <%
@@ -73,8 +83,10 @@
       }.gsub(/^\s+/, '')
     %>
 
+
     %|section "Automated client arrangement"
-      <%= open_terms %>
+
+      %= open_terms
 
       Arrange all clients in a grid:
 
@@ -94,10 +106,12 @@
       curr_view.arrange_as_larswm
       </code>
 
-      <%= close_terms %>
+      %= close_terms
+
 
     %|section "Multiple client grouping"
-      <%= open_terms %>
+
+      %= open_terms
 
       Add the red, green, and blue terminals into the "grouping":
 
@@ -127,14 +141,16 @@
       grouping.each {|c| c.send "toggle" }
       </code>
 
-      <%= close_terms %>
+      %= close_terms
 
       In summary, you can select multiple clients (by adding them to the "grouping") and perform operations on them. This is useful when you want to do something with a group of clients but do not want to manually focus one, perform the action, focus the next one, and so on.
 
       Another important aspect is that selected clients stay selected until they are unselected. This allows you to continue performing tasks on the selection without having to reselect the same clients after every operation.
 
+
     %|section "Easy column manipulation"
-      <%= open_terms %>
+
+      %= open_terms
 
       You can insert a group of clients to the top, bottom, or after the currently focused client of _any_ column using Array-like methods.
 
@@ -184,10 +200,12 @@
       curr_view.areas[3].push terms
       </code>
 
-      <%= close_terms %>
+      %= close_terms
+
 
     %|section "Easy client manipulation"
-      <%= open_terms %>
+
+      %= open_terms
 
       Obtain a reference to the red client:
 
@@ -248,9 +266,11 @@
       red.send curr_view.areas.last
       </code>
 
-      <%= close_terms %>
+      %= close_terms
+
 
     %|section "Traversing the file system"
+
       Show the root node of wmii's IXP file system:
 
       <code>
@@ -312,8 +332,13 @@
       b.exist? #=> false
       </code>
 
+
     %|section "Available commands"
+
       Refer to the `Rumai` module in the [API documentation](api/index.html) for a complete list of commands (method calls, really) and their documentation.
 
+
   %|section "Scripting your wmiirc", 'wmiirc'
+
     One important application of <%= $project %> is the support of Ruby-based <tt>wmiirc</tt> configuration files.  For a solid example of such application, take a look at [my personal <tt>wmiirc</tt>](http://github.com/sunaku/wmiirc/).
+

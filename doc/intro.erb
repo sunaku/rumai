@@ -4,27 +4,45 @@
 %#++
 
 % api_url = './api/index.html'
-% repo_url = 'http://github.com/sunaku/' + $program
-% repo_scm = '[Git](http://git-scm.com)'
+% src_url = 'http://github.com/sunaku/' + $program
+% src_scm = '[Git](http://git-scm.com)'
+
 
 %|chapter "Introduction"
+
+
   %|project
+
     <%= $project %> is a [Ruby](<%= ruby_url %>) interface to the [wmii](<%= wmii_url %>) window manager.
 
+
+  * <%= xref "History", "What's new?" %> --- history of project releases.
+  * [Source code](<%= src_url %>) --- obtain via <%= src_scm %> or browse online.
+  * [API reference](<%= api_url %>) --- documentation for source code.
+  * [Project home](<%= $website %>) --- the <%= $project %> project home page.
+
+  To get help or provide feedback, simply
+  <%= xref "License", "contact the author(s)" %>.
+
+
+  %|section "Features"
+
+    <%= $project %> is exciting because:
+
     * It excels at dynamic arrangement of clients, columns, views, and tags.
-
     * It provides an <%= xref 'shell', 'interactive shell' %> for live entertainment and experimentation.
+    * It provides a pure Ruby client for the [9P2000 protocol](<%= p9p_url %>), upon which wmii's [IXP file-system interface](<%= wmii_ixp_url %>) is built.
 
-    * It contains a pure Ruby client for the [9P2000 protocol](<%= p9p_url %>) on which wmii's [IXP file-system interface](<%= wmii_ixp_url %>) is built.
+    These features distinguish <%= $project %> from the competition:
+    * [r9p](http://libs.suckless.org/r9p)
+    * [Rii](http://rubyforge.org/projects/rii/)
+    * [Ruby-IXP](http://home.gna.org/rubyixp/)
+    * [ruby-wmii](http://eigenclass.org/hiki.rb?wmii+ruby)
 
-  These features distinguish <%= $project %> from the competition:
-  * [r9p](http://libs.suckless.org/r9p)
-  * [Rii](http://rubyforge.org/projects/rii/)
-  * [Ruby-IXP](http://home.gna.org/rubyixp/)
-  * [ruby-wmii](http://eigenclass.org/hiki.rb?wmii+ruby)
 
-  %|paragraph "Etymology"
-    The word "wmii" is incredibly difficult to pronounce because it is an abbreviation, not an acronym.  If we were to treat it as an acronym, the closest pronounciation would be, in my mind, something like "vim-eye".
+  %|section "Etymology"
+
+    The word "wmii" is difficult to pronounce because it is an abbreviation, not an acronym.  If we were to treat it as an acronym, the closest pronounciation would be, in my mind, something like "vim-eye".
 
     Since this is a Ruby library, I added a "roo" and worked it through:
 
@@ -34,61 +52,17 @@
 
     And thus we get "Rumai".
 
-  %|section "Logistics"
-    * <%= xref "History", "Release notes" %> --- history of project releases.
-    * [Source code](<%= repo_url %>) --- obtain via <%= repo_scm %> or browse online.
-    * [API reference](<%= api_url %>) --- documentation for source code.
-    * [Project home](<%= $website %>) --- the <%= $project %> project home page.
-
-    To get help or provide feedback, simply
-    <%= xref "License", "contact the author(s)" %>.
-
-    %|paragraph "Version numbers"
-      <%= $project %> releases are numbered in *major.minor.patch*
-      form according to the [RubyGems rational versioning
-      policy](http://www.rubygems.org/read/chapter/7), which
-      can be summarized thus:
-
-      <table markdown="1">
-        <thead>
-          <tr>
-            <td rowspan="2">What increased in the version number?</td>
-            <td colspan="3">The increase indicates that the release:</td>
-          </tr>
-          <tr>
-            <th>Is backward compatible?</th>
-            <th>Has new features?</th>
-            <th>Has bug fixes?</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th>major</th>
-            <td style="background-color: #FFE4E1;">No</td>
-            <td>Yes</td>
-            <td>Yes</td>
-          </tr>
-          <tr>
-            <th>minor</th>
-            <td>Yes</td>
-            <td>Yes</td>
-            <td>Yes</td>
-          </tr>
-          <tr>
-            <th>patch</th>
-            <td>Yes</td>
-            <td style="background-color: #FFE4E1;">No</td>
-            <td>Yes</td>
-          </tr>
-        </tbody>
-      </table>
 
   %|section "License"
+
     %< "../LICENSE"
 
+
   %|section "Credits"
+
     <%= $project %> is made possible by
-    <%= xref "History", "contributions" %>
+    %= xref "History", "contributions"
     from users like you:
 
     %< "../CREDITS"
+
