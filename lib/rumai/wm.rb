@@ -144,7 +144,7 @@ module Rumai
                 distance = (src - dst).abs
                 direction = src < dst ? :down : :up
 
-                distance.times { v.move_focus direction }
+                distance.times { v.select direction }
 
                 break
               end
