@@ -248,6 +248,46 @@ module Rumai
           end
         end
 
+        ##
+        # Checks if this client is in the floating area of the given view.
+        #
+        def float? view = View.curr
+          area(view).floating?
+        end
+
+        ##
+        # Puts this client into the floating area of the given view.
+        #
+        def float view = View.curr
+          send :toggle, view unless float? view
+        end
+
+        ##
+        # Puts this client into the managed area of the given view.
+        #
+        def unfloat view = View.curr
+          send :toggle, view if float? view
+        end
+
+        ##
+        # Toggles the floating status of this client in the given view.
+        #
+        def float! view = View.curr
+          send :toggle, view
+        end
+
+        ##
+        # Checks if this client is in the managed area of the given view.
+        def manage? view = View.curr
+          not float? view
+        end
+
+        alias manage unfloat
+
+        alias unmanage float
+
+        alias manage! float!
+
       # WM hierarchy
 
         ##
