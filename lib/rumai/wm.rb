@@ -318,9 +318,39 @@ module Rumai
         ##
         # Modifies the tags associated with this client.
         #
+        # If a tag name begins with '~', then this
+        # client is placed into the floating layer
+        # of the view corresponding to that tag.
+        #
+        # If a tag name begins with '!', then this
+        # client is placed into the managed layer
+        # of the view corresponding to that tag.
+        #
         def tags= *tags
-          arr = tags.flatten.compact.uniq
-          self[:tags].write arr.join(TAG_DELIMITER)
+          float = []
+          manage = []
+          inherit = []
+
+          tags.join(TAG_DELIMITER).split(TAG_DELIMITER).each do |tag|
+            case tag
+            when /^~/
+              float << $'
+            when /^!/
+              manage << $'
+            else
+              inherit << tag
+            end
+          end
+
+          self[:tags].write((float + manage + inherit).uniq.join(TAG_DELIMITER))
+
+          float.each do |tag|
+            self.float View.new(tag)
+          end
+
+          manage.each do |tag|
+            self.manage View.new(tag)
+          end
         end
 
         ##
