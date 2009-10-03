@@ -10,6 +10,34 @@
   %|history
 
 
+    %|section "Version 3.1.0 (2009-10-02)"
+
+      This release adds new methods, fixes some bugs, and revises the manual.
+
+
+      %|paragraph "New features"
+
+        * Add `Client#float` methods to manipulate floating status.
+
+        * Add `Client#manage` methods to manipulate managed status.
+
+        * The `Client#tags=` method now accepts '~' and '!' tag prefixes.
+
+
+      %|paragraph "Bug fixes"
+
+        * There is no `View#move_focus` method, only `View#select`.
+
+        * Assertion failure in test suite because all files in <tt>/rbar</tt> (inside wmii's IXP filesystem) contain an automatic color header when read.
+
+
+      %|paragraph "Housekeeping"
+
+        * Use simpler Copyright reminder at the top of every file.
+
+        * Open source is for fun, so [be nice](http://loiclemeur.com/english/2009/03/never-criticize-your-competitors.html): speak of "related works" instead of "competitors".
+
+
     %|section "Version 3.0.0 (2009-05-11)"
 
       This release revises method names, adds new methods, and fixes a bug.
