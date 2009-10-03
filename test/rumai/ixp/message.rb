@@ -165,7 +165,7 @@ class << Object.new
       :tag    => 0,
       :fid    => 1,
       :offset => 0,
-      :data   => "hello world!!!"
+      :data   => "#a1a2a3 #b1b2b3 #c1c2c3 hello world!!!"
     ) do |req, rsp|
       T { rsp.type == Rwrite.type }
       T { rsp.count == req.data.length }
