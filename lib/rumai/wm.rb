@@ -318,9 +318,15 @@ module Rumai
         ##
         # Modifies the tags associated with this client.
         #
+        # If a tag name is '~', this client is placed
+        # into the floating layer of the current view.
+        #
         # If a tag name begins with '~', then this
         # client is placed into the floating layer
         # of the view corresponding to that tag.
+        #
+        # If a tag name is '!', this client is placed
+        # into the managed layer of the current view.
         #
         # If a tag name begins with '!', then this
         # client is placed into the managed layer
@@ -333,12 +339,11 @@ module Rumai
 
           tags.join(TAG_DELIMITER).split(TAG_DELIMITER).each do |tag|
             case tag
-            when /^~/
-              float << $'
-            when /^!/
-              manage << $'
-            else
-              inherit << tag
+            when '~'  then float   << Rumai.curr_tag
+            when /^~/ then float   << $'
+            when '!'  then manage  << Rumai.curr_tag
+            when /^!/ then manage  << $'
+            else           inherit << tag
             end
           end
 
