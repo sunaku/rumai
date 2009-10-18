@@ -11,12 +11,37 @@
 
     Your system needs the following software to run <%= $project %>.
 
-    | Software                        | Description               | Notes                               |
-    | --------                        | -----------               | -----                               |
-    | [Ruby](http://ruby-lang.org)    | Ruby language interpreter | Version 1.8.6 or newer is required. |
-    | [RubyGems](http://rubygems.org) | Ruby packaging system     | Version 1.3.1 or newer is required. |
-    | [wmii](<%= wmii_url %>)         | Window manager            | Version 3.6 or newer is required.   |
-
+    %|table
+      %|thead
+        %|tr
+          %|th
+            Software
+          %|th
+            Description
+          %|th
+            Notes
+      %|tbody
+        %|tr
+          %|td
+            [Ruby](http://ruby-lang.org)
+          %|td
+            Ruby language interpreter
+          %|td
+            Version 1.8.6, 1.8.7, 1.9.1 have been tested successfully.
+        %|tr
+          %|td
+            [RubyGems](http://rubygems.org)
+          %|td
+            Ruby packaging system
+          %|td
+            Version 1.3.5 or newer is required.
+        %|tr
+          %|td
+            [wmii](<%= wmii_url %>)
+          %|td
+            Window manager
+          %|td
+            Version 3.6 or newer is required.
 
   %|section "Installation"
 
@@ -30,13 +55,15 @@
 
     If the installation was successful, you will see output like this:
 
-    <pre><%= verbatim `ruby bin/#{$program} --version` %></pre>
+    %|text
+      %= verbatim `ruby bin/#{$program} --version`
 
     If you do not see such output, you may
-    <%= xref "License", "ask the author(s)" %> for help.
+    %= xref "License", "ask the author(s)"
+    for help.
 
 
-  %|section "Manifest"
+  %|section "Package contents"
 
     You will see the following items inside <%= $project %>'s installation
     directory, whose path you can determine by running this command:
@@ -63,45 +90,55 @@
 
     * <tt>LICENSE</tt> --- copyright notice and legal conditions.
 
+    * <tt>CREDITS</tt> --- attribution of project contributors.
+
 
   %|section "Version numbers"
 
     <%= $project %> releases are numbered in *major.minor.patch*
     form according to the [RubyGems rational versioning
     policy](http://www.rubygems.org/read/chapter/7), which
-    can be summarized thus:
+    can be summarized as follows:
 
-    <table markdown="1">
-      <thead>
-        <tr>
-          <td rowspan="2">What increased in the version number?</td>
-          <td colspan="3">The increase indicates that the release:</td>
-        </tr>
-        <tr>
-          <th>Is backward compatible?</th>
-          <th>Has new features?</th>
-          <th>Has bug fixes?</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>major</th>
-          <td style="background-color: #FFE4E1;">No</td>
-          <td>Yes</td>
-          <td>Yes</td>
-        </tr>
-        <tr>
-          <th>minor</th>
-          <td>Yes</td>
-          <td>Yes</td>
-          <td>Yes</td>
-        </tr>
-        <tr>
-          <th>patch</th>
-          <td>Yes</td>
-          <td style="background-color: #FFE4E1;">No</td>
-          <td>Yes</td>
-        </tr>
-      </tbody>
-    </table>
-
+    %|table
+      %|thead
+        %|tr
+          %|td :rowspan => 2
+            What increased in the version number?
+          %|td :colspan => 3
+            The increase indicates that the release:
+        %|tr
+          %|th
+            Is backward compatible?
+          %|th
+            Has new features?
+          %|th
+            Has bug fixes?
+      %|tbody
+        %|tr
+          %|th
+            major
+          %|td :style => "background-color: #FFE4E1;"
+            No
+          %|td
+            Yes
+          %|td
+            Yes
+        %|tr
+          %|th
+            minor
+          %|td
+            Yes
+          %|td
+            Yes
+          %|td
+            Yes
+        %|tr
+          %|th
+            patch
+          %|td
+            Yes
+          %|td :style => "background-color: #FFE4E1;"
+            No
+          %|td
+            Yes

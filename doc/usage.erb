@@ -39,7 +39,8 @@
 
     You will see this output:
 
-    <pre><%= verbatim `ruby bin/#{$program} --help` %></pre>
+    %|text
+      %= verbatim `ruby bin/#{$program} --help`
 
 
     %|paragraph "Interactive shell", "shell"
@@ -63,85 +64,72 @@
 
     Now that you know <%= xref "shell", "how to start the interactive shell" %>, let us walk through a quick demonstration that highlights the main features of <%= $project %>.  You can follow along by copying & pasting the presented commands into the interactive shell.
 
-    <%
-      open_terms = %q{
-        Launch a few terminals so that we have something to work with:
+    %|open_terms = lambda do
+      Launch a few terminals so that we have something to work with:
 
-        <code>
+      %|code :ruby
         colors = %w[ red green blue black orange brown gray navy gold ]
         colors.each {|c| system "xterm -bg #{c} -title #{c} -e sh -c read &" }
-        </code>
-      }.gsub(/^\s+/, '')
 
-      close_terms = %q{
-        Close the terminals we launched earlier:
+    %|close_terms = lambda do
+      Close the terminals we launched earlier:
 
-        <code>
+      %|code :ruby
         terms = curr_view.clients.select {|c| colors.include? c.label.read }
         terms.each {|c| c.kill }
-        </code>
-      }.gsub(/^\s+/, '')
-    %>
 
 
     %|section "Automated client arrangement"
 
-      %= open_terms
+      % open_terms.call
 
       Arrange all clients in a grid:
 
-      <code>
-      curr_view.arrange_in_grid
-      </code>
+      %|code :ruby
+        curr_view.arrange_in_grid
 
       Arrange all clients in a diamond shape:
 
-      <code>
-      curr_view.arrange_in_diamond
-      </code>
+      %|code :ruby
+        curr_view.arrange_in_diamond
 
       Arrange all clients like LarsWM does:
 
-      <code>
-      curr_view.arrange_as_larswm
-      </code>
+      %|code :ruby
+        curr_view.arrange_as_larswm
 
-      %= close_terms
+      % close_terms.call
 
 
     %|section "Multiple client grouping"
 
-      %= open_terms
+      % open_terms.call
 
       Add the red, green, and blue terminals into the "grouping":
 
-      <code>
-      terms = curr_view.clients.select {|c| %w[red green blue].include? c.label.read }
-      terms.each {|c| c.group }
-      </code>
+      %|code :ruby
+        terms = curr_view.clients.select {|c| %w[red green blue].include? c.label.read }
+        terms.each {|c| c.group }
 
       You should now see a new button labelled as "@" on the left-hand side of wmii's bar, indicating that there is now a new view labelled "@" in wmii. Let us inspect what clients this mysterious view contains:
 
-      <code>
-      v = View.new "@"
-      puts v.clients.map {|c| c.label.read }
-      </code>
+      %|code :ruby
+        v = View.new "@"
+        puts v.clients.map {|c| c.label.read }
 
       Aha! The mysterious view contains the red, green, and blue clients we recently "grouped". Thus, by adding a client to the "grouping", we are simply tagging the client with the "@" token.
 
       Now that we have put some clients into the "grouping", let us move all clients in the grouping to the floating area in the current view:
 
-      <code>
-      grouping.each {|c| c.send "toggle" }
-      </code>
+      %|code :ruby
+        grouping.each {|c| c.send "toggle" }
 
       Neat! Let us bring them back into the managed area:
 
-      <code>
-      grouping.each {|c| c.send "toggle" }
-      </code>
+      %|code :ruby
+        grouping.each {|c| c.send "toggle" }
 
-      %= close_terms
+      % close_terms.call
 
       In summary, you can select multiple clients (by adding them to the "grouping") and perform operations on them. This is useful when you want to do something with a group of clients but do not want to manually focus one, perform the action, focus the next one, and so on.
 
@@ -150,187 +138,163 @@
 
     %|section "Easy column manipulation"
 
-      %= open_terms
+      % open_terms.call
 
       You can insert a group of clients to the top, bottom, or after the currently focused client of _any_ column using Array-like methods.
 
       Give each client its own column (one client per column):
 
-      <code>
-      curr_view.each_column {|c| c.length = 1 }
-      </code>
+      %|code :ruby
+        curr_view.each_column {|c| c.length = 1 }
 
       Put (at most) three clients in every column:
 
-      <code>
-      curr_view.each_column {|c| c.length = 3 }
-      </code>
+      %|code :ruby
+        curr_view.each_column {|c| c.length = 3 }
 
       Move the red, green, and blue clients into the floating area:
 
-      <code>
-      rgb = %w[red green blue]
-      terms = curr_view.clients.select {|c| rgb.include? c.label.read }
-      curr_view.areas[0].push terms
-      </code>
+      %|code :ruby
+        rgb = %w[red green blue]
+        terms = curr_view.clients.select {|c| rgb.include? c.label.read }
+        curr_view.areas[0].push terms
 
       Slurp all floating clients into the last column:
 
-      <code>
-      list = curr_view.areas
-      a, b = list.first, list.last
-      b.concat a
-      </code>
+      %|code :ruby
+        list = curr_view.areas
+        a, b = list.first, list.last
+        b.concat a
 
       Set the last column's layout to stacking mode:
 
-      <code>
-      b.layout = 'stack'
-      </code>
+      %|code :ruby
+        b.layout = 'stack'
 
       Move the red, green, and blue clients to the top of the second column:
 
-      <code>
-      curr_view.areas[2].unshift terms
-      </code>
+      %|code :ruby
+        curr_view.areas[2].unshift terms
 
       Move the red, green, and blue clients to the bottom of the third column:
 
-      <code>
-      curr_view.areas[3].push terms
-      </code>
+      %|code :ruby
+        curr_view.areas[3].push terms
 
-      %= close_terms
+      % close_terms.call
 
 
     %|section "Easy client manipulation"
 
-      %= open_terms
+      % open_terms.call
 
       Obtain a reference to the red client:
 
-      <code>
-      red = curr_view.clients.find {|c| c.label.read == "red" }
-      </code>
+      %|code :ruby
+        red = curr_view.clients.find {|c| c.label.read == "red" }
 
       Show the red client's current tags:
 
-      <code>
-      red.tags
-      </code>
+      %|code :ruby
+        red.tags
 
       Add the "foo" and "bar" tags to the red client:
 
-      <code>
-      red.tag "foo", "bar"
-      </code>
+      %|code :ruby
+        red.tag "foo", "bar"
 
       Remove the "bar" tag from the red client:
 
-      <code>
-      red.untag "bar"
-      </code>
+      %|code :ruby
+        red.untag "bar"
 
       Do complex operations on the red client's tags:
 
-      <code>
-      red.with_tags { concat %w[a b c]; push 'z'; delete 'c' }
-      </code>
+      %|code :ruby
+        red.with_tags { concat %w[a b c]; push 'z'; delete 'c' }
 
       Focus the next client after the red client:
 
-      <code>
-      red.next.focus
-      curr_client == red.next #=> true
-      </code>
+      %|code :ruby
+        red.next.focus
+        curr_client == red.next #=> true
 
       Notice that by focusing a client, we make it the current client.
 
       Focus the red client on a different view:
 
-      <code>
-      orig = curr_view
-      v = red.views.last
-      red.focus v
-      </code>
+      %|code :ruby
+        orig = curr_view
+        v = red.views.last
+        red.focus v
 
       Return to the original view:
 
-      <code>
-      orig.focus
-      </code>
+      %|code :ruby
+        orig.focus
 
       Send the red client to the last column:
 
-      <code>
-      red.send curr_view.areas.last
-      </code>
+      %|code :ruby
+        red.send curr_view.areas.last
 
-      %= close_terms
+      % close_terms.call
 
 
     %|section "Traversing the file system"
 
       Show the root node of wmii's IXP file system:
 
-      <code>
-      fs
-      </code>
+      %|code :ruby
+        fs
 
       Show the names of all files at the root level:
 
-      <code>
-      fs.entries
-      </code>
+      %|code :ruby
+        fs.entries
 
       Show the parent of the root node:
 
-      <code>
-      fs.parent
-      </code>
+      %|code :ruby
+        fs.parent
 
       Show the children of the root node:
 
-      <code>
-      fs.children
-      </code>
+      %|code :ruby
+        fs.children
 
       Navigate into to the <tt>/lbar/</tt> directory:
 
-      <code>
-      n1 = fs.lbar
-      n2 = fs['lbar']
-      n1 == n2 #=> true
-      left_bar = n1
-      </code>
+      %|code :ruby
+        n1 = fs.lbar
+        n2 = fs['lbar']
+        n1 == n2 #=> true
+        left_bar = n1
 
       Notice that you can traverse the file system hierarchy by simply calling methods on node objects.  Alternatively, you can traverse by specifying an arbitrary sub-path (relative path) using the `[]` operator on a node.
 
       Create a new temporary button:
 
-      <code>
-      b = left_bar.rumai_example # path of new button
-      b.exist? #=> false
-      b.create
-      b.exist? #=> true
-      </code>
+      %|code :ruby
+        b = left_bar.rumai_example # path of new button
+        b.exist? #=> false
+        b.create
+        b.exist? #=> true
 
       You should now see an empty button on the left-hand side of the wmii bar.
 
       Color the button black-on-white and label it as "hello world":
 
-      <code>
-      content = "#000000 #ffffff #000000 hello world"
-      b.write content
-      b.read == content #=> true
-      </code>
+      %|code :ruby
+        content = "#000000 #ffffff #000000 hello world"
+        b.write content
+        b.read == content #=> true
 
       Remove the temporary button:
 
-      <code>
-      b.remove
-      b.exist? #=> false
-      </code>
+      %|code :ruby
+        b.remove
+        b.exist? #=> false
 
 
     %|section "Available commands"
