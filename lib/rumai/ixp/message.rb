@@ -66,7 +66,7 @@ module Rumai
       # Transforms this object into a string of 9P2000 bytes.
       #
       def to_9p
-        @fields.inject('') {|s,f| s << f.to_9p(@values) }
+        @fields.inject([]) {|s,f| s << f.to_9p(@values) }.join
       end
 
       ##
