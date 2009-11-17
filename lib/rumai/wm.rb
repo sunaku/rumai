@@ -940,9 +940,9 @@ module Rumai
       # before the given block was executed.
       #
       def maintain_focus
-        c = Client.curr
+        c, v = Client.curr, View.curr
         yield
-        c.focus
+        c.focus v
       end
 
       ##
