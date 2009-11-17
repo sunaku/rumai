@@ -853,13 +853,7 @@ module Rumai
             main.layout = :default
 
             # collapse remaining areas into secondary column
-            extra = columns[1..-1]
-
-            if extra.length > 1
-              extra.reverse.each_cons(2) do |src, dst|
-                dst.concat src
-              end
-            end
+            extra = squeeze_columns(1..-1)
 
             if dock = extra.first
               dock.layout = :default
@@ -889,6 +883,31 @@ module Rumai
               a.length = max_clients_per_column
               a.layout = :default
             end
+          end
+        end
+
+        ##
+        # Arranges the clients in this view, while maintaining
+        # their relative order, in the given number of columns.
+        #
+        def arrange_in_stacks num_stacks
+          return if num_stacks < 1
+
+          # compute client distribution
+          num_clients = num_managed_clients
+          return unless num_clients > 0
+
+          stack_length = num_clients / num_stacks
+          return if stack_length < 1
+
+          # apply the distribution
+          maintain_focus do
+            each_column do |a|
+              a.length = stack_length
+              a.layout = :stack
+            end
+
+            squeeze_columns num_stacks-1..-1
           end
         end
 
@@ -938,6 +957,21 @@ module Rumai
         end
 
       private
+
+      ##
+      # Squeezes all columns in the given index range into a single one.
+      #
+      def squeeze_columns range
+        extra = columns[range]
+
+        if extra.length > 1
+          extra.reverse.each_cons(2) do |src, dst|
+            dst.concat src
+          end
+        end
+
+        extra
+      end
 
       ##
       # Executes the given block and restores
