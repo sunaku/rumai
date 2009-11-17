@@ -559,6 +559,11 @@ module Rumai
       # Sets the layout of clients in this column.
       #
       def layout= mode
+        case mode
+        when :stack then mode = 'stack-max'
+        when :max   then mode = 'stack+max'
+        end
+
         @view.ctl.write "colmode #{@id} #{mode}"
       end
 
