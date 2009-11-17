@@ -85,7 +85,9 @@ module Rumai
       #
       def self.included target
         class << target
+          ##
           # Returns a list of fields which compose this Struct.
+          #
           def fields
             @fields ||=
               if superclass.respond_to? :fields
@@ -101,22 +103,24 @@ module Rumai
           # [args] arguments for Field.new()
           #
           def field name, format = nil, *args
-            c = Field.factory(format)
-            f = c.new(name.to_sym, format, *args)
-            fields << f # register field as being part of this structure
+            klass = Field.factory(format)
+            field = klass.new(name.to_sym, format, *args)
+
+            # register field as being part of this structure
+            fields << field
 
             # provide accessor methods to field values
-            self.class_eval %{
-              def #{f.name}
-                @values[#{f.name.inspect}]
+            self.class_eval <<-EOS, __FILE__, __LINE__
+              def #{field.name}
+                @values[#{field.name.inspect}]
               end
 
-              def #{f.name}= value
-                @values[#{f.name.inspect}] = value
+              def #{field.name}= value
+                @values[#{field.name.inspect}] = value
               end
-            }
+            EOS
 
-            return f
+            field
           end
 
           ##
@@ -323,7 +327,10 @@ module Rumai
       field :version , 4
       field :path    , 8
 
-      # from http://swtch.com/usr/local/plan9/include/libc.h
+      ##
+      # The following constant definitions originate from:
+      # http://swtch.com/usr/local/plan9/include/libc.h
+      #
       QTDIR       = 0x80       # type bit for directories
       QTAPPEND    = 0x40       # type bit for append only files
       QTEXCL      = 0x20       # type bit for exclusive use files
@@ -355,7 +362,10 @@ module Rumai
       field :gid    , String
       field :muid   , String
 
-      # from http://swtch.com/usr/local/plan9/include/libc.h
+      ##
+      # The following constant definitions originate from:
+      # http://swtch.com/usr/local/plan9/include/libc.h
+      #
       DMDIR       = 0x80000000 # mode bit for directories
       DMAPPEND    = 0x40000000 # mode bit for append only files
       DMEXCL      = 0x20000000 # mode bit for exclusive use files
@@ -435,8 +445,9 @@ module Rumai
       field     :msize   , 4
       field     :version , String
 
-      VERSION = '9P2000'.freeze
-      MSIZE = 8192 # magic number defined in Plan9 for [TR]version and [TR]read
+      VERSION   = '9P2000'.freeze
+      MSIZE     = 8192              # magic number defined in Plan9
+                                    # for [TR]version and [TR]read
     end
 
     # size[4] Rversion tag[2] msize[4] version[s]
@@ -510,7 +521,10 @@ module Rumai
       field     :fid     , 4
       field     :mode    , 1
 
-      # from http://swtch.com/usr/local/plan9/include/libc.h
+      ##
+      # The following constant definitions originate from:
+      # http://swtch.com/usr/local/plan9/include/libc.h
+      #
       OREAD       = 0          # open for read
       OWRITE      = 1          # write
       ORDWR       = 2          # read and write
@@ -688,7 +702,7 @@ class String
   # given 9P2000 byte stream and returns the instance.
   #
   def self.from_9p stream
-    stream.read(stream.read_9p(2))
+    stream.read stream.read_9p(2)
   end
 end
 

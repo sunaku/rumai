@@ -16,7 +16,7 @@ module Rumai
 
   begin
     # We use a single, global connection to wmii's IXP server.
-    IXP_AGENT = IXP::Agent.new UNIXSocket.new(IXP_SOCK_ADDR)
+    IXP_AGENT = IXP::Agent.new(UNIXSocket.new(IXP_SOCK_ADDR))
 
   rescue => error
     error.message << %{
@@ -71,7 +71,11 @@ module Rumai
     # Returns the names of all files in this directory.
     #
     def entries
-      IXP_AGENT.entries @path rescue []
+      begin
+        IXP_AGENT.entries @path
+      rescue IXP::Error
+        []
+      end
     end
 
     ##
@@ -205,9 +209,10 @@ module Rumai
     end
   end
 
-  # We use extend() AFTER all methods have been defined in the class so
-  # that the Externalize* module can do its magic.  If we include()d
-  # the module instead before all methods in the class have been
-  # defined, then the magic would only apply to SOME of the methods!
+  # NOTE: We use extend() **AFTER** all methods have been defined
+  #       in the class so that the ExportInstanceMethods module
+  #       can do its magic.  If, instead, we include()d the module
+  #       before all methods in the class had been defined, then
+  #       the magic would only apply to **SOME** of the methods!
   Node.extend ExportInstanceMethods
 end

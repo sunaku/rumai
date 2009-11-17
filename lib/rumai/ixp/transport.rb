@@ -5,7 +5,7 @@
 #++
 
 require 'rumai/ixp/message'
-require 'thread' # for Mutex
+require 'thread' # for Mutex and Queue
 
 module Rumai
   module IXP
@@ -19,6 +19,10 @@ module Rumai
     class Agent
       attr_reader :msize
 
+      ##
+      # [stream]
+      #   I/O stream on which a 9P2000 server is listening.
+      #
       def initialize stream
         @stream = stream
 
@@ -66,7 +70,9 @@ module Rumai
           @pool = Queue.new
         end
 
+        ##
         # Returns an unoccupied range member from the pool.
+        #
         def obtain
           begin
             @pool.deq true
@@ -89,8 +95,10 @@ module Rumai
           end
         end
 
+        ##
         # Marks the given member as being unoccupied so
         # that it may be occupied again in the future.
+        #
         def release member
           @pool << member
         end
@@ -216,7 +224,7 @@ module Rumai
       ##
       # Encapsulates I/O access over a file handle (fid).
       #
-      # NOTE: this class is NOT thread-safe.
+      # NOTE: this class is NOT thread safe!
       #
       class FidStream
         attr_reader :fid, :stat
@@ -310,8 +318,8 @@ module Rumai
         # Writes the given content at the current position in this stream.
         #
         def write content
-          raise 'closed streams cannot be written to' if @closed
-          raise 'directories cannot be written to' if @stat.directory?
+          raise 'cannot write to a closed stream' if @closed
+          raise 'cannot write to a directory' if @stat.directory?
 
           data = content.to_s
           limit = data.length + @pos
@@ -344,7 +352,10 @@ module Rumai
       end
 
       ##
-      # Returns the names of all files inside the directory whose path is given.
+      # Returns the basenames of all files
+      # inside the directory at the given path.
+      #
+      # See Dir::entries in the Ruby documentation.
       #
       def entries path
         unless stat(path).directory?
@@ -355,7 +366,8 @@ module Rumai
       end
 
       ##
-      # Returns the content of the file/directory at the given path.
+      # Writes the given content to
+      # the file at the given path.
       #
       def write path, content
         open path, 'w' do |f|

@@ -21,7 +21,9 @@ module Rumai
   CLIENT_GROUPING_TAG = '@'.freeze
   CLIENT_STICKY_TAG   = '/./'.freeze
 
+  #-----------------------------------------------------------------------------
   # abstraction of WM components
+  #-----------------------------------------------------------------------------
 
     ##
     # NOTE: Inheritors must override the 'chain' method.
@@ -124,7 +126,9 @@ module Rumai
           View.curr.clients
         end
 
+      #-------------------------------------------------------------------------
       # WM operations
+      #-------------------------------------------------------------------------
 
         ##
         # Focuses this client within the given view.
@@ -145,7 +149,6 @@ module Rumai
                 direction = src < dst ? :down : :up
 
                 distance.times { v.select direction }
-
                 break
               end
             end
@@ -288,7 +291,9 @@ module Rumai
 
         alias manage! float!
 
+      #-------------------------------------------------------------------------
       # WM hierarchy
+      #-------------------------------------------------------------------------
 
         ##
         # Returns the area that contains this client within the given view.
@@ -304,7 +309,9 @@ module Rumai
           tags.map! {|t| View.new t }
         end
 
+      #-------------------------------------------------------------------------
       # tag manipulations
+      #-------------------------------------------------------------------------
 
         TAG_DELIMITER = '+'.freeze
 
@@ -388,7 +395,9 @@ module Rumai
           end
         end
 
+      #-------------------------------------------------------------------------
       # multiple client grouping
+      #-------------------------------------------------------------------------
 
         ##
         # Checks if this client is included in the current grouping.
@@ -567,7 +576,9 @@ module Rumai
         @view.ctl.write "colmode #{@id} #{mode}"
       end
 
+      #-------------------------------------------------------------------------
       # WM operations
+      #-------------------------------------------------------------------------
 
         ##
         # Puts focus on this area.
@@ -576,7 +587,9 @@ module Rumai
           @view.ctl.write "select #{@id}"
         end
 
+      #-------------------------------------------------------------------------
       # array abstraction: area is an array of clients
+      #-------------------------------------------------------------------------
 
         ##
         # Returns the number of clients in this area.
@@ -748,7 +761,9 @@ module Rumai
         super view_id, '/tag'
       end
 
+      #-------------------------------------------------------------------------
       # WM operations
+      #-------------------------------------------------------------------------
 
         ##
         # Returns the manifest of all areas and clients in this view.
@@ -764,7 +779,9 @@ module Rumai
           ctl.write "select #{direction}"
         end
 
+      #-------------------------------------------------------------------------
       # WM hierarchy
+      #-------------------------------------------------------------------------
 
         ##
         # Returns the area which contains the given client in this view.
@@ -835,7 +852,9 @@ module Rumai
 
         alias each_managed_area each_column
 
+      #-------------------------------------------------------------------------
       # visual arrangement of clients
+      #-------------------------------------------------------------------------
 
         ##
         # Arranges the clients in this view, while maintaining
@@ -992,7 +1011,9 @@ module Rumai
       end
     end
 
+  #-----------------------------------------------------------------------------
   # access to global WM state
+  #-----------------------------------------------------------------------------
 
     ##
     # Returns the root of IXP file system hierarchy.
@@ -1028,6 +1049,22 @@ module Rumai
         ary
       end
 
+    ##
+    # Returns a list of all grouped clients in
+    # the currently focused view. If there are
+    # no grouped clients, then the currently
+    # focused client is returned in the list.
+    #
+    def grouping
+      list = curr_view.clients.select {|c| c.group? }
+      list << curr_client if list.empty? and curr_client.exist?
+      list
+    end
+
+  #-----------------------------------------------------------------------------
+  # shortcuts for interactive WM manipulation (via IRB)
+  #-----------------------------------------------------------------------------
+
     def curr_client ; Client.curr       ; end
     def next_client ; curr_client.next  ; end
     def prev_client ; curr_client.prev  ; end
@@ -1043,20 +1080,6 @@ module Rumai
     def curr_tag    ; curr_view.id      ; end
     def next_tag    ; next_view.id      ; end
     def prev_tag    ; prev_view.id      ; end
-
-    ##
-    # Returns a list of all grouped clients in
-    # the currently focused view. If there are
-    # no grouped clients, then the currently
-    # focused client is returned in the list.
-    #
-    def grouping
-      list = curr_view.clients.select {|c| c.group? }
-      list << curr_client if list.empty? and curr_client.exist?
-      list
-    end
-
-  # shortcuts for interactive WM manipulation (via IRB)
 
     # provide easy access to container state information
     [Client, Area, View].each {|c| c.extend ExportInstanceMethods }
