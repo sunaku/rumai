@@ -590,7 +590,7 @@ module Rumai
           insert clients
 
           # move inserted clients to bottom
-          clients.each_with_index do |c, i|
+          clients.reverse.each_with_index do |c, i|
             until c.id == self.client_ids[-i.succ]
               c.send :down
             end
