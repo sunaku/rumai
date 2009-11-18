@@ -10,6 +10,30 @@
   %|history
 
 
+    %|section "Version 3.2.0 (2009-11-17)"
+
+      This release adds a new automated view arrangement, simplifies the IXP transport layer, and cleans up the code and API documentation.
+
+
+      %|paragraph "New features"
+
+        * Add `Rumai::View#arrange_in_stacks` automated view arrangement.
+
+        * Convert `:stack` and `:max` arguments into wmii 3.9 syntax in `Rumai::Area#layout=`.
+
+
+      %|paragraph "Bug fixes"
+
+        * Rewrote IXP transport layer (`Rumai::IXP::Agent`) to *not* use a background thread, according to [the XCB cookie approach](http://www.x.org/releases/X11R7.5/doc/libxcb/tutorial/#requestsreplies).
+
+
+      %|paragraph "Housekeeping"
+
+        * Clean up some code and API docs.
+
+        * Reduce amount of string concatenation in `Struct#to_9p`.
+
+
     %|section "Version 3.1.1 (2009-11-16)"
 
       This release fixes bugs in automated view arrangements and updates the user manual.
