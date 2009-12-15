@@ -4,16 +4,15 @@
 #++
 
 require 'pp' if $DEBUG
+require 'dfect/nice'
+require 'socket'
 
-class << Object.new
-  include Rumai::IXP
+test 'IXP' do
+  extend Rumai::IXP
 
-  D .< do
-    unless defined? @conn
-      # connect to the wmii IXP server
-      require 'socket'
-      @conn = UNIXSocket.new(Rumai::IXP_SOCK_ADDR)
-    end
+  prepare! do
+    # connect to the wmii IXP server
+    @conn = UNIXSocket.new(Rumai::IXP_SOCK_ADDR)
 
     # at_exit do
     #   puts "just making sure there is no more data in the pipe"
@@ -22,52 +21,57 @@ class << Object.new
     #   end
     # end
 
-    transaction 'establish a new session', Tversion.new(
-      :tag     => Fcall::NOTAG,
-      :msize   => Tversion::MSIZE,
-      :version => Tversion::VERSION
-    ) do |req, rsp|
-      T { rsp.type == Rversion.type }
-      T { rsp.version == req.version }
+    test 'establish a new session' do
+      request, response = talk Tversion.new(
+        :tag     => Fcall::NOTAG,
+        :msize   => Tversion::MSIZE,
+        :version => Tversion::VERSION
+      )
+      aver { response.type == Rversion.type }
+      aver { response.version == request.version }
     end
   end
 
-  D 'can read a directory' do
-    transaction 'attach to FS root', Tattach.new(
-      :tag   => 0,
-      :fid   => 0,
-      :afid  => Fcall::NOFID,
-      :uname => ENV['USER'],
-      :aname => ''
-    ) do |req, rsp|
-      T { rsp.type == Rattach.type }
+  test 'can read a directory' do
+    test 'attach to FS root' do
+      request, response = talk Tattach.new(
+        :tag   => 0,
+        :fid   => 0,
+        :afid  => Fcall::NOFID,
+        :uname => ENV['USER'],
+        :aname => ''
+      )
+      aver { response.type == Rattach.type }
     end
 
-    transaction 'stat FS root', Tstat.new(
-      :tag => 0,
-      :fid => 0
-    ) do |req, rsp|
-      T { rsp.type == Rstat.type }
+    test 'stat FS root' do
+      request, response = talk Tstat.new(
+        :tag => 0,
+        :fid => 0
+      )
+      aver { response.type == Rstat.type }
     end
 
-    transaction 'open the FS root for reading', Topen.new(
-      :tag  => 0,
-      :fid  => 0,
-      :mode => Topen::OREAD
-    ) do |req, rsp|
-      T { rsp.type == Ropen.type }
+    test 'open the FS root for reading' do
+      request, response = talk Topen.new(
+        :tag  => 0,
+        :fid  => 0,
+        :mode => Topen::OREAD
+      )
+      aver { response.type == Ropen.type }
     end
 
-    transaction 'fetch a Stat for every file in FS root', Tread.new(
-      :tag    => 0,
-      :fid    => 0,
-      :offset => 0,
-      :count  => Tversion::MSIZE
-    ) do |req, rsp|
-      T { rsp.type == Rread.type }
+    test 'fetch a Stat for every file in FS root' do
+      request, response = talk Tread.new(
+        :tag    => 0,
+        :fid    => 0,
+        :offset => 0,
+        :count  => Tversion::MSIZE
+      )
+      aver { response.type == Rread.type }
 
       if $DEBUG
-        s = StringIO.new(rsp.data, 'r')
+        s = StringIO.new(response.data, 'r')
         a = []
 
         until s.eof?
@@ -79,159 +83,167 @@ class << Object.new
       end
     end
 
-    transaction 'close the fid for FS root', Tclunk.new(
-      :tag    => 0,
-      :fid    => 0
-    ) do |req, rsp|
-      T { rsp.type == Rclunk.type }
+    test 'close the fid for FS root' do
+      request, response = talk Tclunk.new(
+        :tag    => 0,
+        :fid    => 0
+      )
+      aver { response.type == Rclunk.type }
     end
 
-    transaction 'closed fid should not be readable', Tread.new(
-      :tag    => 0,
-      :fid    => 0,
-      :offset => 0,
-      :count  => Tversion::MSIZE
-    ) do |req, rsp|
-      T { rsp.type == Rerror.type }
+    test 'closed fid should not be readable' do
+      request, response = talk Tread.new(
+        :tag    => 0,
+        :fid    => 0,
+        :offset => 0,
+        :count  => Tversion::MSIZE
+      )
+      aver { response.type == Rerror.type }
     end
   end
 
   D 'can read & write a file' do
-    transaction 'attach to /', Tattach.new(
-      :tag   => 0,
-      :fid   => 0,
-      :afid  => Fcall::NOFID,
-      :uname => ENV['USER'],
-      :aname => ''
-    ) do |req, rsp|
-      T { rsp.type == Rattach.type }
+    test 'attach to /' do
+      request, response = talk Tattach.new(
+        :tag   => 0,
+        :fid   => 0,
+        :afid  => Fcall::NOFID,
+        :uname => ENV['USER'],
+        :aname => ''
+      )
+      aver { response.type == Rattach.type }
     end
 
     file = %W[rbar temp#{$$}]
     root = file[0..-2]
     leaf = file.last
 
-    transaction "walk to #{root.inspect}", Twalk.new(
-      :tag    => 0,
-      :fid    => 0,
-      :newfid => 1,
-      :wname => root
-    ) do |req, rsp|
-      T { rsp.type == Rwalk.type }
+    test "walk to #{root.inspect}" do
+      request, response = talk Twalk.new(
+        :tag    => 0,
+        :fid    => 0,
+        :newfid => 1,
+        :wname => root
+      )
+      aver { response.type == Rwalk.type }
     end
 
-    transaction "create #{leaf.inspect}", Tcreate.new(
-      :tag  => 0,
-      :fid  => 1,
-      :name => leaf,
-      :perm => 0644,
-      :mode => Topen::ORDWR
-    ) do |req, rsp|
-      T { rsp.type == Rcreate.type }
+    test "create #{leaf.inspect}" do
+      request, response = talk Tcreate.new(
+        :tag  => 0,
+        :fid  => 1,
+        :name => leaf,
+        :perm => 0644,
+        :mode => Topen::ORDWR
+      )
+      aver { response.type == Rcreate.type }
     end
 
-    transaction "close the fid for #{root.inspect}", Tclunk.new(
-      :tag => 0,
-      :fid => 1
-    ) do |req, rsp|
-      T { rsp.type == Rclunk.type }
+    test "close the fid for #{root.inspect}" do
+      request, response = talk Tclunk.new(
+        :tag => 0,
+        :fid => 1
+      )
+      aver { response.type == Rclunk.type }
     end
 
-    transaction "walk to #{file.inspect} from /", Twalk.new(
-      :tag    => 0,
-      :fid    => 0,
-      :newfid => 1,
-      :wname => file
-    ) do |req, rsp|
-      T { rsp.type == Rwalk.type }
+    test "walk to #{file.inspect} from /" do
+      request, response = talk Twalk.new(
+        :tag    => 0,
+        :fid    => 0,
+        :newfid => 1,
+        :wname => file
+      )
+      aver { response.type == Rwalk.type }
     end
 
-    transaction 'close the fid for /', Tclunk.new(
-      :tag => 0,
-      :fid => 0
-    ) do |req, rsp|
-      T { rsp.type == Rclunk.type }
+    test 'close the fid for /' do
+      request, response = talk Tclunk.new(
+        :tag => 0,
+        :fid => 0
+      )
+      aver { response.type == Rclunk.type }
     end
 
-    transaction "open #{file.inspect} for writing", Topen.new(
-      :tag  => 0,
-      :fid  => 1,
-      :mode => Topen::ORDWR
-    ) do |req, rsp|
-      T { rsp.type == Ropen.type }
+    test "open #{file.inspect} for writing" do
+      request, response = talk Topen.new(
+        :tag  => 0,
+        :fid  => 1,
+        :mode => Topen::ORDWR
+      )
+      aver { response.type == Ropen.type }
     end
 
-    write_req, write_rsp = transaction "write to #{file.inspect}", Twrite.new(
-      :tag    => 0,
-      :fid    => 1,
-      :offset => 0,
-      :data   => "#a1a2a3 #b1b2b3 #c1c2c3 hello world!!!"
-    ) do |req, rsp|
-      T { rsp.type == Rwrite.type }
-      T { rsp.count == req.data.length }
+    test "write to #{file.inspect}" do
+      write_request, write_response = talk Twrite.new(
+        :tag    => 0,
+        :fid    => 1,
+        :offset => 0,
+        :data   => "#a1a2a3 #b1b2b3 #c1c2c3 hello world!!!"
+      )
+      aver { write_response.type == Rwrite.type }
+      aver { write_response.count == write_request.data.length }
+
+      test "verify the write" do
+        read_request, read_response = talk Tread.new(
+          :tag    => 0,
+          :fid    => 1,
+          :offset => 0,
+          :count  => write_response.count
+        )
+        aver { read_response.type == Rread.type }
+        aver { read_response.data == write_request.data }
+      end
     end
 
-    transaction "verify stuff was written to #{file.inspect}", Tread.new(
-      :tag    => 0,
-      :fid    => 1,
-      :offset => 0,
-      :count  => write_rsp.count
-    ) do |req, rsp|
-      T { rsp.type == Rread.type }
-      T { rsp.data == write_req.data }
+    test "remove #{file.inspect}" do
+      request, response = talk Tremove.new(
+        :tag => 0,
+        :fid => 1
+      )
+      aver { response.type == Rremove.type }
     end
 
-    transaction "remove #{file.inspect}", Tremove.new(
-      :tag => 0,
-      :fid => 1
-    ) do |req, rsp|
-      T { rsp.type == Rremove.type }
-    end
-
-    transaction "fid for #{file.inspect} should have been closed by Tremove", Tclunk.new(
-      :tag => 0,
-      :fid => 1
-    ) do |req, rsp|
-      T { rsp.type == Rerror.type }
+    test "fid for #{file.inspect} should have been closed by Tremove" do
+      request, response = talk Tclunk.new(
+        :tag => 0,
+        :fid => 1
+      )
+      aver { response.type == Rerror.type }
     end
   end
 
   ##
   # Transmits the given request and returns the received response.
   #
-  def self.send_and_recv request
+  def talk request
     # send the request
-      if $DEBUG
-        puts
-        pp request
-        pp request.to_9p
-      end
+    if $DEBUG
+      puts
+      pp request
+      pp request.to_9p
+    end
 
-      @conn << request.to_9p
+    @conn << request.to_9p
 
     # receive the response
-      response = Fcall.from_9p(@conn)
+    response = Fcall.from_9p(@conn)
 
-      if $DEBUG
-        puts
-        pp response
-        pp response.to_9p
-      end
+    if $DEBUG
+      puts
+      pp response
+      pp response.to_9p
+    end
 
-      if response.type == Rerror.type
-        T { response.kind_of? Rerror }
-      else
-        T { response.type == request.type + 1 }
-      end
+    if response.type == Rerror.type
+      aver { response.kind_of? Rerror }
+    else
+      aver { response.type == request.type + 1 }
+    end
 
-      T { response.tag == request.tag }
+    aver { response.tag == request.tag }
 
-    response
-  end
-
-  def self.transaction description, request
-    response = send_and_recv(request)
-    yield request, response if block_given?
+    # return the conversation
     [request, response]
   end
 end
