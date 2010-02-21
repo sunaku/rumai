@@ -127,17 +127,30 @@ module Rumai
             if @recv_buf.key? tag
               @recv_buf.delete tag
             else
-              # reply was not in the receive buffer, so wait
-              # for the next reply... hoping that it is ours
-              msg = Fcall.from_9p(@stream)
+              # reply was not in receive buffer, so read
+              # the next reply... hoping that it is ours
 
-              if msg.tag == tag
-                msg
-              else
-                # we got someone else's reply, so buffer
-                # it (for them to receive) and try again
-                @recv_buf[msg.tag] = msg
-                nil
+              next_reply_available =
+                # check (in a non-blocking fashion) if
+                # the stream has reply for us right now
+                begin
+                  @stream.ungetc @stream.read_nonblock(1)
+                  true
+                rescue Errno::EAGAIN
+                  # the stream is empty
+                end
+
+              if next_reply_available
+                msg = Fcall.from_9p(@stream)
+
+                if msg.tag == tag
+                  msg
+                else
+                  # we got someone else's reply, so buffer
+                  # it (for them to receive) and try again
+                  @recv_buf[msg.tag] = msg
+                  nil
+                end
               end
             end
           end
