@@ -131,9 +131,9 @@ module Rumai
               # the next reply... hoping that it is ours
 
               next_reply_available =
-                # check (in a non-blocking fashion) if
-                # the stream has reply for us right now
-                begin
+                @recv_buf.empty? || begin
+                  # check (in a non-blocking fashion) if
+                  # the stream has reply for us right now
                   @stream.ungetc @stream.read_nonblock(1)
                   true
                 rescue Errno::EAGAIN
