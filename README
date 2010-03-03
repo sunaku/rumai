@@ -1,0 +1,92 @@
+%#                                                                          #%
+%#             You can read this document in its full glory by              #%
+%#          opening ./doc/index.html in your favorite Web browser.          #%
+%#                                                                          #%
+
+%#----------------------------------------------------------------------------
+%| project_summary
+%#----------------------------------------------------------------------------
+
+  Rumai is a [Ruby](<%= ruby_url %>) interface to
+  the [wmii](<%= wmii_url %>) window manager.
+
+%#----------------------------------------------------------------------------
+%| paragraph "Resources"
+%#----------------------------------------------------------------------------
+
+  * <%= xref "History", "What's new?" %> ---
+    release notes and project history.
+
+  * [Issue tracker](<%= issue_tracker_url %>) ---
+    report bugs, request features, or ask for help.
+
+  * [Source code](<%= source_code_url %>) ---
+    browse online or obtain using <%= source_code_tool %>
+
+  * [API reference](<%= api_reference_url %>) ---
+    documentation for source code.
+
+  * [Project home](<%= Rumai::WEBSITE %>) ---
+    the official project home page.
+
+%#----------------------------------------------------------------------------
+%| section "Features"
+%#----------------------------------------------------------------------------
+
+  Rumai is exciting because:
+
+  * It excels at dynamic arrangement of clients, columns, views, and tags.
+
+  * It provides an <%= xref 'shell', 'interactive shell' %> for live
+    entertainment and experimentation.
+
+  * It provides a pure Ruby client for the [9P2000 protocol](<%= p9p_url %>)
+    used by wmii's [IXP file-system interface](<%= wmii_ixp_url %>).
+
+  * It powers [many Ruby-based wmii configurations][2], including [my own][1].
+
+    [1]: http://github.com/sunaku/wmiirc/
+    [2]: http://github.com/sunaku/wmiirc/network
+
+%#----------------------------------------------------------------------------
+%| section "Etymology"
+%#----------------------------------------------------------------------------
+
+  The word "wmii" is difficult to pronounce because it is an abbreviation, not
+  an acronym. If we were to treat it as an acronym, the closest pronounciation
+  would be, in my mind, something like "vim-eye".
+
+  Since this is a Ruby library, I added a "roo" and worked it through:
+
+  * vim-eye
+  * roo-vim-eye
+  * roovm-eye
+
+  And thus we get "Rumai".
+
+%#----------------------------------------------------------------------------
+%| section "License"
+%#----------------------------------------------------------------------------
+
+  %# See the file named "LICENSE" for details.
+  %< "LICENSE"
+
+%#----------------------------------------------------------------------------
+%| section "Credits"
+%#----------------------------------------------------------------------------
+
+  Rumai is made possible by <%= xref "History",
+  "contributions" %> from users like you:
+
+  %# See the file named "CREDITS" for details.
+  %< "CREDITS"
+
+%#----------------------------------------------------------------------------
+%| section "Related works"
+%#----------------------------------------------------------------------------
+
+  * [r9p](http://libs.suckless.org/r9p)
+  * [Rii](http://rubyforge.org/projects/rii/)
+  * [Ruby-IXP](http://home.gna.org/rubyixp/)
+  * [ruby-wmii](http://eigenclass.org/hiki.rb?wmii+ruby)
+

@@ -1,16 +1,21 @@
-%#--
-%# Copyright protects this work.
-%# See LICENSE file for details.
-%#++
+% api_reference_url = 'api/index.html'
+% source_code_tool  = '[Git](http://git-scm.com)'
+% source_code_url   = 'http://github.com/sunaku/rumai'
+% issue_tracker_url = 'http://github.com/sunaku/rumai/issues'
+% ruby_url          = 'http://ruby-lang.org'
+% wmii_url          = 'http://wmii.suckless.org'
+% wmii_ixp_url      = 'http://libs.suckless.org/libixp'
+% p9p_url           = 'http://cm.bell-labs.com/magic/man2html/5/intro'
 
-% Inochi.book :Rumai, self
+%|part "Welcome"
+  %+ "../README"
 
-% ruby_url     = 'http://ruby-lang.org'
-% wmii_url     = 'http://wmii.suckless.org'
-% wmii_ixp_url = 'http://libs.suckless.org/libixp'
-% p9p_url      = 'http://cm.bell-labs.com/magic/man2html/5/intro'
+%|part "Setup"
+  %+ "../INSTALL"
 
-%+ "intro.erb"
-%+ "setup.erb"
-%+ "usage.erb"
-%+ "history.erb"
+%|part "Usage"
+  %+ "../USAGE"
+
+%|part "History"
+  %|project_history
+    %+ "../HISTORY"

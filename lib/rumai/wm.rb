@@ -1,13 +1,9 @@
 # Abstractions for the window manager.
-#--
-# Copyright protects this work.
-# See LICENSE file for details.
-#++
 
 require 'rumai/fs'
 require 'enumerator'
 
-class Object #:nodoc:
+class Object # @private
   # prevent these deprecated properties
   # from clashing with our usage below
   undef id   if respond_to? :id
@@ -21,12 +17,12 @@ module Rumai
   CLIENT_GROUPING_TAG = '@'.freeze
   CLIENT_STICKY_TAG   = '/./'.freeze
 
-  #-----------------------------------------------------------------------------
+  #---------------------------------------------------------------------------
   # abstraction of WM components
-  #-----------------------------------------------------------------------------
+  #---------------------------------------------------------------------------
 
     ##
-    # NOTE: Inheritors must override the 'chain' method.
+    # @note Inheritors must override the {Chain#chain} method.
     #
     module Chain
       ##
@@ -64,10 +60,10 @@ module Rumai
     ##
     # The basic building block of the WM hierarchy.
     #
-    # NOTE: Inheritors must define a 'curr' class method.
-    # NOTE: Inheritors must override the 'focus' method.
+    # @note Inheritors must define a {curr} class method.
+    # @note Inheritors must override the {focus} method.
     #
-    module WidgetImpl #:nodoc:
+    module WidgetImpl
       attr_reader :id
 
       def == other
@@ -87,7 +83,7 @@ module Rumai
     ##
     # A widget that has a corresponding representation in the IXP file system.
     #
-    class WidgetNode < Node #:nodoc:
+    class WidgetNode < Node
       include WidgetImpl
 
       def initialize id, path_prefix
@@ -126,9 +122,9 @@ module Rumai
           View.curr.clients
         end
 
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
       # WM operations
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
 
         ##
         # Focuses this client within the given view.
@@ -188,7 +184,8 @@ module Rumai
         end
 
         ##
-        # Maximizes this client to occupy the entire screen on the current view.
+        # Maximizes this client to occupy the
+        # entire screen on the current view.
         #
         def fullscreen
           ctl.write 'Fullscreen on'
@@ -291,9 +288,9 @@ module Rumai
 
         alias manage! float!
 
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
       # WM hierarchy
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
 
         ##
         # Returns the area that contains this client within the given view.
@@ -309,9 +306,9 @@ module Rumai
           tags.map! {|t| View.new t }
         end
 
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
       # tag manipulations
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
 
         TAG_DELIMITER = '+'.freeze
 
@@ -395,9 +392,9 @@ module Rumai
           end
         end
 
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
       # multiple client grouping
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
 
         ##
         # Checks if this client is included in the current grouping.
@@ -449,7 +446,7 @@ module Rumai
     end
 
     ##
-    # NOTE: Inheritors should override the 'client_ids' method.
+    # @note Inheritors should override the {ClientContainer#client_ids} method.
     #
     module ClientContainer
       ##
@@ -491,7 +488,8 @@ module Rumai
       attr_reader :view
 
       ##
-      # [view] the view object which contains this area
+      # @param [Rumai::View] view
+      #   the view object which contains this area
       #
       def initialize area_id, view = View.curr
         @id = Integer(area_id) rescue area_id
@@ -576,9 +574,9 @@ module Rumai
         @view.ctl.write "colmode #{@id} #{mode}"
       end
 
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
       # WM operations
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
 
         ##
         # Puts focus on this area.
@@ -587,9 +585,9 @@ module Rumai
           @view.ctl.write "select #{@id}"
         end
 
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
       # array abstraction: area is an array of clients
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
 
         ##
         # Returns the number of clients in this area.
@@ -761,9 +759,9 @@ module Rumai
         super view_id, '/tag'
       end
 
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
       # WM operations
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
 
         ##
         # Returns the manifest of all areas and clients in this view.
@@ -779,9 +777,9 @@ module Rumai
           ctl.write "select #{direction}"
         end
 
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
       # WM hierarchy
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
 
         ##
         # Returns the area which contains the given client in this view.
@@ -852,9 +850,9 @@ module Rumai
 
         alias each_managed_area each_column
 
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
       # visual arrangement of clients
-      #-------------------------------------------------------------------------
+      #-----------------------------------------------------------------------
 
         ##
         # Arranges the clients in this view, while maintaining
@@ -1011,9 +1009,9 @@ module Rumai
       end
     end
 
-  #-----------------------------------------------------------------------------
+  #---------------------------------------------------------------------------
   # access to global WM state
-  #-----------------------------------------------------------------------------
+  #---------------------------------------------------------------------------
 
     ##
     # Returns the root of IXP file system hierarchy.
@@ -1061,9 +1059,9 @@ module Rumai
       list
     end
 
-  #-----------------------------------------------------------------------------
+  #---------------------------------------------------------------------------
   # shortcuts for interactive WM manipulation (via IRB)
-  #-----------------------------------------------------------------------------
+  #---------------------------------------------------------------------------
 
     def curr_client ; Client.curr       ; end
     def next_client ; curr_client.next  ; end

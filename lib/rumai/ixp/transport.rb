@@ -1,8 +1,4 @@
 # Transport layer for 9P2000 protocol.
-#--
-# Copyright protects this work.
-# See LICENSE file for details.
-#++
 
 require 'rumai/ixp/message'
 require 'thread' # for Mutex and Queue
@@ -20,7 +16,7 @@ module Rumai
       attr_reader :msize
 
       ##
-      # [stream]
+      # @param stream
       #   I/O stream on which a 9P2000 server is listening.
       #
       def initialize stream
@@ -105,7 +101,7 @@ module Rumai
       end
 
       ##
-      # Sends the given request (Rumai::IXP::Fcall) and returns
+      # Sends the given request {Rumai::IXP::Fcall} and returns
       # a ticket that you can use later to receive the reply.
       #
       def send request
@@ -119,7 +115,7 @@ module Rumai
 
       ##
       # Returns the reply for the given ticket, which was previously given
-      # to you when you sent the corresponding request (Rumai::IXP::Fcall).
+      # to you when you sent the corresponding request {Rumai::IXP::Fcall}.
       #
       def recv tag
         loop do
@@ -171,7 +167,7 @@ module Rumai
       end
 
       ##
-      # Sends the given request (Rumai::IXP::Fcall) and returns its reply.
+      # Sends the given request {Rumai::IXP::Fcall} and returns its reply.
       #
       def talk request
         tag = send(request)
@@ -203,13 +199,13 @@ module Rumai
       end
 
       ##
-      # Opens the given path for I/O access through a FidStream
+      # Opens the given path for I/O access through a {FidStream}
       # object.  If a block is given, it is invoked with a
-      # FidStream object and the stream is closed afterwards.
+      # {FidStream} object and the stream is closed afterwards.
       #
-      # See File::open in the Ruby documentation.
+      # @see File::open
       #
-      def open path, mode = 'r' # :yields: FidStream
+      def open path, mode = 'r'
         mode = MODES.parse(mode)
 
         # open the file
@@ -237,7 +233,7 @@ module Rumai
       ##
       # Encapsulates I/O access over a file handle (fid).
       #
-      # NOTE: this class is NOT thread safe!
+      # @note this class is NOT thread safe!
       #
       class FidStream
         attr_reader :fid, :stat
@@ -285,16 +281,16 @@ module Rumai
 
         ##
         # Reads some data from this stream at the current position.
+        # If this stream corresponds to a directory, then an Array of
+        # Stat (one for each file in the directory) will be returned.
         #
-        # [partial]
+        # @param [Boolean] partial
+        #
         #   When false, the entire content of
         #   this stream is read and returned.
         #
         #   When true, the maximum amount of content that can fit
         #   inside a single 9P2000 message is read and returned.
-        #
-        # If this stream corresponds to a directory, then an Array of
-        # Stat (one for each file in the directory) will be returned.
         #
         def read partial = false
           raise 'cannot read from a closed stream' if @closed
@@ -368,7 +364,7 @@ module Rumai
       # Returns the basenames of all files
       # inside the directory at the given path.
       #
-      # See Dir::entries in the Ruby documentation.
+      # @see Dir::entries
       #
       def entries path
         unless stat(path).directory?
@@ -491,7 +487,7 @@ module Rumai
       ##
       # Invokes the given block with a temporary FID.
       #
-      def with_fid # :yields: fid
+      def with_fid
         begin
           fid = @fid_pool.obtain
           yield fid

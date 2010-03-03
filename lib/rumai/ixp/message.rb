@@ -1,13 +1,7 @@
 # Primitives for the 9P2000 protocol.
 #
 # See http://cm.bell-labs.com/sys/man/5/INDEX.html
-#
 # See http://swtch.com/plan9port/man/man9/
-#
-#--
-# Copyright protects this work.
-# See LICENSE file for details.
-#++
 
 module Rumai
   module IXP
@@ -54,7 +48,7 @@ module Rumai
       ##
       # Allows field values to be initialized via the constructor.
       #
-      # [field_values]
+      # @param field_values
       #   a mapping from field name to field value
       #
       def initialize field_values = {}
@@ -100,7 +94,8 @@ module Rumai
           ##
           # Defines a new field in this Struct.
           #
-          # [args] arguments for Field.new()
+          # @param args
+          #   arguments for {Field.new}
           #
           def field name, format = nil, *args
             klass = Field.factory(format)
@@ -135,8 +130,6 @@ module Rumai
         end
       end
 
-      private
-
       ##
       # A field inside a Struct.
       #
@@ -148,13 +141,13 @@ module Rumai
         attr_reader :name, :format, :counter, :countee
 
         ##
-        # [name]
+        # @param name
         #   unique (among all fields in a struct) name for the field
         #
-        # [format]
+        # @param format
         #   number of bytes, a class, or nil
         #
-        # [counter]
+        # @param [Field] counter
         #   field which counts the length of this field's value
         #
         def initialize name, format = nil, counter = nil
@@ -272,8 +265,6 @@ module Rumai
         end
       end
 
-      #:stopdoc:
-
       ##
       # A field whose value knows how to convert itself to and from 9p.
       #
@@ -310,8 +301,6 @@ module Rumai
           stream.read_9p(4) | (stream.read_9p(4) << BYTE4_BITS)
         end
       end
-
-      #:startdoc:
     end
 
     ##

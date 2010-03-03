@@ -1,8 +1,4 @@
 # File system abstractions over the 9P2000 protocol.
-#--
-# Copyright protects this work.
-# See LICENSE file for details.
-#++
 
 require 'rumai/ixp'
 require 'socket'
@@ -15,7 +11,7 @@ module Rumai
     "/tmp/ns.#{ENV['USER']}.#{display[/:\d+/]}/wmii"
 
   begin
-    # We use a single, global connection to wmii's IXP server.
+    # we use a single, global connection to wmii's IXP server
     IXP_AGENT = IXP::Agent.new(UNIXSocket.new(IXP_SOCK_ADDR))
 
   rescue => error
@@ -43,7 +39,7 @@ module Rumai
     ##
     # Returns file statistics about this node.
     #
-    # See Rumai::IXP::Client#stat for details.
+    # @see Rumai::IXP::Agent#stat
     #
     def stat
       IXP_AGENT.stat @path
@@ -81,7 +77,7 @@ module Rumai
     ##
     # Opens this node for I/O access.
     #
-    # See Rumai::IXP::Client#open for details.
+    # @see Rumai::IXP::Agent#open
     #
     def open mode = 'r', &block
       IXP_AGENT.open @path, mode, &block
@@ -90,7 +86,7 @@ module Rumai
     ##
     # Returns the entire content of this node.
     #
-    # See Rumai::IXP::Client#read for details.
+    # @see Rumai::IXP::Agent#read
     #
     def read *args
       IXP_AGENT.read @path, *args
@@ -99,7 +95,9 @@ module Rumai
     ##
     # Invokes the given block for every line in the content of this node.
     #
-    def each_line &block #:yields: line
+    # @yieldparam [String] line
+    #
+    def each_line &block
       open do |file|
         until (chunk = file.read(true)).empty?
           chunk.each_line(&block)
@@ -117,7 +115,7 @@ module Rumai
     ##
     # Creates a file corresponding to this node on the IXP server.
     #
-    # See Rumai::IXP::Client#create for details.
+    # @see Rumai::IXP::Agent#create
     #
     def create *args
       IXP_AGENT.create @path, *args
@@ -198,7 +196,7 @@ module Rumai
   # Both of the above expressions are equivalent.
   #
   module ExportInstanceMethods
-    def self.extended target #:nodoc:
+    def self.extended target # @private
       target.instance_methods(false).each do |meth|
         (class << target; self; end).instance_eval do
           define_method meth do |path, *args|
@@ -209,10 +207,12 @@ module Rumai
     end
   end
 
+  ##
   # NOTE: We use extend() **AFTER** all methods have been defined
   #       in the class so that the ExportInstanceMethods module
   #       can do its magic.  If, instead, we include()d the module
   #       before all methods in the class had been defined, then
   #       the magic would only apply to **SOME** of the methods!
+  #
   Node.extend ExportInstanceMethods
 end

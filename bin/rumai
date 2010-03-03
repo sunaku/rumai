@@ -10,26 +10,20 @@
 #   Arguments:  Command-line options and arguments that should
 #               be passed to `irb`, the interactive Ruby shell.
 #
-# Options:
-#
 
-#--
-# Copyright protects this work.
-# See LICENSE file for details.
-#++
+$LOAD_PATH << File.expand_path('../../lib', __FILE__)
+require 'rumai'
 
-require 'rubygems'
-gem 'inochi', '~> 1'
-require 'inochi'
+# parse command line
+require 'inochi/command'
+Inochi::Command(Rumai)
 
-Inochi.main :Rumai
-
+# start IRB session
 require 'irb'
-require 'irb/completion'
 module IRB
   ##
   # Starts an IRB session *inside* the given object.
-  #--
+  #
   # This code was adapted from a snippet on Massimiliano Mirra's website:
   # http://www.therubymine.com/articles/2007/01/29/programmare-dallinterno
   #
@@ -46,4 +40,5 @@ module IRB
   end
 end
 
+require 'irb/completion' # enable TAB-completion
 IRB.start_session Rumai

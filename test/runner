@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+#
+# Adds the project library directory
+# and this test directory to Ruby's
+# load path and runs the given tests.
+#
+# Usage:  ruby test/runner [TESTS_TO_RUN]
+#
+# Where:  TESTS_TO_RUN is a list of files
+#         or file globbing patterns that
+#         describe a set of files to run.
+#
+#         If this parameter is not given,
+#         all *_test.rb files within or
+#         beneath this directory are run.
+
+lib_dir = File.expand_path('../../lib', __FILE__)
+test_dir = File.expand_path('..', __FILE__)
+$LOAD_PATH.unshift lib_dir, test_dir
+
+require 'rumai/inochi'
+require 'test_helper'
+
+ARGV << "#{test_dir}/**/*_test.rb" if ARGV.empty?
+ARGV.each {|glob| Dir[glob].each {|test| load test } }
