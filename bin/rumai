@@ -2,24 +2,13 @@
 #
 # This program is an interactive shell for Rumai.
 #
-# Usage:
-#
-#   rumai [Options]
-#   rumai [Options] -- Arguments
-#
-#   Arguments:  Command-line options and arguments that should
-#               be passed to `irb`, the interactive Ruby shell.
+# Command-line options and arguments given to this program are passed
+# directly to the underlying IRB (the interactive Ruby shell) session.
 #
 
-$LOAD_PATH << File.expand_path('../../lib', __FILE__)
-require 'rumai'
-
-# parse command line
-require 'inochi/command'
-Inochi::Command(Rumai)
-
-# start IRB session
 require 'irb'
+require 'irb/completion' # enable TAB-completion
+
 module IRB
   ##
   # Starts an IRB session *inside* the given object.
@@ -40,5 +29,8 @@ module IRB
   end
 end
 
-require 'irb/completion' # enable TAB-completion
+# start IRB session
+$LOAD_PATH << File.expand_path('../../lib', __FILE__)
+require 'rumai'
+
 IRB.start_session Rumai
