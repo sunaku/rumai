@@ -25,10 +25,10 @@
   - Suraj N. Kurapati <sunaku@gmail.com>
 
 # Number of the current release of your project.
-:version: 3.2.0
+:version: 3.2.1
 
 # Date of the current release of your project.
-:release: 2009-11-17
+:release: 2010-03-22
 
 # A list of gems required by your project during runtime.
 #

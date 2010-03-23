@@ -4,6 +4,37 @@
 %#                                                                          #%
 
 %#----------------------------------------------------------------------------
+%| section "Version 3.2.1 (2010-03-22)"
+%#----------------------------------------------------------------------------
+
+  This release improves multi-threading support in Rumai's pure-Ruby
+  implementation of the [IXP file-system interface](<%= wmii_ixp_url %>).
+
+  %#--------------------------------------------------------------------------
+  %| paragraph "Thank you"
+  %#--------------------------------------------------------------------------
+
+    * Gigamo reported the issue of status bar applets not refreshing
+      according to their prescribed schedule (this is particularly noticable
+      in the clock applet) and verified my fix for the problem.
+
+  %#--------------------------------------------------------------------------
+  %| paragraph "Bug fixes"
+  %#--------------------------------------------------------------------------
+
+    * Perform a blocking I/O read to recieve a 9P2000 message in
+      `Rumai::IXP::Agent#recv` only if recieve buffer is empty.  This gives
+      other threads a chance to check the recieve buffer for their response.
+      instead of being blocked by us as we greedily hold on to the 9P2000
+      message stream until our expected response arrives.
+
+  %#--------------------------------------------------------------------------
+  %| paragraph "Housekeeping"
+  %#--------------------------------------------------------------------------
+
+    * Upgrade to Inochi 2.0.0 and Dfect 2.0.0.
+
+%#----------------------------------------------------------------------------
 %| section "Version 3.2.0 (2009-11-17)"
 %#----------------------------------------------------------------------------
 
