@@ -1,11 +1,43 @@
 #!/usr/bin/env ruby
 #
-# This program is an interactive shell for Rumai.
+# This is an interactive Ruby shell (IRB) for Rumai.
 #
-# Command-line options and arguments given to this program are passed
-# directly to the underlying IRB (the interactive Ruby shell) session.
+#
+# Usage:
+#
+#   rumai [Options] [ThingsForIRB]
+#
+#   ThingsForIRB:  Arguments and options for IRB.
+#
+#
+# Options:
+#
+#   -h, --help    : Show this message and exit
+#   -v, --version : Show version number and exit
 #
 
+$LOAD_PATH << File.expand_path('../../lib', __FILE__)
+require 'rumai'
+
+# parse command line
+if not ARGV.grep(/^(-h|--help)$/).empty?
+  puts
+  puts '%s - %s' % [Rumai::PROJECT, Rumai::TAGLINE]
+  puts
+  puts File.read(__FILE__)[/^#(\r?\n)(.*?)\1\1/m, 2].gsub(/^# ?/, '')
+  puts
+  puts
+  puts 'Read the user manual for more information:'
+  puts
+  puts "  #{Rumai::INSTDIR}/doc/index.html"
+  puts
+  exit
+elsif not ARGV.grep(/^(-v|--version)$/).empty?
+  puts Rumai::VERSION
+  exit
+end
+
+# start IRB session
 require 'irb'
 require 'irb/completion' # enable TAB-completion
 
@@ -28,9 +60,5 @@ module IRB
     end
   end
 end
-
-# start IRB session
-$LOAD_PATH << File.expand_path('../../lib', __FILE__)
-require 'rumai'
 
 IRB.start_session Rumai
