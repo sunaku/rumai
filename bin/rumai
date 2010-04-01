@@ -5,24 +5,27 @@
 #
 # Usage:
 #
-#   rumai [Options] [ThingsForIRB]
+#   rumai [Options] [STUFF_FOR_IRB]
 #
-#   ThingsForIRB:  Arguments and options for IRB.
+#   STUFF_FOR_IRB : Arguments and options for `irb`.
 #
 #
 # Options:
 #
-#   -h, --help    : Show this message and exit
-#   -v, --version : Show version number and exit
+#   -h, --help    : Show this message and exit.
+#
+#   -v, --version : Show version number and exit.
 #
 
-$LOAD_PATH << File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'rumai'
 
 # parse command line
-if not ARGV.grep(/^(-h|--help)$/).empty?
+if ARGV.delete('-h') or ARGV.delete('--help')
   puts
-  puts '%s - %s' % [Rumai::PROJECT, Rumai::TAGLINE]
+  puts Rumai.inspect
+  puts Rumai::TAGLINE
+  puts
   puts
   puts File.read(__FILE__)[/^#(\r?\n)(.*?)\1\1/m, 2].gsub(/^# ?/, '')
   puts
@@ -31,8 +34,10 @@ if not ARGV.grep(/^(-h|--help)$/).empty?
   puts
   puts "  #{Rumai::INSTDIR}/doc/index.html"
   puts
+  puts "  #{Rumai::WEBSITE}"
+  puts
   exit
-elsif not ARGV.grep(/^(-v|--version)$/).empty?
+elsif ARGV.delete('-v') or ARGV.delete('--version')
   puts Rumai::VERSION
   exit
 end

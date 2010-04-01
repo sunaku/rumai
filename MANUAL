@@ -1,3 +1,8 @@
+%#                                                                          #%
+%#             You can read this document in its full glory by              #%
+%#          opening ./doc/index.html in your favorite Web browser.          #%
+%#                                                                          #%
+
 % api_reference_url = 'api/index.html'
 % source_code_tool  = '[Git](http://git-scm.com)'
 % source_code_url   = 'http://github.com/sunaku/rumai'
@@ -8,14 +13,14 @@
 % p9p_url           = 'http://cm.bell-labs.com/magic/man2html/5/intro'
 
 %|part "Welcome"
-  %+ "../README"
+  %+ "README"
 
 %|part "Setup"
-  %+ "../INSTALL"
+  %+ "INSTALL"
 
 %|part "Usage"
-  %+ "../USAGE"
+  %+ "USAGE"
 
 %|part "History"
   %|project_history
-    %+ "../HISTORY"
+    %+ "HISTORY"

@@ -1,0 +1,31 @@
+##
+# Location where project documentation will be uploaded by `inochi pub:doc`.
+# This value can utilize any remote/destination syntax supported by `rsync`.
+#
+:pub_doc_target: ~/www/lib/rumai
+
+##
+# Options for the `rsync` command used to upload this project's documentation.
+#
+:pub_doc_options: --verbose --compress --archive --update --delete
+
+##
+# Arbitrary Ruby code that will configure this project's RubyGem before it
+# is built by `inochi gem`.  This code has access to a local variable named
+# `gem` which holds a Gem::Specification object representing this project.
+#
+# @example
+#
+#   :gem_spec_logic: |
+#     # show the Inochi-provided specification for this project's RubyGem
+#     puts gem
+#
+#     # add files that are outside this project directory to the RubyGem
+#     gem.files += FileList['/some/outside/**/*.files']
+#
+#     # omit some files in this project's directory from the RubyGem
+#     gem.files.exclude '{some*files,in_this,project/**/directory}'
+#
+#     # and so on...  anything is possible!  use your imagination!
+#
+:gem_spec_logic: |

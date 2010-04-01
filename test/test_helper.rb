@@ -1,1 +1,1 @@
-require 'dfect/auto'
+Rumai.require 'dfect/auto'
