@@ -4,6 +4,29 @@
 %#                                                                          #%
 
 %#----------------------------------------------------------------------------
+%| section "Version 3.2.2 (2010-04-01)"
+%#----------------------------------------------------------------------------
+
+  This release fixes some warnings that appeared during installation and
+  performs some minor housekeeping.
+
+  %#--------------------------------------------------------------------------
+  %| paragraph "Bug fixes"
+  %#--------------------------------------------------------------------------
+
+    * Warnings of the following form appeared during gem installation:
+
+          Unrecognized directive '...' in lib/rumai/inochi.yaml
+
+      Thanks to [ghedamat](http://github.com/ghedamat) for reporting this.
+
+  %#--------------------------------------------------------------------------
+  %| paragraph "Housekeeping"
+  %#--------------------------------------------------------------------------
+
+    * Upgrade to Inochi 2.0.0-rc2 for managing this project.
+
+%#----------------------------------------------------------------------------
 %| section "Version 3.2.1 (2010-03-22)"
 %#----------------------------------------------------------------------------
 
@@ -32,7 +55,7 @@
   %| paragraph "Housekeeping"
   %#--------------------------------------------------------------------------
 
-    * Upgrade to Inochi 2.0.0 and Dfect 2.0.0.
+    * Upgrade to Inochi 2.0.0-rc1 and Dfect 2.0.0.
 
 %#----------------------------------------------------------------------------
 %| section "Version 3.2.0 (2009-11-17)"
