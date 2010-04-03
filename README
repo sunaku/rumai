@@ -10,8 +10,21 @@
   Rumai is a [Ruby](<%= ruby_url %>) interface to
   the [wmii](<%= wmii_url %>) window manager.
 
+  * It excels at dynamic arrangement of clients, columns, views, and tags.
+
+  * It provides an <%= xref 'shell', 'interactive shell' %> for live
+    entertainment and experimentation.
+
+  * It provides a pure Ruby client for the [9P2000 protocol](<%= p9p_url %>)
+    used by wmii's [IXP file-system interface](<%= wmii_ixp_url %>).
+
+  * It powers [many Ruby-based wmii configurations][2], including [my own][1].
+
+    [1]: http://github.com/sunaku/wmiirc/
+    [2]: http://github.com/sunaku/wmiirc/network
+
 %#----------------------------------------------------------------------------
-%| paragraph "Resources"
+%| section "Resources"
 %#----------------------------------------------------------------------------
 
   * <%= xref "History", "What's new?" %> ---
@@ -28,25 +41,6 @@
 
   * [Project home](<%= Rumai::WEBSITE %>) ---
     the official project home page.
-
-%#----------------------------------------------------------------------------
-%| section "Features"
-%#----------------------------------------------------------------------------
-
-  Rumai is exciting because:
-
-  * It excels at dynamic arrangement of clients, columns, views, and tags.
-
-  * It provides an <%= xref 'shell', 'interactive shell' %> for live
-    entertainment and experimentation.
-
-  * It provides a pure Ruby client for the [9P2000 protocol](<%= p9p_url %>)
-    used by wmii's [IXP file-system interface](<%= wmii_ixp_url %>).
-
-  * It powers [many Ruby-based wmii configurations][2], including [my own][1].
-
-    [1]: http://github.com/sunaku/wmiirc/
-    [2]: http://github.com/sunaku/wmiirc/network
 
 %#----------------------------------------------------------------------------
 %| section "Etymology"
