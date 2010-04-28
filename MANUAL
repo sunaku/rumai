@@ -1,26 +1,27 @@
-%#                                                                          #%
-%#             You can read this document in its full glory by              #%
-%#          opening ./doc/index.html in your favorite Web browser.          #%
-%#                                                                          #%
+<%
+  ##
+  # Wraps the given content within <pre>
+  # tags in a way that is Markdown-safe.
+  #
+  def preformatted content
+    if content =~ /\S/
+      content.gsub(/^/, ' ' * 4)
+    else
+      "<pre>#{content}</pre>"
+    end
+  end
+%>
 
-% api_reference_url = 'api/index.html'
-% source_code_tool  = '[Git](http://git-scm.com)'
-% source_code_url   = 'http://github.com/sunaku/rumai'
-% issue_tracker_url = 'http://github.com/sunaku/rumai/issues'
-% ruby_url          = 'http://ruby-lang.org'
-% wmii_url          = 'http://wmii.suckless.org'
-% wmii_ixp_url      = 'http://libs.suckless.org/libixp'
-% p9p_url           = 'http://cm.bell-labs.com/magic/man2html/5/intro'
+%+ "README"
 
-%|part "Welcome"
-  %+ "README"
+%+ "USAGE"
 
-%|part "Setup"
-  %+ "INSTALL"
+%+ "EXAMPLES"
 
-%|part "Usage"
-  %+ "USAGE"
+%+ "HACKING"
 
-%|part "History"
-  %|project_history
-    %+ "HISTORY"
+%+ "HISTORY"
+
+%+ "CREDITS"
+
+%+ "FURTHER"

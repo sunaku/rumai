@@ -1,5 +1,27 @@
-- Christoph Blank <http://textmode.at>
-- ghedamat <http://github.com/ghedamat>
-- Gigamo <http://github.com/gigamo>
-- Michael Andrus <http://github.com/centyx>
-- Simon Hafner <http://github.com/Tass>
+%#----------------------------------------------------------------------------
+## AUTHORS
+%#----------------------------------------------------------------------------
+
+Suraj N. Kurapati
+
+%#----------------------------------------------------------------------------
+## CREDITS
+%#----------------------------------------------------------------------------
+
+Christoph Blank,
+Simon Hafner,
+Michael Andrus,
+Nathan Neff,
+[Gigamo],
+[ghedamat]
+
+%# XXX: only link to these contributors because they do not have real names
+[Gigamo]: http://github.com/gigamo
+[ghedamat]: http://github.com/ghedamat
+
+%#----------------------------------------------------------------------------
+## LICENSE
+%#----------------------------------------------------------------------------
+
+%# See the file named "LICENSE".
+%< "LICENSE"

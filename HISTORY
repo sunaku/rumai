@@ -1,350 +1,287 @@
-%#                                                                          #%
-%#             You can read this document in its full glory by              #%
-%#          opening ./doc/index.html in your favorite Web browser.          #%
-%#                                                                          #%
-
 %#----------------------------------------------------------------------------
-%| section "Version 3.2.2 (2010-04-01)"
+## VERSIONS
 %#----------------------------------------------------------------------------
 
-  This release fixes some warnings that appeared during installation and
-  performs some minor housekeeping.
-
-  %#--------------------------------------------------------------------------
-  %| paragraph "Bug fixes"
-  %#--------------------------------------------------------------------------
-
-    * Warnings of the following form appeared during gem installation:
-
-          Unrecognized directive '...' in lib/rumai/inochi.yaml
-
-      Thanks to [ghedamat](http://github.com/ghedamat) for reporting this.
-
-  %#--------------------------------------------------------------------------
-  %| paragraph "Housekeeping"
-  %#--------------------------------------------------------------------------
-
-    * Upgrade to Inochi 2.0.0-rc2 for managing this project.
+This section contains release notes of current and past releases.
 
 %#----------------------------------------------------------------------------
-%| section "Version 3.2.1 (2010-03-22)"
+### Version 3.2.2 (2010-04-01)
 %#----------------------------------------------------------------------------
 
-  This release improves multi-threading support in Rumai's pure-Ruby
-  implementation of the [IXP file-system interface](<%= wmii_ixp_url %>).
+This release fixes some warnings that appeared during installation and
+performs some minor housekeeping.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Thank you"
-  %#--------------------------------------------------------------------------
+Bug fixes:
 
-    * Gigamo reported the issue of status bar applets not refreshing
-      according to their prescribed schedule (this is particularly noticable
-      in the clock applet) and verified my fix for the problem.
+  * Warnings of the following form appeared during gem installation:
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Bug fixes"
-  %#--------------------------------------------------------------------------
+        Unrecognized directive '...' in lib/rumai/inochi.yaml
 
-    * Perform a blocking I/O read to recieve a 9P2000 message in
-      `Rumai::IXP::Agent#recv` only if recieve buffer is empty.  This gives
-      other threads a chance to check the recieve buffer for their response.
-      instead of being blocked by us as we greedily hold on to the 9P2000
-      message stream until our expected response arrives.
+    Thanks to [ghedamat] for reporting this.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Housekeeping"
-  %#--------------------------------------------------------------------------
+Housekeeping:
 
-    * Upgrade to Inochi 2.0.0-rc1 and Dfect 2.0.0.
+  * Upgrade to Inochi 2.0.0-rc2 for managing this project.
 
 %#----------------------------------------------------------------------------
-%| section "Version 3.2.0 (2009-11-17)"
+### Version 3.2.1 (2010-03-22)
 %#----------------------------------------------------------------------------
 
-  This release adds a new automated view arrangement, simplifies the IXP
-  transport layer, and cleans up the code and API documentation.
+This release improves multi-threading support in Rumai's pure-Ruby
+implementation of the [IXP file-system interface][libixp].
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "New features"
-  %#--------------------------------------------------------------------------
+Thank you:
 
-    * Add `Rumai::View#arrange_in_stacks` automated view arrangement.
+  * [Gigamo] reported the issue of status bar applets not refreshing
+    according to their prescribed schedule (this is particularly noticable
+    in the clock applet) and verified my fix for the problem.
 
-    * Convert `:stack` and `:max` arguments into wmii 3.9 syntax in
-      `Rumai::Area#layout=`.
+Bug fixes:
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Bug fixes"
-  %#--------------------------------------------------------------------------
+  * Perform a blocking I/O read to recieve a 9P2000 message in
+    `Rumai::IXP::Agent#recv` only if recieve buffer is empty.  This gives
+    other threads a chance to check the recieve buffer for their response.
+    instead of being blocked by us as we greedily hold on to the 9P2000
+    message stream until our expected response arrives.
 
-    * Rewrote IXP transport layer (`Rumai::IXP::Agent`) to *not* use a
-      background thread, according to [the XCB cookie
-      approach](http://www.x.org/releases/X11R7.5/doc/libxcb/tutorial/#requestsreplies).
+Housekeeping:
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Housekeeping"
-  %#--------------------------------------------------------------------------
-
-    * Clean up some code and API docs.
-
-    * Reduce amount of string concatenation in `Struct#to_9p`.
+  * Upgrade to Inochi 2.0.0-rc1 and Dfect 2.0.0.
 
 %#----------------------------------------------------------------------------
-%| section "Version 3.1.1 (2009-11-16)"
+### Version 3.2.0 (2009-11-17)
 %#----------------------------------------------------------------------------
 
-  This release fixes bugs in automated view arrangements and updates the user
-  manual.
+This release adds a new automated view arrangement, simplifies the IXP
+transport layer, and cleans up the code and API documentation.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Thank you"
-  %#--------------------------------------------------------------------------
+New features:
 
-    * Nathan Neff reported the client ordering bug in automated view
-      arrangements.
+  * Add `Rumai::View#arrange_in_stacks` automated view arrangement.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Bug fixes"
-  %#--------------------------------------------------------------------------
+  * Convert `:stack` and `:max` arguments into wmii 3.9 syntax in
+    `Rumai::Area#layout=`.
 
-    * The relative order of clients was not being preserved during view
-      arrangements.
+Bug fixes:
 
-    * Focus on the current view was lost after automated view arrangement was
-      applied if the current view was not the first view on which the initially
-      focused (before the automated arrangement was applied) client appeared.
+  * Rewrote IXP transport layer (`Rumai::IXP::Agent`) to *not* use a
+    background thread, according to [the XCB cookie approach][XCB cookie].
 
-%#----------------------------------------------------------------------------
-%| section "Version 3.1.0 (2009-10-02)"
-%#----------------------------------------------------------------------------
+Housekeeping:
 
-  This release adds new methods, fixes some bugs, and revises the manual.
+  * Clean up some code and API docs.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "New features"
-  %#--------------------------------------------------------------------------
-
-    * Add `Client#float` methods to manipulate floating status.
-
-    * Add `Client#manage` methods to manipulate managed status.
-
-    * The `Client#tags=` method now accepts '~' and '!' tag prefixes.
-
-  %#--------------------------------------------------------------------------
-  %| paragraph "Bug fixes"
-  %#--------------------------------------------------------------------------
-
-    * There is no `View#move_focus` method, only `View#select`.
-
-    * Assertion failure in test suite because all files in <tt>/rbar</tt>
-      (inside wmii's IXP filesystem) contain an automatic color header when
-      read.
-
-  %#--------------------------------------------------------------------------
-  %| paragraph "Housekeeping"
-  %#--------------------------------------------------------------------------
-
-    * Use simpler Copyright reminder at the top of every file.
-
-    * Open source is for fun, so [be
-      nice](http://loiclemeur.com/english/2009/03/never-criticize-your-competitors.html):
-      speak of "related works" instead of "competitors".
+  * Reduce amount of string concatenation in `Struct#to_9p`.
 
 %#----------------------------------------------------------------------------
-%| section "Version 3.0.0 (2009-05-11)"
+### Version 3.1.1 (2009-11-16)
 %#----------------------------------------------------------------------------
 
-  This release revises method names, adds new methods, and fixes a bug.
+This release fixes bugs in automated view arrangements and updates the user
+manual.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Incompatible changes"
-  %#--------------------------------------------------------------------------
+Thank you:
 
-    * Rename `#toggle_` methods to use `!` suffix in their names.
+  * Nathan Neff reported the client ordering bug in automated view
+    arrangements.
 
-    * Rename `#float` methods to `#floating`.
+Bug fixes:
 
-    * Rename `View#floater` method to `View#floating_area`.
+  * The relative order of clients was not being preserved during view
+    arrangements.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "New features"
-  %#--------------------------------------------------------------------------
-
-    * Add `Client#stick` methods to manipulate sticky status.
-
-    * Add `Client#fullscreen` methods to manipulate fullscreen status.
-
-    * Add `Client#slay` method which is a forceful version of `#kill`.
-
-    * Add `View#select` method to move focus relatively inside a view.
-
-    * Add `Area::floating` method for symmetry with `Area::curr`.
-
-    * Add `View#managed_area` aliases for `View#column` methods.
-
-  %#--------------------------------------------------------------------------
-  %| paragraph "Bug fixes"
-  %#--------------------------------------------------------------------------
-
-    * Fix error when unzooming clients from temporary view.
-
-    * Fix code that launches temporary terminals in <%= xref "Tutorial"  %>.
-
-      Use the <tt>/bin/sh</tt> version of the **read** command for
-      portability.
-
-  %#--------------------------------------------------------------------------
-  %| paragraph "Housekeeping"
-  %#--------------------------------------------------------------------------
-
-    * Use `Client#send` instead of `#swap` in automated arrangements because
-      it causes less traffic on /event/.
-
-    * Add old release notes from blog to user manual.
+  * Focus on the current view was lost after automated view arrangement was
+    applied if the current view was not the first view on which the initially
+    focused (before the automated arrangement was applied) client appeared.
 
 %#----------------------------------------------------------------------------
-%| section "Version 2.1.0 (2009-05-09)"
+### Version 3.1.0 (2009-10-02)
 %#----------------------------------------------------------------------------
 
-  This release improves client arrangement, fixes several bugs, and cleans up
-  the code.
+This release adds new methods, fixes some bugs, and revises the manual.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Thank you"
-  %#--------------------------------------------------------------------------
+New features:
 
-    * Simon Hafner reported several bugs.
-    * Michael Andrus verified bug fixes.
+  * Add `Client#float` methods to manipulate floating status.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "New features"
-  %#--------------------------------------------------------------------------
+  * Add `Client#manage` methods to manipulate managed status.
 
-    * Focus is now restored on the initially focused client after applying <%=
-      xref "Automated client arrangement" %>s.
+  * The `Client#tags=` method now accepts '~' and '!' tag prefixes.
 
-    * The push(), insert(), and unshift() instance methods of the
-      `Rumai::Area` class now preserve the order of inserted clients.
+Bug fixes:
 
-    * The `Rumai::View#arrange_in_grid()` method now accepts 1 as a parameter.
-      This invocation causes every column to contain at most 1 client.
+  * There is no `View#move_focus` method, only `View#select`.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Bug fixes"
-  %#--------------------------------------------------------------------------
+  * Assertion failure in test suite because all files in `/rbar`
+    (inside wmii's IXP filesystem) contain an automatic color header when
+    read.
 
-    * Fix error caused by focusing the top/bottom client in the destination
-      area before sending new clients into that area.
+Housekeeping:
 
-    * Fix error when importing clients into an empty area.
+  * Use simpler Copyright reminder at the top of every file.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Housekeeping"
-  %#--------------------------------------------------------------------------
-
-    * Use snake_case instead of camelCase for variable names.
-
-    * Add copyright notice at the top of every file.
-
-    * Plenty of code formatting and beautification.
+  * Open source is for fun, so [be
+    nice](http://loiclemeur.com/english/2009/03/never-criticize-your-competitors.html):
+    speak of "related works" instead of "competitors".
 
 %#----------------------------------------------------------------------------
-%| section "Version 2.0.2 (2009-02-26)"
+### Version 3.0.0 (2009-05-11)
 %#----------------------------------------------------------------------------
 
-  This release fixes a connection bug.
+This release revises method names, adds new methods, and fixes a bug.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Thank you"
-  %#--------------------------------------------------------------------------
+Incompatible changes:
 
-    * Simon Hafner reported and helped debug the `$DISPLAY` bug.
+  * Rename `#toggle_` methods to use `!` suffix in their names.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Bug fixes"
-  %#--------------------------------------------------------------------------
+  * Rename `#float` methods to `#floating`.
 
-    * wmii omits the fractional portion of `$DISPLAY` in its socket file path.
-      Rumai was trying to connect with the entire `$DISPLAY` value (including
-      the fractional portion) and thus could not find wmii's socket file.
+  * Rename `View#floater` method to `View#floating_area`.
 
-%#----------------------------------------------------------------------------
-%| section "Version 2.0.1 (2009-01-25)"
-%#----------------------------------------------------------------------------
+New features:
 
-  This release simplifies project administrivia using [<%= Inochi::PROJECT
-  %>](<%= Inochi::WEBSITE %>), improves the unit tests, and revises the user
-  manual.
+  * Add `Client#stick` methods to manipulate sticky status.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Bug fixes"
-  %#--------------------------------------------------------------------------
+  * Add `Client#fullscreen` methods to manipulate fullscreen status.
 
-    * The <tt>lib/rumai/ixp/message.rb</tt> library's unit test would fail if
-      <tt>/rbar/status</tt> did not already exist in wmii.
+  * Add `Client#slay` method which is a forceful version of `#kill`.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Housekeeping"
-  %#--------------------------------------------------------------------------
+  * Add `View#select` method to move focus relatively inside a view.
 
-    * Store IXP socket address in `Rumai::IXP_SOCK_ADDR`.
+  * Add `Area::floating` method for symmetry with `Area::curr`.
 
-    * Added missing test cases for (TR)create and (TR)remove messages in the
-      unit test for the <tt>lib/rumai/ixp/message.rb</tt> library.
+  * Add `View#managed_area` aliases for `View#column` methods.
 
-%#----------------------------------------------------------------------------
-%| section "Version 2.0.0 (2008-02-04)"
-%#----------------------------------------------------------------------------
+Bug fixes:
 
-  This release adds support for wmii 3.6, improves the performance of the IXP
-  library, and fixes some bugs.
+  * Fix error when unzooming clients from temporary view.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Thank you"
-  %#--------------------------------------------------------------------------
+  * Fix code that launches temporary terminals in the Tutorial.
 
-    * Christoph Blank tested Rumai 1.0.0 under wmii 3.6 and reported bugs.
+    Use the `/bin/sh` version of the **read** command for portability.
 
-  %#--------------------------------------------------------------------------
-  %| paragraph "Incompatible changes"
-  %#--------------------------------------------------------------------------
+Housekeeping:
 
-    * wmii version 3.6 or newer is now required.
+  * Use `Client#send` instead of `#swap` in automated arrangements because
+    it causes less traffic on /event/.
 
-    * The `Rumai::IXP::Agent::FidStream#read_partial` method has been replaced
-      by `Rumai::IXP::Agent::FidStream#read(true)` for efficiency.
-
-    * The `Rumai::IXP::Agent::FidStream#write` method no longer writes to
-      the beginning of the stream. Instead, it writes to the current position
-      in the stream.
-
-    * The `Rumai::View#floating_area` method has been renamed to
-      `Rumai::View#floater` for brevity.
-
-  %#--------------------------------------------------------------------------
-  %| paragraph "New features"
-  %#--------------------------------------------------------------------------
-
-    * Added several more methods (such as rewind, pos=, eof?, and so on) from
-      Ruby's IO class to the `Rumai::IXP::Agent::FidStream` class.
-
-    * Added the `Rumai::Client#kill` method to simplify client termination.
-
-  %#--------------------------------------------------------------------------
-  %| paragraph "Bug fixes"
-  %#--------------------------------------------------------------------------
-
-    * Fixed a race condition in `Rumai::Agent#talk` which would cause Rumai to
-      hang when multiple threads used it.
+  * Add old release notes from blog to user manual.
 
 %#----------------------------------------------------------------------------
-%| section "Version 1.0.0 (2008-01-26)"
+### Version 2.1.0 (2009-05-09)
 %#----------------------------------------------------------------------------
 
-  This is the first release of Rumai, the evolution of
-  [wmii-irb](http://article.gmane.org/gmane.comp.window-managers.wmii/1704),
-  which lets you manipulate the [wmii](<%= wmii_url %>) window manager through
-  [Ruby](<%= ruby_url %>).
+This release improves client arrangement, fixes several bugs, and cleans up
+the code.
 
-  Happy birthday!
+Thank you:
 
+  * Simon Hafner reported several bugs.
+  * Michael Andrus verified bug fixes.
+
+New features:
+
+  * Focus is now restored on the initially focused client after applying
+    automated client arrangements.
+
+  * The push(), insert(), and unshift() instance methods of the
+    `Rumai::Area` class now preserve the order of inserted clients.
+
+  * The `Rumai::View#arrange_in_grid()` method now accepts 1 as a parameter.
+    This invocation causes every column to contain at most 1 client.
+
+Bug fixes:
+
+  * Fix error caused by focusing the top/bottom client in the destination
+    area before sending new clients into that area.
+
+  * Fix error when importing clients into an empty area.
+
+Housekeeping:
+
+  * Use snake_case instead of camelCase for variable names.
+
+  * Add copyright notice at the top of every file.
+
+  * Plenty of code formatting and beautification.
+
+%#----------------------------------------------------------------------------
+### Version 2.0.2 (2009-02-26)
+%#----------------------------------------------------------------------------
+
+This release fixes a connection bug.
+
+Thank you:
+
+  * Simon Hafner reported and helped debug the `$DISPLAY` bug.
+
+Bug fixes:
+
+  * wmii omits the fractional portion of `$DISPLAY` in its socket file path.
+    Rumai was trying to connect with the entire `$DISPLAY` value (including
+    the fractional portion) and thus could not find wmii's socket file.
+
+%#----------------------------------------------------------------------------
+### Version 2.0.1 (2009-01-25)
+%#----------------------------------------------------------------------------
+
+This release simplifies project administrivia using [<%= Inochi::PROJECT
+%>](<%= Inochi::WEBSITE %>), improves the unit tests, and revises the user
+manual.
+
+Bug fixes:
+
+  * The rumai/ixp/message library's unit test failed if
+    `/rbar/status` did not already exist in wmii.
+
+Housekeeping:
+
+  * Store IXP socket address in `Rumai::IXP_SOCK_ADDR`.
+
+  * Added missing test cases for (TR)create and (TR)remove messages in the
+    unit test for the rumai/ixp/message library.
+
+%#----------------------------------------------------------------------------
+### Version 2.0.0 (2008-02-04)
+%#----------------------------------------------------------------------------
+
+This release adds support for wmii 3.6, improves the performance of the IXP
+library, and fixes some bugs.
+
+Thank you:
+
+  * Christoph Blank tested Rumai 1.0.0 under wmii 3.6 and reported bugs.
+
+Incompatible changes:
+
+  * wmii version 3.6 or newer is now required.
+
+  * The `Rumai::IXP::Agent::FidStream#read_partial` method has been replaced
+    by `Rumai::IXP::Agent::FidStream#read(true)` for efficiency.
+
+  * The `Rumai::IXP::Agent::FidStream#write` method no longer writes to
+    the beginning of the stream. Instead, it writes to the current position
+    in the stream.
+
+  * The `Rumai::View#floating_area` method has been renamed to
+    `Rumai::View#floater` for brevity.
+
+New features:
+
+  * Added several more methods (such as rewind, pos=, eof?, and so on) from
+    Ruby's IO class to the `Rumai::IXP::Agent::FidStream` class.
+
+  * Added the `Rumai::Client#kill` method to simplify client termination.
+
+Bug fixes:
+
+  * Fixed a race condition in `Rumai::Agent#talk` which would cause Rumai to
+    hang when multiple threads used it.
+
+%#----------------------------------------------------------------------------
+### Version 1.0.0 (2008-01-26)
+%#----------------------------------------------------------------------------
+
+This is the first release of Rumai, the evolution of
+[wmii-irb](http://article.gmane.org/gmane.comp.window-managers.wmii/1704),
+which lets you manipulate the [wmii] window manager through [Ruby].  Enjoy!

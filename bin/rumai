@@ -17,25 +17,20 @@
 #   -v, --version : Show version number and exit.
 #
 
-$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'rumai'
 
 # parse command line
 if ARGV.delete('-h') or ARGV.delete('--help')
-  puts
-  puts Rumai.inspect
-  puts Rumai::TAGLINE
-  puts
-  puts
-  puts File.read(__FILE__)[/^#(\r?\n)(.*?)\1\1/m, 2].gsub(/^# ?/, '')
-  puts
-  puts
-  puts 'Read the user manual for more information:'
-  puts
-  puts "  #{Rumai::INSTDIR}/doc/index.html"
-  puts
-  puts "  #{Rumai::WEBSITE}"
-  puts
+  # try to display UNIX version of help manual
+  man_path = File.join(Rumai::INSTDIR, 'man')
+  unless system 'man', '-M', man_path, '-a', 'rumai'
+    # try to display HTML version of help manual
+    man_html = man_path + '.html'
+    unless %w[$BROWSER open start].any? {|b| system "#{b} #{man_html}" }
+      # no luck; direct user to project website
+      puts "See #{Rumai::WEBSITE}"
+    end
+  end
   exit
 elsif ARGV.delete('-v') or ARGV.delete('--version')
   puts Rumai::VERSION

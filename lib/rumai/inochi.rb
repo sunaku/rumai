@@ -74,30 +74,21 @@ module Rumai
   #   }
   #
   DEVTIME = {
-    "inochi" => [ "~> 2" ], # for managing this project
+    "inochi" => [ ">= 3.0.0", "< 4" ],
     "dfect"  => [ "~> 2" ], # for unit testing
   }
 
-  ##
-  # Loads the correct version (as defined by the {RUNTIME} or {DEVTIME}
-  # constant in this module) of the given gem or the gem that contains
-  # the given library.
-  #
-  def self.require gem_name_or_library
-    # prepare the correct version of the gem for loading
-    if respond_to? :gem
-      gem_name = gem_name_or_library.to_s.sub(%r{/.*$}, '')
-      if gem_version = RUNTIME[gem_name] || DEVTIME[gem_name]
+  # establish gem version dependencies
+  if respond_to? :gem
+    [RUNTIME, DEVTIME].each do |deps|
+      deps.each do |gem_name, gem_version|
         begin
-          gem gem_name, *gem_version
+          gem gem_name, *Array(gem_version)
         rescue LoadError => error
           warn "#{self.inspect}: #{error}"
         end
       end
     end
-
-    # do the loading
-    super
   end
 
 end

@@ -1,0 +1,87 @@
+%#----------------------------------------------------------------------------
+## HACKING
+%#----------------------------------------------------------------------------
+
+This section is meant for people who want to develop Rumai's source code.
+
+%#----------------------------------------------------------------------------
+### Prerequisites
+%#----------------------------------------------------------------------------
+
+Install Ruby libraries necessary for development:
+
+    gem install rumai --development
+
+%#----------------------------------------------------------------------------
+### Infrastructure
+%#----------------------------------------------------------------------------
+
+[Inochi] serves as the project infrastructure for Rumai.  It handles tasks
+such as building this help manual and API documentation, and packaging,
+announcing, and publishing new releases.  See its help manual and list of
+tasks to get started:
+
+    inochi --help     # display help manual
+    inochi --tasks    # list available tasks
+
+%#----------------------------------------------------------------------------
+### $LOAD_PATH setup
+%#----------------------------------------------------------------------------
+
+Ensure that the `lib/` directory is listed in Ruby's `$LOAD_PATH` before you
+use any libraries therein or run any executables in the `bin/` directory.
+
+This can be achieved by passing an option to Ruby:
+
+    ruby -Ilib bin/rumai
+    irb -Ilib -r rumai
+
+Or by setting the `$RUBYLIB` environment variable:
+
+    export RUBYLIB=lib   # bash, ksh, zsh
+    setenv RUBYLIB lib   # csh
+    set -x RUBYLIB lib   # fish
+
+    ruby bin/rumai
+    irb -r rumai
+
+Or by installing the [ruby-wrapper](http://github.com/chneukirchen/rup) tool.
+
+%#----------------------------------------------------------------------------
+### RubyGems setup
+%#----------------------------------------------------------------------------
+
+If you use Ruby 1.8 or older, then ensure that RubyGems is activated before
+you use any libraries in the `lib/` directory or run any executables in the
+`bin/` directory.
+
+This can be achieved by passing an option to Ruby:
+
+    ruby -rubygems bin/rumai
+    irb -rubygems -r rumai
+
+Or by setting the `$RUBYOPT` environment variable:
+
+    export RUBYOPT=-rubygems   # bash, ksh, zsh
+    setenv RUBYOPT -rubygems   # csh
+    set -x RUBYOPT -rubygems   # fish
+
+%#----------------------------------------------------------------------------
+### Running tests
+%#----------------------------------------------------------------------------
+
+Simply execute the included test runner, which sets up Ruby's `$LOAD_PATH` for
+testing, loads the included `test/test_helper.rb` file, and then evaluates all
+`test/**/*_test.rb` files:
+
+    test/runner
+
+Its exit status will indicate whether all tests have passed.  It may also
+print additional pass/fail information depending on the testing library used
+in the `test/test_helper.rb` file.
+
+%#----------------------------------------------------------------------------
+### Contributing
+%#----------------------------------------------------------------------------
+
+Fork this project on GitHub (see **Resources** above) and send a pull request.

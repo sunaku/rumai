@@ -1,86 +1,60 @@
-%#                                                                          #%
-%#             You can read this document in its full glory by              #%
-%#          opening ./doc/index.html in your favorite Web browser.          #%
-%#                                                                          #%
+Rumai is a pure [Ruby] interface to the [wmii] window manager.  Its name is a
+portmanteau of "*Ru*by" and "w*mi*i" (which I pronounce as "vim eye").
 
 %#----------------------------------------------------------------------------
-%| project_summary
+### Features
 %#----------------------------------------------------------------------------
 
-  Rumai is a [Ruby](<%= ruby_url %>) interface to
-  the [wmii](<%= wmii_url %>) window manager.
+* Provides an interactive shell for live experimentation.
 
-  * It excels at dynamic arrangement of clients, columns, views, and tags.
+* Arranges clients, columns, views, and tags dynamically.
 
-  * It provides an <%= xref 'shell', 'interactive shell' %> for live
-    entertainment and experimentation.
+* Talks directly to wmii's [IXP filesystem interface][libixp].
 
-  * It provides a pure Ruby client for the [9P2000 protocol](<%= p9p_url %>)
-    used by wmii's [IXP file-system interface](<%= wmii_ixp_url %>).
+* Includes a pure Ruby client for the [9P2000 protocol][p9p].
 
-  * It powers [many Ruby-based wmii configurations][2], including [my own][1].
-
-    [1]: http://github.com/sunaku/wmiirc/
-    [2]: http://github.com/sunaku/wmiirc/network
+* Powers [my personal][sunaku/wmiirc] wmiirc and
+  [many others][sunaku/wmiirc/network] like it.
 
 %#----------------------------------------------------------------------------
-%| section "Resources"
+### Resources
 %#----------------------------------------------------------------------------
 
-  * <%= xref "History", "What's new?" %> ---
-    release notes and project history.
+* Issue tracker (report bugs, request features, get help):
+  <http://github.com/sunaku/rumai/issues>
 
-  * [Issue tracker](<%= issue_tracker_url %>) ---
-    report bugs, request features, or ask for help.
+* Source code (browse online or obtain with [Git](http://git-scm.com)):
+  <http://github.com/sunaku/rumai>
 
-  * [Source code](<%= source_code_url %>) ---
-    browse online or obtain using <%= source_code_tool %>
+* API documentation:
+  <<%= File.join(Rumai::WEBSITE, 'api/') %>>
 
-  * [API reference](<%= api_reference_url %>) ---
-    documentation for source code.
+* Announcements feed:
+  <<%= File.join(Rumai::WEBSITE, 'ann.xml') %>>
 
-  * [Project home](<%= Rumai::WEBSITE %>) ---
-    the official project home page.
-
-%#----------------------------------------------------------------------------
-%| section "Etymology"
-%#----------------------------------------------------------------------------
-
-  The word "wmii" is difficult to pronounce because it is an abbreviation, not
-  an acronym. If we were to treat it as an acronym, the closest pronounciation
-  would be, in my mind, something like "vim-eye".
-
-  Since this is a Ruby library, I added a "roo" and worked it through:
-
-  * vim-eye
-  * roo-vim-eye
-  * roovm-eye
-
-  And thus we get "Rumai".
+* Official website:
+  <<%= Ember::WEBSITE %>>
 
 %#----------------------------------------------------------------------------
-%| section "License"
+### Setup
 %#----------------------------------------------------------------------------
 
-  %# See the file named "LICENSE" for details.
-  %< "LICENSE"
+Prerequisites:
 
-%#----------------------------------------------------------------------------
-%| section "Credits"
-%#----------------------------------------------------------------------------
+  * [Ruby] 1.8.6 or newer.
 
-  Rumai is made possible by <%= xref "History",
-  "contributions" %> from users like you:
+  * [RubyGems] 1.3.6 or newer.
 
-  %# See the file named "CREDITS" for details.
-  %< "CREDITS"
+  * [wmii] 3.9 or newer.
 
-%#----------------------------------------------------------------------------
-%| section "Related works"
-%#----------------------------------------------------------------------------
+Installing:
 
-  * [r9p](http://libs.suckless.org/r9p)
-  * [Rii](http://rubyforge.org/projects/rii/)
-  * [Ruby-IXP](http://home.gna.org/rubyixp/)
-  * [ruby-wmii](http://eigenclass.org/hiki.rb?wmii+ruby)
+    gem install rumai
 
+Upgrading:
+
+    gem update rumai
+
+Removing:
+
+    gem uninstall rumai

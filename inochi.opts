@@ -1,13 +1,25 @@
 ##
-# Location where project documentation will be uploaded by `inochi pub:doc`.
-# This value can utilize any remote/destination syntax supported by `rsync`.
+# Location where `inochi pub:web` will upload files.  This value
+# can use any local/remote/protocol syntax supported by rsync(1).
 #
-:pub_doc_target: ~/www/lib/rumai
+:pub_web_target: $HOME/www/lib/rumai/
 
 ##
-# Options for the `rsync` command used to upload this project's documentation.
+# Options for rsync(1), which uploads files for `inochi pub:web`.
 #
-:pub_doc_options: --verbose --compress --archive --update --delete
+:pub_web_options: --verbose --compress --archive --update --delete
+
+##
+# Additional files for `inochi pub:web` to upload.  The values listed
+# here can use any local/remote/protocol syntax supported by rsync(1).
+#
+# @example
+#
+#   :pub_web_extras:
+#   - some/file
+#   - some_user@some_host:some/path
+#
+:pub_web_extras:
 
 ##
 # Arbitrary Ruby code that will configure this project's RubyGem before it
@@ -17,14 +29,14 @@
 # @example
 #
 #   :gem_spec_logic: |
-#     # show the Inochi-provided specification for this project's RubyGem
-#     puts gem
+#     # show the Inochi-provided specification for this project's gem
+#     puts gem.to_ruby
 #
-#     # add files that are outside this project directory to the RubyGem
-#     gem.files += FileList['/some/outside/**/*.files']
+#     # add files that are outside this project directory to the gem
+#     gem.files += ['some', 'files', 'in', 'this', 'directory']
 #
-#     # omit some files in this project's directory from the RubyGem
-#     gem.files.exclude '{some*files,in_this,project/**/directory}'
+#     # omit some added files in this project's directory from the gem
+#     gem.files -= ['lib/top_secret.rb', 'bin/more_top_secret_stuff']
 #
 #     # and so on...  anything is possible!  use your imagination!
 #
