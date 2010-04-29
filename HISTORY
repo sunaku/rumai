@@ -5,6 +5,26 @@
 This section contains release notes of current and past releases.
 
 %#----------------------------------------------------------------------------
+### Version 3.2.3 (2010-04-28)
+%#----------------------------------------------------------------------------
+
+This release adds a UNIX manual page and requires wmii 3.9 or newer.
+
+Bug fixes:
+
+* `Rumai::Area#unshift` needs wmii 3.9 or newer.
+  The help manual has been corrected accordingly.
+
+  Thanks to [ghedamat] for reporting [this issue](
+  http://github.com/sunaku/wmiirc/issues/8 ).
+
+Housekeeping:
+
+* Upgrade to Inochi 3.0.0.  Run `rumai --help` to see the UNIX manual page!
+
+* Move IRB session creation code from rumai(1) into `rumai/irb` sub-library.
+
+%#----------------------------------------------------------------------------
 ### Version 3.2.2 (2010-04-01)
 %#----------------------------------------------------------------------------
 

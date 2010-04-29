@@ -18,12 +18,12 @@ module Rumai
   ##
   # Number of this release of this project.
   #
-  VERSION = "3.2.2"
+  VERSION = "3.2.3"
 
   ##
   # Date of this release of this project.
   #
-  RELDATE = "2010-04-01"
+  RELDATE = "2010-04-28"
 
   ##
   # Description of this release of this project.
