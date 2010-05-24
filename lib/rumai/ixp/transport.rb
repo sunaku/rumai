@@ -130,7 +130,7 @@ module Rumai
                 @recv_buf.empty? || begin
                   # check (in a non-blocking fashion) if
                   # the stream has reply for us right now
-                  @stream.ungetc @stream.read_nonblock(1)
+                  @stream.ungetc @stream.read_nonblock(1).unpack('C').first
                   true
                 rescue Errno::EAGAIN
                   # the stream is empty
