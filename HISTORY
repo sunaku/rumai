@@ -5,6 +5,19 @@
 This section contains release notes of current and past releases.
 
 %#----------------------------------------------------------------------------
+### Version 3.2.4 (2010-06-06)
+%#----------------------------------------------------------------------------
+
+This release fixes an IXP transport layer bug under Ruby 1.8.7.
+
+Bug fixes:
+
+* `IO#ungetc` does not accept a one-character string in Ruby 1.8.7.
+
+  Thanks to [skirge] for reporting [this issue](
+  http://github.com/sunaku/rumai/issues/3 ).
+
+%#----------------------------------------------------------------------------
 ### Version 3.2.3 (2010-04-28)
 %#----------------------------------------------------------------------------
 

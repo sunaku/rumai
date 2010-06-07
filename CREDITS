@@ -13,11 +13,13 @@ Simon Hafner,
 Michael Andrus,
 Nathan Neff,
 [Gigamo],
-[ghedamat]
+[ghedamat],
+[skirge]
 
 %# XXX: only link to these contributors because they do not have real names
 [Gigamo]: http://github.com/gigamo
 [ghedamat]: http://github.com/ghedamat
+[skirge]: http://github.com/skirge
 
 %#----------------------------------------------------------------------------
 ## LICENSE
