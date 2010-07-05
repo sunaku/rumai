@@ -170,6 +170,20 @@ module Rumai
         end
 
         ##
+        # Moves this client in the given direction on the given view.
+        #
+        def nudge direction, view = View.curr
+          reshape :nudge, direction, view
+        end
+
+        ##
+        # Grows this client in the given direction on the given view.
+        #
+        def grow direction, view = View.curr
+          reshape :grow, direction, view
+        end
+
+        ##
         # Terminates this client nicely (requests this window to be closed).
         #
         def kill
@@ -431,6 +445,12 @@ module Rumai
         end
 
       private
+
+      def reshape method, direction, view
+        area = self.area(view)
+        index = area.client_ids.index(@id) + 1 # numbered as 1..N
+        view.ctl.write "#{method} #{area.id} #{index} #{direction}"
+      end
 
       ##
       # Returns the wmii ID of the given area.
