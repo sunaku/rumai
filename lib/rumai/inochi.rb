@@ -3,27 +3,27 @@ module Rumai
   ##
   # Official name of this project.
   #
-  PROJECT = "Rumai"
+  PROJECT = 'Rumai'
 
   ##
   # Short single-line description of this project.
   #
-  TAGLINE = "Ruby interface to the wmii window manager"
+  TAGLINE = 'Ruby interface to the wmii window manager'
 
   ##
   # Address of this project's official home page.
   #
-  WEBSITE = "http://snk.tuxfamily.org/lib/rumai/"
+  WEBSITE = 'http://snk.tuxfamily.org/lib/rumai/'
 
   ##
   # Number of this release of this project.
   #
-  VERSION = "3.2.4"
+  VERSION = '3.2.4'
 
   ##
   # Date of this release of this project.
   #
-  RELDATE = "2010-06-06"
+  RELDATE = '2010-06-06'
 
   ##
   # Description of this release of this project.
@@ -74,8 +74,8 @@ module Rumai
   #   }
   #
   DEVTIME = {
-    "inochi" => [ ">= 3.0.0", "< 4" ],
-    "dfect"  => [ "~> 2" ], # for unit testing
+    'inochi' => [ '>= 3.0.0', '< 4' ],
+    'dfect'  => [ '~> 2' ], # for unit testing
   }
 
   # establish gem version dependencies

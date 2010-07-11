@@ -15,12 +15,11 @@ module Rumai
     IXP_AGENT = IXP::Agent.new(UNIXSocket.new(IXP_SOCK_ADDR))
 
   rescue => error
-    error.message << %{
-      Ensure that (1) the WMII_ADDRESS environment variable is set and that (2)
-      it correctly specifies the filesystem path of wmii's IXP socket file,
-      which is typically located at "/tmp/ns.$USER.:$DISPLAY/wmii".
-    }.gsub(/^ +/, '').gsub(/\A|\z/, "\n")
-
+    error.message <<EOF
+Ensure that (1) the WMII_ADDRESS environment variable is set and that (2) it
+correctly specifies the absolute filesystem path to wmii's IXP socket file,
+which is typically located at "/tmp/ns.$USER.:$DISPLAY/wmii".
+EOF
     raise error
   end
 
@@ -28,8 +27,6 @@ module Rumai
   # An entry in the IXP file system.
   #
   class Node
-    @@cache = Hash.new {|h,k| h[k] = Node.new(k) }
-
     attr_reader :path
 
     def initialize path
@@ -59,12 +56,16 @@ module Rumai
     ##
     # Tests if this node is a directory.
     #
+    # @see Rumai::IXP::Agent#stat
+    #
     def directory?
       exist? and stat.directory?
     end
 
     ##
     # Returns the names of all files in this directory.
+    #
+    # @see Rumai::IXP::Agent#entries
     #
     def entries
       begin
@@ -98,6 +99,7 @@ module Rumai
     # @yieldparam [String] line
     #
     def each_line &block
+      raise ArgumentError unless block_given?
       open do |file|
         until (chunk = file.read(true)).empty?
           chunk.each_line(&block)
@@ -107,6 +109,8 @@ module Rumai
 
     ##
     # Writes the given content to this node.
+    #
+    # @see Rumai::IXP::Agent#write
     #
     def write content
       IXP_AGENT.write @path, content
@@ -124,9 +128,13 @@ module Rumai
     ##
     # Deletes the file corresponding to this node on the IXP server.
     #
+    # @see Rumai::IXP::Agent#remove
+    #
     def remove
       IXP_AGENT.remove @path
     end
+
+    @@cache = Hash.new {|h,k| h[k] = Node.new(k) }
 
     ##
     # Returns the given sub-path as a Node object.

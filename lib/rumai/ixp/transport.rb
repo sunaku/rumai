@@ -76,8 +76,8 @@ module Rumai
           rescue ThreadError
             # pool is empty, so fill it
             FILL_RATE.times do
-              if @pos != @lim
-                @pool << @pos
+              if @pos != @lim then
+                @pool.enq @pos
                 @pos = @pos.succ
               else
                 # range is exhausted, so give other threads
@@ -96,7 +96,7 @@ module Rumai
         # that it may be occupied again in the future.
         #
         def release member
-          @pool << member
+          @pool.enq member
         end
       end
 
@@ -192,7 +192,7 @@ module Rumai
       #
       def MODES.parse mode
         if mode.respond_to? :split
-          mode.split(//).inject(0) {|m,c| m | self[c].to_i }
+          mode.split(//).inject(0) {|acc,chr| acc | self[chr].to_i }
         else
           mode.to_i
         end
@@ -206,16 +206,12 @@ module Rumai
       # @see File::open
       #
       def open path, mode = 'r'
-        mode = MODES.parse(mode)
-
         # open the file
         path_fid = walk(path)
-
         talk Topen.new(
           :fid  => path_fid,
-          :mode => mode
+          :mode => MODES.parse(mode)
         )
-
         stream = FidStream.new(self, path_fid, @msize)
 
         # return the file stream
@@ -355,9 +351,7 @@ module Rumai
       # Returns the content of the file/directory at the given path.
       #
       def read path, *args
-        open path do |f|
-          f.read(*args)
-        end
+        open(path) {|f| f.read(*args) }
       end
 
       ##
@@ -371,7 +365,7 @@ module Rumai
           raise ArgumentError, "#{path.inspect} is not a directory"
         end
 
-        read(path).map! {|t| t.name}
+        read(path).map! {|t| t.name }
       end
 
       ##
@@ -379,9 +373,7 @@ module Rumai
       # the file at the given path.
       #
       def write path, content
-        open path, 'w' do |f|
-          f << content
-        end
+        open(path, 'w') {|f| f.write content }
       end
 
       ##
@@ -392,8 +384,6 @@ module Rumai
         prefix = File.dirname(path)
         target = File.basename(path)
 
-        mode = MODES.parse(mode)
-
         with_fid do |prefix_fid|
           walk_fid prefix_fid, prefix
 
@@ -402,7 +392,7 @@ module Rumai
             :fid => prefix_fid,
             :name => target,
             :perm => perm,
-            :mode => mode
+            :mode => MODES.parse(mode)
           )
         end
       end

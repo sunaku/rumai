@@ -33,7 +33,7 @@ portmanteau of "*Ru*by" and "w*mi*i" (which I pronounce as "vim eye").
   <<%= File.join(Rumai::WEBSITE, 'ann.xml') %>>
 
 * Official website:
-  <<%= Ember::WEBSITE %>>
+  <<%= Rumai::WEBSITE %>>
 
 %#----------------------------------------------------------------------------
 ### Setup
