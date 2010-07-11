@@ -1029,6 +1029,66 @@ module Rumai
       end
     end
 
+    ##
+    # Subdivision of the bar---the thing that spans the width of the
+    # screen---useful for displaying information and system controls.
+    #
+    class Barlet < Node
+      attr_reader :side
+
+      def initialize file_name, side
+        prefix =
+          case @side = side
+          when :left then '/lbar'
+          when :right then '/rbar'
+          else raise ArgumentError, side
+          end
+
+        super "#{prefix}/#{file_name}"
+      end
+
+      COLORS_REGEXP = /^\S+ \S+ \S+/
+
+      def label
+        case read
+        when /^label (.*)$/ then $1
+        when /#{COLORS_REGEXP} (.*)$/o then $1
+        end
+      end
+
+      def colors
+        case read
+        when /^colors (.*)$/ then $1
+        when COLORS_REGEXP then $&
+        end
+      end
+
+      # detect the new bar file format introduced in wmii-hg2743
+      temp_barlet = IXP_FS_ROOT.rbar["temp_barlet_#{object_id}"]
+      begin
+        temp_barlet.create
+        SPLIT_FILE_FORMAT = temp_barlet.read =~ /\Acolors/
+      ensure
+        temp_barlet.remove
+      end
+
+      def label= label
+        if SPLIT_FILE_FORMAT
+          write "label #{label}"
+        else
+          write "#{colors} #{label}"
+        end
+      end
+
+      def colors= colors
+        if SPLIT_FILE_FORMAT
+          write "colors #{colors}"
+        else
+          write "#{colors} #{label}"
+        end
+      end
+    end
+
   #---------------------------------------------------------------------------
   # access to global WM state
   #---------------------------------------------------------------------------

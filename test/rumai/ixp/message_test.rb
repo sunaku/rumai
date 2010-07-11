@@ -173,7 +173,14 @@ D 'IXP' do
         :tag    => 0,
         :fid    => 1,
         :offset => 0,
-        :data   => "#000000 #000000 #000000 hello world!!!"
+        :data   => (
+          require 'rumai/wm'
+          if Rumai::Barlet::SPLIT_FILE_FORMAT
+            "colors #000000 #000000 #000000\nlabel hello world!!!"
+          else
+            "#000000 #000000 #000000 hello world!!!"
+          end
+        )
       )
       T { write_response.type == Rwrite.type }
       T { write_response.count == write_request.data.length }
