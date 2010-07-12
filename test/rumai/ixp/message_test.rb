@@ -173,7 +173,7 @@ D 'IXP' do
         :tag    => 0,
         :fid    => 1,
         :offset => 0,
-        :data   => "#a1a2a3 #b1b2b3 #c1c2c3 hello world!!!"
+        :data   => "#000000 #000000 #000000 hello world!!!"
       )
       T { write_response.type == Rwrite.type }
       T { write_response.count == write_request.data.length }
