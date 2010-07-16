@@ -14,7 +14,7 @@ Bug fixes:
 
 * `IO#ungetc` does not accept a one-character string in Ruby 1.8.7.
 
-  Thanks to [skirge] for reporting [this issue](
+  Thanks to Sebastian Chmielewski for reporting [this issue](
   http://github.com/sunaku/rumai/issues/3 ).
 
 %#----------------------------------------------------------------------------
@@ -28,7 +28,7 @@ Bug fixes:
 * `Rumai::Area#unshift` needs wmii 3.9 or newer.
   The help manual has been corrected accordingly.
 
-  Thanks to [ghedamat] for reporting [this issue](
+  Thanks to Mattia Gheda for reporting [this issue](
   http://github.com/sunaku/wmiirc/issues/8 ).
 
 Housekeeping:
@@ -50,7 +50,7 @@ Bug fixes:
 
         Unrecognized directive '...' in lib/rumai/inochi.yaml
 
-    Thanks to [ghedamat] for reporting this.
+    Thanks to Mattia Gheda for reporting this.
 
 Housekeeping:
 
@@ -65,7 +65,7 @@ implementation of the [IXP file-system interface][libixp].
 
 Thank you:
 
-  * [Gigamo] reported the issue of status bar applets not refreshing
+  * Kenneth De Winter reported the issue of status bar applets not refreshing
     according to their prescribed schedule (this is particularly noticable
     in the clock applet) and verified my fix for the problem.
 

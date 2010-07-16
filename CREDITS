@@ -9,17 +9,12 @@ Suraj N. Kurapati
 %#----------------------------------------------------------------------------
 
 Christoph Blank,
-Simon Hafner,
+Kenneth De Winter,
+Mattia Gheda,
 Michael Andrus,
 Nathan Neff,
-[Gigamo],
-[ghedamat],
-[skirge]
-
-%# XXX: only link to these contributors because they do not have real names
-[Gigamo]: http://github.com/gigamo
-[ghedamat]: http://github.com/ghedamat
-[skirge]: http://github.com/skirge
+Sebastian Chmielewski,
+Simon Hafner
 
 %#----------------------------------------------------------------------------
 ## LICENSE
