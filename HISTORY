@@ -5,6 +5,33 @@
 This section contains release notes of current and past releases.
 
 %#----------------------------------------------------------------------------
+### Version 3.3.0 (2010-07-16)
+%#----------------------------------------------------------------------------
+
+This release adds support for growing and nudging clients, adds an
+abstraction for status bar applets, and beautifies the source code.
+
+New features:
+
+  * Add `Rumai::Barlet` class for easier status bar applets.  It exposes the
+    new, independent `colors` and `label` attributes introduced into the bar
+    file format by wmii-hg2743.  It is also backwards-compatible with older
+    wmii versions where the aforementioned attributes were conjoined.
+
+  * Add `Rumai::Client#grow` and `Rumai::Client#nudge` methods [requested](
+    http://github.com/sunaku/rumai/issues/6 ) by Nathan Neff.  See "The
+    /tag/ Hierarchy" in the wmii manpage for usage information.
+
+Housekeeping:
+
+  * Add workaround for [wmii-hg2734 color tuple bug](
+    http://code.google.com/p/wmii/issues/detail?id=206 ) in the test suite.
+
+  * Found real names for some anonymous contributors.
+
+  * Clean up the source code formatting and organization.
+
+%#----------------------------------------------------------------------------
 ### Version 3.2.4 (2010-06-06)
 %#----------------------------------------------------------------------------
 
