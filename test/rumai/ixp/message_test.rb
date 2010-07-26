@@ -21,8 +21,8 @@ D 'IXP' do
         :msize   => Tversion::MSIZE,
         :version => Tversion::VERSION
       )
-      T { response.type == Rversion.type }
-      T { response.version == request.version }
+      T response.type == Rversion.type
+      T response.version == request.version
     end
   end
 
@@ -35,7 +35,7 @@ D 'IXP' do
         :uname => ENV['USER'],
         :aname => ''
       )
-      T { response.type == Rattach.type }
+      T response.type == Rattach.type
     end
 
     D 'stat FS root' do
@@ -43,7 +43,7 @@ D 'IXP' do
         :tag => 0,
         :fid => 0
       )
-      T { response.type == Rstat.type }
+      T response.type == Rstat.type
     end
 
     D 'open the FS root for reading' do
@@ -52,7 +52,7 @@ D 'IXP' do
         :fid  => 0,
         :mode => Topen::OREAD
       )
-      T { response.type == Ropen.type }
+      T response.type == Ropen.type
     end
 
     D 'fetch a Stat for every file in FS root' do
@@ -62,7 +62,7 @@ D 'IXP' do
         :offset => 0,
         :count  => Tversion::MSIZE
       )
-      T { response.type == Rread.type }
+      T response.type == Rread.type
 
       if $DEBUG
         s = StringIO.new(response.data, 'r')
@@ -82,7 +82,7 @@ D 'IXP' do
         :tag    => 0,
         :fid    => 0
       )
-      T { response.type == Rclunk.type }
+      T response.type == Rclunk.type
     end
 
     D 'closed fid should not be readable' do
@@ -92,7 +92,7 @@ D 'IXP' do
         :offset => 0,
         :count  => Tversion::MSIZE
       )
-      T { response.type == Rerror.type }
+      T response.type == Rerror.type
     end
   end
 
@@ -105,7 +105,7 @@ D 'IXP' do
         :uname => ENV['USER'],
         :aname => ''
       )
-      T { response.type == Rattach.type }
+      T response.type == Rattach.type
     end
 
     file = %W[rbar temp#{$$}]
@@ -119,7 +119,7 @@ D 'IXP' do
         :newfid => 1,
         :wname => root
       )
-      T { response.type == Rwalk.type }
+      T response.type == Rwalk.type
     end
 
     D "create #{leaf.inspect}" do
@@ -130,7 +130,7 @@ D 'IXP' do
         :perm => 0644,
         :mode => Topen::ORDWR
       )
-      T { response.type == Rcreate.type }
+      T response.type == Rcreate.type
     end
 
     D "close the fid for #{root.inspect}" do
@@ -138,7 +138,7 @@ D 'IXP' do
         :tag => 0,
         :fid => 1
       )
-      T { response.type == Rclunk.type }
+      T response.type == Rclunk.type
     end
 
     D "walk to #{file.inspect} from /" do
@@ -148,7 +148,7 @@ D 'IXP' do
         :newfid => 1,
         :wname => file
       )
-      T { response.type == Rwalk.type }
+      T response.type == Rwalk.type
     end
 
     D 'close the fid for /' do
@@ -156,7 +156,7 @@ D 'IXP' do
         :tag => 0,
         :fid => 0
       )
-      T { response.type == Rclunk.type }
+      T response.type == Rclunk.type
     end
 
     D "open #{file.inspect} for writing" do
@@ -165,7 +165,7 @@ D 'IXP' do
         :fid  => 1,
         :mode => Topen::ORDWR
       )
-      T { response.type == Ropen.type }
+      T response.type == Ropen.type
     end
 
     D "write to #{file.inspect}" do
@@ -182,8 +182,8 @@ D 'IXP' do
           end
         )
       )
-      T { write_response.type == Rwrite.type }
-      T { write_response.count == write_request.data.length }
+      T write_response.type == Rwrite.type
+      T write_response.count == write_request.data.length
 
       D "verify the write" do
         read_request, read_response = talk(Tread,
@@ -192,8 +192,8 @@ D 'IXP' do
           :offset => 0,
           :count  => write_response.count
         )
-        T { read_response.type == Rread.type }
-        T { read_response.data == write_request.data }
+        T read_response.type == Rread.type
+        T read_response.data == write_request.data
       end
     end
 
@@ -202,7 +202,7 @@ D 'IXP' do
         :tag => 0,
         :fid => 1
       )
-      T { response.type == Rremove.type }
+      T response.type == Rremove.type
     end
 
     D "fid for #{file.inspect} should have been closed by Tremove" do
@@ -210,7 +210,7 @@ D 'IXP' do
         :tag => 0,
         :fid => 1
       )
-      T { response.type == Rerror.type }
+      T response.type == Rerror.type
     end
   end
 
@@ -239,12 +239,12 @@ D 'IXP' do
     end
 
     if response.type == Rerror.type
-      T { response.kind_of? Rerror }
+      T response.kind_of? Rerror
     else
-      T { response.type == request.type + 1 }
+      T response.type == request.type + 1
     end
 
-    T { response.tag == request.tag }
+    T response.tag == request.tag
 
     # return the conversation
     [request, response]

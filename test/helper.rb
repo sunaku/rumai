@@ -1,2 +1,2 @@
 require 'rumai/inochi'
-require 'dfect/auto'
+require 'detest/auto'

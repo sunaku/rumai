@@ -75,7 +75,7 @@ module Rumai
   #
   DEVTIME = {
     'inochi' => [ '>= 4.0.0', '< 5' ],
-    'dfect'  => [ '~> 2' ], # for unit testing
+    'detest' => [ '>= 3.1.0', '< 4' ], # for unit testing
   }
 
   # establish gem version dependencies
