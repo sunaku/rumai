@@ -1,25 +1,7 @@
 #!/usr/bin/env ruby
-#
-# This is an interactive Ruby shell (IRB) for Rumai.
-#
-#
-# Usage:
-#
-#   rumai [Options] [STUFF_FOR_IRB]
-#
-#   STUFF_FOR_IRB : Arguments and options for `irb`.
-#
-#
-# Options:
-#
-#   -h, --help    : Show this message and exit.
-#
-#   -v, --version : Show version number and exit.
-#
 
 require 'rumai'
 
-# parse command line
 if ARGV.delete('-h') or ARGV.delete('--help')
   # try to display UNIX version of help manual
   man_path = File.join(Rumai::INSTDIR, 'man')
@@ -37,8 +19,6 @@ elsif ARGV.delete('-v') or ARGV.delete('--version')
   exit
 end
 
-# start IRB session
 require 'rumai/irb'
 require 'irb/completion'
-
 IRB.start_session Rumai

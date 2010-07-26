@@ -2,24 +2,29 @@
 #
 # Adds the project library directory
 # and this test directory to Ruby's
-# load path and runs the given tests.
+# load path, loads the test helper
+# and executes the given test files.
 #
-# Usage:  ruby test/runner [TESTS_TO_RUN]
+# ruby test/runner [-d] [-v] [TEST]...
 #
-# Where:  TESTS_TO_RUN is a list of files
-#         or file globbing patterns that
-#         describe a set of files to run.
+# -d    Enables $DEBUG mode in Ruby.
 #
-#         If this parameter is not given,
-#         all *_test.rb files within or
-#         beneath this directory are run.
+# -v    Enables $VERBOSE mode in Ruby.
+#
+# TEST  Path to a file, or a file globbing
+#       pattern describing a set of files.
+#
+#       The default value is all *_test.rb
+#       files beneath this test/ directory.
 
-lib_dir = File.expand_path('../../lib', __FILE__)
+$DEBUG   = true if ARGV.delete('-d')
+$VERBOSE = true if ARGV.delete('-v')
+
+lib_dir  = File.expand_path('../../lib', __FILE__)
 test_dir = File.expand_path('..', __FILE__)
 $LOAD_PATH.unshift lib_dir, test_dir
 
-require 'rumai/inochi'
-require 'test_helper'
+load File.join(test_dir, 'helper.rb')
 
 ARGV << "#{test_dir}/**/*_test.rb" if ARGV.empty?
 ARGV.each {|glob| Dir[glob].each {|test| load test } }

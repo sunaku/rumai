@@ -74,7 +74,7 @@ module Rumai
   #   }
   #
   DEVTIME = {
-    'inochi' => [ '>= 3.0.0', '< 4' ],
+    'inochi' => [ '>= 4.0.0', '< 5' ],
     'dfect'  => [ '~> 2' ], # for unit testing
   }
 

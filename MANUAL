@@ -1,7 +1,14 @@
 <%
+  proj_home_url = Rumai::WEBSITE
+  api_docs_url  = File.join(proj_home_url, 'api/')
+  ann_feed_url  = File.join(proj_home_url, 'ann.xml')
+
+  code_repo_scm = '[Git](http://git-scm.com)'
+  code_repo_url = 'http://github.com/sunaku/rumai'
+  bug_track_url = File.join(code_repo_url, 'issues')
+
   ##
-  # Wraps the given content within <pre>
-  # tags in a way that is Markdown-safe.
+  # Puts the given content inside <pre> tags in a Markdown-safe way.
   #
   def preformatted content
     if content =~ /\S/
@@ -24,4 +31,4 @@
 
 %+ "CREDITS"
 
-%+ "FURTHER"
+%+ "BEYOND"

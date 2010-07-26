@@ -21,19 +21,19 @@ portmanteau of "*Ru*by" and "w*mi*i" (which I pronounce as "vim eye").
 %#----------------------------------------------------------------------------
 
 * Issue tracker (report bugs, request features, get help):
-  <http://github.com/sunaku/rumai/issues>
+  <<%= bug_track_url %>>
 
-* Source code (browse online or obtain with [Git](http://git-scm.com)):
-  <http://github.com/sunaku/rumai>
+* Source code (browse online or obtain with <%= code_repo_scm %>):
+  <<%= code_repo_url %>>
 
 * API documentation:
-  <<%= File.join(Rumai::WEBSITE, 'api/') %>>
+  <<%= api_docs_url %>>
 
 * Announcements feed:
-  <<%= File.join(Rumai::WEBSITE, 'ann.xml') %>>
+  <<%= ann_feed_url %>>
 
 * Official website:
-  <<%= Rumai::WEBSITE %>>
+  <<%= proj_home_url %>>
 
 %#----------------------------------------------------------------------------
 ### Setup

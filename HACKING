@@ -45,7 +45,8 @@ Or by setting the `$RUBYLIB` environment variable:
     ruby bin/rumai
     irb -r rumai
 
-Or by installing the [ruby-wrapper](http://github.com/chneukirchen/rup) tool.
+Or by running Ruby through the [ruby-wrapper](
+http://github.com/chneukirchen/rup/blob/master/ruby-wrapper ) tool.
 
 %#----------------------------------------------------------------------------
 ### RubyGems setup
@@ -71,14 +72,14 @@ Or by setting the `$RUBYOPT` environment variable:
 %#----------------------------------------------------------------------------
 
 Simply execute the included test runner, which sets up Ruby's `$LOAD_PATH` for
-testing, loads the included `test/test_helper.rb` file, and then evaluates all
+testing, loads the `test/helper.rb` file, and then evaluates all
 `test/**/*_test.rb` files:
 
-    test/runner
+    ruby test/runner
 
 Its exit status will indicate whether all tests have passed.  It may also
 print additional pass/fail information depending on the testing library used
-in the `test/test_helper.rb` file.
+in the `test/helper.rb` file.
 
 %#----------------------------------------------------------------------------
 ### Contributing
