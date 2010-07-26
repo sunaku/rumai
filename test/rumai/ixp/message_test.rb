@@ -1,5 +1,5 @@
 require 'rumai/fs'
-require 'pp' if $DEBUG
+require 'pp' if $VERBOSE
 
 D 'IXP' do
   extend Rumai::IXP
@@ -64,16 +64,16 @@ D 'IXP' do
       )
       T response.type == Rread.type
 
-      if $DEBUG
-        s = StringIO.new(response.data, 'r')
-        a = []
+      if $VERBOSE
+        buffer = StringIO.new(response.data, 'r')
+        stats = []
 
-        until s.eof?
-          t = Stat.from_9p(s)
-          a << t
+        until buffer.eof?
+          stats << Stat.from_9p(buffer)
         end
 
-        pp a
+        puts '--- stats'
+        pp stats
       end
     end
 
@@ -221,10 +221,9 @@ D 'IXP' do
     request = request_type.new(request_options)
 
     # send the request
-    if $DEBUG
-      puts
-      pp request
-      pp request.to_9p
+    if $VERBOSE
+      puts '--- sending'
+      pp request, request.to_9p
     end
 
     @conn << request.to_9p
@@ -232,10 +231,9 @@ D 'IXP' do
     # receive the response
     response = Fcall.from_9p(@conn)
 
-    if $DEBUG
-      puts
-      pp response
-      pp response.to_9p
+    if $VERBOSE
+      puts '--- received'
+      pp response, response.to_9p
     end
 
     if response.type == Rerror.type
