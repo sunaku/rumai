@@ -1,0 +1,31 @@
+== SYNOPSIS
+
+*rumai* ['OPTIONS'] ['IRB_OPTIONS']
+
+=== Command
+
+Starts an interactive Ruby shell (IRB) session by passing the given
+'IRB_OPTIONS' to irb(1) and placing you at a command prompt like this:
+
+------------------------------------------------------------------------------
+irb(Rumai):001:0>
+------------------------------------------------------------------------------
+
+The *irb(Rumai)* token in the command prompt indicates that your commands will
+be evaluated _inside_ the `Rumai` module.  As a result, you can omit the
+"Rumai" prefix from your commands.
+
+For example, to get the currently selected client, you can type `curr_client`
+instead of `Rumai.curr_client` at the prompt.  Both commands achieve the same
+effect.
+
+The next thing to notice is that *TAB completion* is enabled.  So you can type
+part of a command and press the TAB key to see a list of possible completions.
+
+=== Options
+
+*-h*, *--help*::
+  Display this manual and exit.
+
+*-v*, *--version*::
+  Print version number and exit.

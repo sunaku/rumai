@@ -3,16 +3,8 @@
 require 'rumai'
 
 if ARGV.delete('-h') or ARGV.delete('--help')
-  # try to display UNIX version of help manual
-  man_path = File.join(Rumai::INSTDIR, 'man')
-  unless system 'man', '-M', man_path, '-a', 'rumai'
-    # try to display HTML version of help manual
-    man_html = man_path + '.html'
-    unless %w[$BROWSER open start].any? {|b| system "#{b} #{man_html}" }
-      # no luck; direct user to project website
-      puts "See #{Rumai::WEBSITE}"
-    end
-  end
+  system 'man', '-M', File.join(Rumai::INSTDIR, 'man'), 'rumai' or
+  warn "Could not display the help manual.\nSee #{Rumai::WEBSITE} instead."
   exit
 elsif ARGV.delete('-v') or ARGV.delete('--version')
   puts Rumai::VERSION

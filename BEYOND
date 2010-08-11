@@ -1,21 +1,15 @@
-%#----------------------------------------------------------------------------
-## SEE ALSO
-%#----------------------------------------------------------------------------
+== SEE ALSO
 
-irb(1),
-wmiir(1),
-wmii(1)
+irb(1), wmiir(1), wmii(1)
 
-%#----------------------------------------------------------------------------
-%# Markdown link references
-%#----------------------------------------------------------------------------
+[sect2]
+=== References
 
-[Inochi]: <%= Inochi::WEBSITE %>
-[libixp]: http://libs.suckless.org/libixp
-[p9p]: http://cm.bell-labs.com/magic/man2html/5/intro
-[RubyGems]: http://rubygems.org
-[Ruby]: http://ruby-lang.org
-[sunaku/wmiirc]: http://github.com/sunaku/wmiirc
-[sunaku/wmiirc/network]: http://github.com/sunaku/wmiirc/network
-[wmii]: http://wmii.suckless.org
-[XCB cookie]: http://www.x.org/releases/X11R7.5/doc/libxcb/tutorial/#requestsreplies
+[horizontal]
+[[[Inochi]]]:: <%= Inochi::WEBSITE %>
+[[[libixp]]]:: http://libs.suckless.org/libixp
+[[[p9p]]]:: http://cm.bell-labs.com/magic/man2html/5/intro
+[[[RubyGems]]]:: http://rubygems.org
+[[[Ruby]]]:: http://ruby-lang.org
+[[[wmii]]]:: http://wmii.suckless.org
+[[[XCB-cookies]]]:: http://www.x.org/releases/X11R7.5/doc/libxcb/tutorial/#requestsreplies

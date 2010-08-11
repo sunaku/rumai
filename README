@@ -1,60 +1,34 @@
-Rumai is a pure [Ruby] interface to the [wmii] window manager.  Its name is a
-portmanteau of "*Ru*by" and "w*mi*i" (which I pronounce as "vim eye").
+== DESCRIPTION
 
-%#----------------------------------------------------------------------------
-### Features
-%#----------------------------------------------------------------------------
+Rumai is a pure <<Ruby>> interface to the <<wmii>> window manager.  Its name
+is a portmanteau of "**Ru**by" and "w**mi**i", which I pronounce as "vim eye".
+
+=== Features
 
 * Provides an interactive shell for live experimentation.
 
 * Arranges clients, columns, views, and tags dynamically.
 
-* Talks directly to wmii's [IXP filesystem interface][libixp].
+* Talks directly to wmii's <<libixp, IXP filesystem interface>>.
 
-* Includes a pure Ruby client for the [9P2000 protocol][p9p].
+* Includes a pure Ruby client for the <<p9p, 9P2000 protocol>>.
 
-* Powers [my personal][sunaku/wmiirc] wmiirc and
-  [many others][sunaku/wmiirc/network] like it.
+* Powers http://github.com/sunaku/wmiirc[my personal] wmiirc and
+  http://github.com/sunaku/wmiirc/network[many others] like it.
 
-%#----------------------------------------------------------------------------
-### Resources
-%#----------------------------------------------------------------------------
+=== Resources
 
-* Issue tracker (report bugs, request features, get help):
-  <<%= bug_track_url %>>
+Project website::
+<%= @proj_home_url = Rumai::WEBSITE %>
 
-* Source code (browse online or obtain with <%= code_repo_scm %>):
-  <<%= code_repo_url %>>
+Announcements feed::
+<%= @ann_feed_url = File.join(@proj_home_url, 'ann.xml') %>
 
-* API documentation:
-  <<%= api_docs_url %>>
+API documentation::
+<%= @api_docs_url = File.join(@proj_home_url, 'api/') %>
 
-* Announcements feed:
-  <<%= ann_feed_url %>>
+Source code (browse online, download, or checkout)::
+<%= @code_repo_url = 'http://github.com/sunaku/rumai' %>
 
-* Official website:
-  <<%= proj_home_url %>>
-
-%#----------------------------------------------------------------------------
-### Setup
-%#----------------------------------------------------------------------------
-
-Prerequisites:
-
-  * [Ruby] 1.8.6 or newer.
-
-  * [RubyGems] 1.3.6 or newer.
-
-  * [wmii] 3.9 or newer.
-
-Installing:
-
-    gem install rumai
-
-Upgrading:
-
-    gem update rumai
-
-Removing:
-
-    gem uninstall rumai
+Issue tracker (report bugs, request features, get help)::
+<%= @bug_track_url = File.join(@code_repo_url, 'issues') %>
