@@ -1,5 +1,20 @@
 == HISTORY
 
+=== Version 3.3.1 (2010-08-11)
+
+This release fixes a bug regarding the `$WMII_ADDRESS` environment variable.
+
+.Bug fixes
+
+* Fix incorrect syntax when amending error message about the `$WMII_ADDRESS`
+  environment variable not being set.
+
+.Housekeeping
+
+* Dump 9P2000 packets if `$VERBOSE`, not if `$DEBUG`, in unit tests.
+
+* Upgrade to Inochi 5.0.2; the help manual is now written in AsciiDoc.
+
 === Version 3.3.0 (2010-07-16)
 
 This release adds support for growing and nudging clients, adds an
