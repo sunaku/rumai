@@ -15,11 +15,11 @@ module Rumai
     IXP_AGENT = IXP::Agent.new(UNIXSocket.new(IXP_SOCK_ADDR))
 
   rescue => error
-    error.message <<EOF
+    error.message << %{\n
 Ensure that (1) the WMII_ADDRESS environment variable is set and that (2) it
 correctly specifies the absolute filesystem path to wmii's IXP socket file,
-which is typically located at "/tmp/ns.$USER.:$DISPLAY/wmii".
-EOF
+which is typically located at "/tmp/ns.${USER}.${DISPLAY}/wmii".
+\n}
     raise error
   end
 
