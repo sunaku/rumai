@@ -172,17 +172,27 @@ module Rumai
     end
 
     ##
-    # Moves this client in the given direction on the given view.
+    # Moves this client by the given amount in
+    # the given direction on the given view.
     #
-    def nudge direction, view = View.curr
-      reshape :nudge, direction, view
+    def nudge direction, amount = 1, view = View.curr
+      reshape :nudge, view, direction, amount
     end
 
     ##
-    # Grows this client in the given direction on the given view.
+    # Grows this client by the given amount in
+    # the given direction on the given view.
     #
-    def grow direction, view = View.curr
-      reshape :grow, direction, view
+    def grow direction, amount = 1, view = View.curr
+      reshape :grow, view, direction, amount
+    end
+
+    ##
+    # Shrinks this client by the given amount
+    # in the given direction on the given view.
+    #
+    def shrink direction, amount = 1, view = View.curr
+      reshape :grow, view, direction, -amount.to_i
     end
 
     ##
@@ -448,10 +458,10 @@ module Rumai
 
     private
 
-    def reshape method, direction, view
+    def reshape command, view, direction, amount
       area = self.area(view)
       index = area.client_ids.index(@id) + 1 # numbered as 1..N
-      view.ctl.write "#{method} #{area.id} #{index} #{direction}"
+      view.ctl.write "#{command} #{area.id} #{index} #{direction} #{amount}"
     end
 
     ##
