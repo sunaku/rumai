@@ -640,10 +640,9 @@ module Rumai
     # Inserts the given clients at the bottom of this area.
     #
     def push *clients
-      clients.flatten!
       return if clients.empty?
 
-      insert clients
+      insert *clients
 
       # move inserted clients to bottom
       clients.reverse.each_with_index do |c, i|
@@ -660,9 +659,6 @@ module Rumai
     # currently focused client in this area.
     #
     def insert *clients
-      clients.flatten!
-      return if clients.empty?
-
       clients.each do |c|
         import_client c
       end
@@ -672,10 +668,9 @@ module Rumai
     # Inserts the given clients at the top of this area.
     #
     def unshift *clients
-      clients.flatten!
       return if clients.empty?
 
-      insert clients
+      insert *clients
 
       # move inserted clients to top
       clients.each_with_index do |c, i|
@@ -689,7 +684,7 @@ module Rumai
     # Concatenates the given area to the bottom of this area.
     #
     def concat area
-      push area.clients
+      push *area.clients
     end
 
     ##
@@ -703,14 +698,14 @@ module Rumai
       len, out = length, fringe
 
       if len > max_clients
-        out.unshift clients[max_clients..-1]
+        out.unshift *clients[max_clients..-1]
 
       elsif len < max_clients
         until (diff = max_clients - length) == 0
           importable = out.clients[0, diff]
           break if importable.empty?
 
-          push importable
+          push *importable
         end
       end
     end
