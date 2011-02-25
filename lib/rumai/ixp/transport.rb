@@ -327,15 +327,15 @@ module Rumai
           raise 'cannot write to a directory' if @stat.directory?
 
           data = content.to_s
-          limit = data.length + @pos
+          limit = data.bytesize + @pos
 
           while @pos < limit
-            chunk = data[@pos, @msize]
+            chunk = data.byteslice(@pos, @msize)
 
             req = Twrite.new(
               :fid    => @fid,
               :offset => @pos,
-              :count  => chunk.length,
+              :count  => chunk.bytesize,
               :data   => chunk
             )
             rsp = @agent.talk(req)

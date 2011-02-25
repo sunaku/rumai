@@ -234,7 +234,13 @@ module Rumai
         #
         module CounterField
           def to_9p field_values
-            value_to_9p field_values[@countee.name].length
+            value = field_values[@countee.name]
+            count =
+              case value
+              when String then value.bytesize
+              else value.length
+              end
+            value_to_9p count
           end
         end
 
@@ -401,7 +407,7 @@ module Rumai
       #
       def to_9p
         data = type.to_9p(1) << super
-        size = (data.length + 4).to_9p(4)
+        size = (data.bytesize + 4).to_9p(4)
         size << data
       end
 
@@ -683,7 +689,8 @@ class String
   # Transforms this object into a string of 9P2000 bytes.
   #
   def to_9p
-    length.to_9p(2) << self[0, Rumai::IXP::BYTE2_MASK]
+    count = [bytesize, Rumai::IXP::BYTE2_MASK].min
+    count.to_9p(2) << byteslice(0, count)
   end
 
   ##
@@ -692,6 +699,16 @@ class String
   #
   def self.from_9p stream
     stream.read stream.read_9p(2)
+  end
+
+  unless method_defined? :byteslice
+    ##
+    # Does the same thing as String#slice but
+    # operates on bytes instead of characters.
+    #
+    def byteslice(*args)
+      unpack('C*').slice(*args).pack('C*')
+    end
   end
 end
 

@@ -169,6 +169,7 @@ D 'IXP' do
     end
 
     D "write to #{file.inspect}" do
+      message = "\u{266A} hello world \u{266B}"
       write_request, write_response = talk(Twrite,
         :tag    => 0,
         :fid    => 1,
@@ -176,14 +177,14 @@ D 'IXP' do
         :data   => (
           require 'rumai/wm'
           if Rumai::Barlet::SPLIT_FILE_FORMAT
-            "colors #000000 #000000 #000000\nlabel hello world!!!"
+            "colors #000000 #000000 #000000\nlabel #{message}"
           else
-            "#000000 #000000 #000000 hello world!!!"
+            "#000000 #000000 #000000 #{message}"
           end
         )
       )
       T write_response.type == Rwrite.type
-      T write_response.count == write_request.data.length
+      T write_response.count == write_request.data.bytesize
 
       D "verify the write" do
         read_request, read_response = talk(Tread,
@@ -193,6 +194,10 @@ D 'IXP' do
           :count  => write_response.count
         )
         T read_response.type == Rread.type
+
+        # wmii sends the response in ASCII-8BIT whereas we requested in UTF-8
+        read_response.data.force_encoding message.encoding
+
         T read_response.data == write_request.data
       end
     end
