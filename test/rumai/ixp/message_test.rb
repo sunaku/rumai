@@ -195,7 +195,7 @@ D 'IXP' do
         )
         T read_response.type == Rread.type
 
-        # wmii sends the response in ASCII-8BIT whereas we requested in UTF-8
+        # wmii responds in ASCII-8BIT whereas we requested in UTF-8
         read_response.data.force_encoding message.encoding
 
         T read_response.data == write_request.data

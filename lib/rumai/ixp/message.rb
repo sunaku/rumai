@@ -60,7 +60,7 @@ module Rumai
       # Transforms this object into a string of 9P2000 bytes.
       #
       def to_9p
-        @fields.inject([]) {|s,f| s << f.to_9p(@values) }.join
+        @fields.map {|f| f.to_9p(@values) }.join
       end
 
       ##
@@ -182,17 +182,11 @@ module Rumai
         # Returns a Field class that best represents the given format.
         #
         def self.factory format
-          if format == String
-            StringField
-
-          elsif format.is_a? Class
-            ClassField
-
-          elsif format == 8
-            Integer8Field
-
-          else
-            Field
+          case format
+          when String then StringField
+          when Class then ClassField
+          when 8 then Integer8Field
+          else Field
           end
         end
 
