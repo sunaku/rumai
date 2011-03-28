@@ -898,34 +898,107 @@ module Rumai
     #-----------------------------------------------------------------------
 
     ##
-    # Arranges the clients in this view, while maintaining
-    # their relative order, in the tiling fashion of LarsWM.
+    # Arranges columns with the following number of clients in them:
     #
-    # Only the first client in the primary column is kept; all others
-    # are evicted to the *top* of the secondary column.  Any subsequent
-    # columns are squeezed into the *bottom* of the secondary column.
+    # 1, N
     #
-    def arrange_as_larswm
-      maintain_focus do
-        # keep only one client in the primary column
-        main = Area.new(1, self)
-        main.length = 1
-        main.layout = :default
+    def tile_right
+      arrange_columns [1, num_managed_clients-1], :default
+    end
 
-        # collapse remaining areas into secondary column
-        extra = squeeze_columns(1..-1)
+    ##
+    # Arranges columns with the following number of clients in them:
+    #
+    # 1, 2, 3, ...
+    #
+    # Imagine an equilateral triangle with its
+    # base on the right side of the screen and
+    # its peak on the left side of the screen.
+    #
+    def tile_rightward
+      width, summit = calculate_right_triangle
+      heights = (1 .. width).to_a.push(summit)
+      arrange_columns heights, :default
+    end
 
-        if dock = extra.first
-          dock.layout = :default
-        end
+    ##
+    # Arranges columns with the following number of clients in them:
+    #
+    # N, 1
+    #
+    def tile_left
+      arrange_columns [num_managed_clients-1, 1], :default
+    end
+
+    ##
+    # Arranges columns with the following number of clients in them:
+    #
+    # ..., 3, 2, 1
+    #
+    # Imagine an equilateral triangle with its
+    # base on the left side of the screen and
+    # its peak on the right side of the screen.
+    #
+    def tile_leftward
+      width, summit = calculate_right_triangle
+      heights = (1 .. width).to_a.push(summit).reverse
+      arrange_columns heights, :default
+    end
+
+    ##
+    # Arranges columns with the following number of clients in them:
+    #
+    # 1, 2, 3, ..., 3, 2, 1
+    #
+    # Imagine two equilateral triangles with their bases on the left and right
+    # sides of the screen and their peaks meeting in the middle of the screen.
+    #
+    def tile_inward
+      arrange_columns calculate_equilateral_triangle.flatten, :default
+    end
+
+    ##
+    # Arranges columns with the following number of clients in them:
+    #
+    # ..., 3, 2, 1, 2, 3, ...
+    #
+    # Imagine two equilateral triangles with their bases meeting in the middle
+    # of the screen and their peaks reaching outward to the left and right
+    # sides of the screen.
+    #
+    def tile_outward
+      rising, summit, falling = calculate_equilateral_triangle
+      heights = falling[0..-2].concat(rising)
+
+      # distribute extra clients on the outsides
+      extra = summit[0].to_i + falling[-1].to_i
+      if extra > 0
+        split = extra / 2
+        carry = extra % 2
+        # put the remainder on the left side to minimize the need for
+        # rearrangement when clients are removed or added to the view
+        heights.unshift split + carry
+        heights.push split
       end
+
+      arrange_columns heights, :default
     end
 
     ##
     # Arranges the clients in this view, while maintaining
-    # their relative order, in a (at best) square grid.
+    # their relative order, in the given number of columns.
     #
-    def arrange_in_grid max_clients_per_column = nil
+    def stack num_columns = 2
+      heights = [num_managed_clients / num_columns] * num_columns
+      heights[-1] += num_managed_clients % num_columns
+      arrange_columns heights, :stack
+    end
+
+    ##
+    # Arranges the clients in this view, while maintaining
+    # their relative order, in (at best) a square grid.
+    #
+    def grid max_clients_per_column = nil
       # compute client distribution
       unless max_clients_per_column
         num_clients = num_managed_clients
@@ -946,71 +1019,25 @@ module Rumai
       end
     end
 
-    ##
-    # Arranges the clients in this view, while maintaining
-    # their relative order, in the given number of columns.
-    #
-    def arrange_in_stacks num_stacks
-      return if num_stacks < 1
-
-      # compute client distribution
-      num_clients = num_managed_clients
-      return unless num_clients > 0
-
-      stack_length = num_clients / num_stacks
-      return if stack_length < 1
-
-      # apply the distribution
-      maintain_focus do
-        each_column do |a|
-          a.length = stack_length
-          a.layout = :stack
-        end
-
-        squeeze_columns num_stacks-1..-1
-      end
-    end
+    alias arrange_as_larswm tile_right
+    alias arrange_in_diamond tile_inward
+    alias arrange_in_stacks stack
+    alias arrange_in_grid grid
 
     ##
-    # Arranges the clients in this view, while
-    # maintaining their relative order, in a (at
-    # best) equilateral triangle.  However, the
-    # resulting arrangement appears like a diamond
-    # because wmii does not waste screen space.
+    # Applies the given length to each column in sequence. Also,
+    # the given layout is applied to all columns, if specified.
     #
-    def arrange_in_diamond
-      num_clients = num_managed_clients
-      return unless num_clients > 1
-
-      # determine dimensions of the rising sub-triangle
-      rise = num_clients / 2
-
-      span = sum = 0
-      1.upto rise do |h|
-        if sum + h > rise
-          break
-        else
-          sum += h
-          span += 1
-        end
-      end
-
-      peak = num_clients - (sum * 2)
-
-      # quantify overall triangle as a sequence of heights
-      rise_seq = (1..span).to_a
-      fall_seq = rise_seq.reverse
-
-      heights = rise_seq
-      heights << peak if peak > 0
-      heights.concat fall_seq
-
-      # apply the heights
+    def arrange_columns lengths, layout = nil
+      i = 0
       maintain_focus do
-        each_column do |col|
-          if h = heights.shift
-            col.length = h
-            col.layout = :default
+        each_column do |column|
+          if i < lengths.length
+            column.length = lengths[i]
+            column.layout = layout if layout
+            i += 1
+          else
+            break
           end
         end
       end
@@ -1018,19 +1045,35 @@ module Rumai
 
     private
 
-    ##
-    # Squeezes all columns in the given index range into a single one.
-    #
-    def squeeze_columns range
-      extra = columns[range]
+    def calculate_equilateral_triangle
+      num_clients = num_managed_clients
+      return [] unless num_clients > 1
 
-      if extra.length > 1
-        extra.reverse.each_cons(2) do |src, dst|
-          dst.concat src
+      # calculate the dimensions of the rising sub-triangle
+      num_rising_columns, num_summit_clients =
+        calculate_right_triangle(num_clients / 2)
+
+      # quantify entire triangle as a sequence of heights
+      heights = (1 .. num_rising_columns).to_a
+      summit = num_summit_clients > 0 ? [num_summit_clients] : []
+      [heights, summit, heights.reverse]
+    end
+
+    def calculate_right_triangle num_rising_clients = num_managed_clients
+      num_rising_columns = num_clients_processed = 0
+
+      1.upto num_rising_clients do |height|
+        if num_clients_processed + height > num_rising_clients
+          break
+        else
+          num_clients_processed += height
+          num_rising_columns += 1
         end
       end
 
-      extra
+      num_summit_clients = num_rising_clients - num_clients_processed
+
+      [num_rising_columns, num_summit_clients]
     end
 
     ##
