@@ -1,5 +1,38 @@
 == HISTORY
 
+=== Version 4.1.0 (2011-03-28)
+
+This release adds new automated client arrangements and cleans up the code.
+
+.New features
+
+- Added new automated client arrangements:
+
+  * `Rumai::View#tile_left()` - Horizontal mirror of the LarsWM arrangement.
+
+  * `Rumai::View#tile_leftward()` - Imagine an equilateral triangle with its
+    base on the left side of the screen and its peak on the right side of the
+    screen.
+
+  * `Rumai::View#tile_rightward()` - Imagine an equilateral triangle with its
+    base on the right side of the screen and its peak on the left side of the
+    screen.
+
+  * `Rumai::View#tile_inward()` - Imagine two equilateral triangles with
+    their bases on the left and right sides of the screen and their peaks
+    meeting in the middle of the screen.
+
+  * `Rumai::View#tile_outward()` - Imagine two equilateral triangles
+    with their bases meeting in the middle of the screen and their peaks
+    reaching outward to the left and right sides of the screen.
+
+- Renamed existing automated client arrangement method names:
+
+  * `Rumai::View#arrange_as_larswm()` is now aliased to `tile_right()`
+  * `Rumai::View#arrange_in_diamond()` is now aliased to `tile_inward()`
+  * `Rumai::View#arrange_in_stacks()` is now aliased to `stack()`
+  * `Rumai::View#arrange_in_grid()` is now aliased to `grid()`
+
 === Version 4.0.0 (2011-02-25)
 
 This release fixes a bug regarding the `$WMII_ADDRESS` environment variable.
