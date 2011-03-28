@@ -1,5 +1,9 @@
 == HISTORY
 
+=== Version 4.1.1 (2011-03-28)
+
+This release fixes bugs in the inward & outward automated client arrangements.
+
 === Version 4.1.0 (2011-03-28)
 
 This release adds new automated client arrangements and cleans up the code.

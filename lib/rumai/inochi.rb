@@ -18,7 +18,7 @@ module Rumai
   ##
   # Number of this release of this project.
   #
-  VERSION = '4.1.0'
+  VERSION = '4.1.1'
 
   ##
   # Date of this release of this project.
