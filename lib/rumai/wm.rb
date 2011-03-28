@@ -878,15 +878,8 @@ module Rumai
     #
     def each_column starting_column_id = 1
       i = starting_column_id
-      loop do
-        a = Area.new i, self
-
-        if a.exist?
-          yield a
-        else
-          break
-        end
-
+      while (column = Area.new(i, self)).exist?
+        yield column
         i += 1
       end
     end
@@ -1045,8 +1038,8 @@ module Rumai
     # the given layout is applied to all columns, if specified.
     #
     def arrange_columns lengths, layout = nil
-      i = 0
       maintain_focus do
+        i = 0
         each_column do |column|
           if i < lengths.length
             column.length = lengths[i]
