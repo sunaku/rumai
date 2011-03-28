@@ -916,8 +916,8 @@ module Rumai
     # its peak on the left side of the screen.
     #
     def tile_rightward
-      width, summit = calculate_right_triangle
-      heights = (1 .. width).to_a.push(summit)
+      num_rising_columns, num_summit_clients = calculate_right_triangle
+      heights = (1..num_rising_columns).to_a.push(num_summit_clients)
       arrange_columns heights, :default
     end
 
@@ -940,8 +940,8 @@ module Rumai
     # its peak on the right side of the screen.
     #
     def tile_leftward
-      width, summit = calculate_right_triangle
-      heights = (1 .. width).to_a.push(summit).reverse
+      num_rising_columns, num_summit_clients = calculate_right_triangle
+      heights = (1..num_rising_columns).to_a.push(num_summit_clients).reverse
       arrange_columns heights, :default
     end
 
@@ -954,7 +954,23 @@ module Rumai
     # sides of the screen and their peaks meeting in the middle of the screen.
     #
     def tile_inward
-      arrange_columns calculate_equilateral_triangle.flatten, :default
+      rising, num_summit_clients, falling = calculate_equilateral_triangle
+
+      # distribute extra clients in the middle
+      summit =
+        if num_summit_clients <= rising.length
+          # try to minimize the number of columns created in the middle by
+          # putting all summit clients in a single column--if they can fit
+          [num_summit_clients]
+        else
+          # no choice but to divide the summit clients into multiple columns
+          split = num_summit_clients / 2
+          carry = num_summit_clients % 2
+          [split, carry, split]
+        end.
+        reject(&:zero?)
+
+      arrange_columns rising + summit + falling, :default
     end
 
     ##
@@ -967,14 +983,14 @@ module Rumai
     # sides of the screen.
     #
     def tile_outward
-      rising, summit, falling = calculate_equilateral_triangle
-      heights = falling[0..-2].concat(rising)
+      rising, num_summit_clients, falling = calculate_equilateral_triangle
+      heights = falling + rising[1..-1]
 
       # distribute extra clients on the outsides
-      extra = summit[0].to_i + falling[-1].to_i
-      if extra > 0
-        split = extra / 2
-        carry = extra % 2
+      num_summit_clients += rising[0].to_i
+      if num_summit_clients > 0
+        split = num_summit_clients / 2
+        carry = num_summit_clients % 2
         # put the remainder on the left side to minimize the need for
         # rearrangement when clients are removed or added to the view
         heights.unshift split + carry
@@ -1050,13 +1066,15 @@ module Rumai
       return [] unless num_clients > 1
 
       # calculate the dimensions of the rising sub-triangle
-      num_rising_columns, num_summit_clients =
+      num_rising_columns, num_rising_summit_clients =
         calculate_right_triangle(num_clients / 2)
 
+      num_summit_clients =
+        (num_rising_summit_clients * 2) + (num_clients % 2)
+
       # quantify entire triangle as a sequence of heights
-      heights = (1 .. num_rising_columns).to_a
-      summit = num_summit_clients > 0 ? [num_summit_clients] : []
-      [heights, summit, heights.reverse]
+      rising = (1 .. num_rising_columns).to_a
+      [rising, num_summit_clients, rising.reverse]
     end
 
     def calculate_right_triangle num_rising_clients = num_managed_clients
