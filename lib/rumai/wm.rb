@@ -950,18 +950,18 @@ module Rumai
       rising, num_summit_clients, falling = calculate_equilateral_triangle
 
       # distribute extra clients in the middle
-      summit =
-        if num_summit_clients <= rising.length
-          # try to minimize the number of columns created in the middle by
-          # putting all summit clients in a single column--if they can fit
-          [num_summit_clients]
-        else
-          # no choice but to divide the summit clients into multiple columns
-          split = num_summit_clients / 2
-          carry = num_summit_clients % 2
-          [split, carry, split]
-        end.
-        reject(&:zero?)
+      summit = []
+      if num_summit_clients > 0
+        split = num_summit_clients / 2
+        carry = num_summit_clients % 2
+        summit = [split, carry, split].reject(&:zero?)
+
+        # one client per column cannot be considered as "tiling" so squeeze
+        # these singular columns together to create one giant middle column
+        if summit.length == num_summit_clients
+          summit = [num_summit_clients]
+        end
+      end
 
       arrange_columns rising + summit + falling, :default
     end
