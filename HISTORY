@@ -1,5 +1,11 @@
 == HISTORY
 
+=== Version 4.1.2 (2011-04-21)
+
+This release fixes a bug in the inward automated client arrangement where
+clients in the middle column were divided into separate columns when they
+really should have been in the same column.
+
 === Version 4.1.1 (2011-03-28)
 
 This release fixes bugs in the inward & outward automated client arrangements.
