@@ -6,6 +6,7 @@ irb(1), wmiir(1), wmii(1)
 === References
 
 [horizontal]
+[[[Bundler]]]:: http://gembundler.com
 [[[Inochi]]]:: <%= Inochi::WEBSITE %>
 [[[libixp]]]:: http://libs.suckless.org/libixp
 [[[p9p]]]:: http://cm.bell-labs.com/magic/man2html/5/intro

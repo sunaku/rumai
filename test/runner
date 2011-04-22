@@ -24,7 +24,7 @@ lib_dir  = File.expand_path('../../lib', __FILE__)
 test_dir = File.expand_path('..', __FILE__)
 $LOAD_PATH.unshift lib_dir, test_dir
 
-load File.join(test_dir, 'helper.rb')
+require 'test_helper'
 
 ARGV << "#{test_dir}/**/*_test.rb" if ARGV.empty?
 ARGV.each {|glob| Dir[glob].each {|test| load test } }
