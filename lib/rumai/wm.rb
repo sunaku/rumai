@@ -1056,7 +1056,7 @@ module Rumai
 
     def calculate_equilateral_triangle
       num_clients = num_managed_clients
-      return [] unless num_clients > 1
+      return [[],0,[]] unless num_clients > 1
 
       # calculate the dimensions of the rising sub-triangle
       num_rising_columns, num_rising_summit_clients =
