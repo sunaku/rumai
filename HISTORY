@@ -1,5 +1,10 @@
 == HISTORY
 
+=== Version 4.1.3 (2011-08-21)
+
+This release fixes a bug in the equilateral triangle calulation used by the
+inward and outward automated client arrangements.
+
 === Version 4.1.2 (2011-04-21)
 
 This release fixes a bug in the inward automated client arrangement where
