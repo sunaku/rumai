@@ -33,26 +33,42 @@ module Rumai
     end
 
     ##
-    # Returns the object after this one in the chain.
-    #
-    def next
-      sibling(+1)
-    end
-
-    ##
     # Returns the object before this one in the chain.
     #
     def prev
-      sibling(-1)
+      Chain.prev chain, self
     end
 
-    private
+    ##
+    # Returns the object after this one in the chain.
+    #
+    def next
+      Chain.next chain, self
+    end
 
-    def sibling offset
-      arr = chain
+    ##
+    # Fetches the object that comes before the
+    # given target object in the given array.
+    #
+    def self.prev array, target
+      near array, target, -1
+    end
 
-      if pos = arr.index(self)
-        arr[(pos + offset) % arr.length]
+    ##
+    # Fetches the object that comes after the
+    # given target object in the given array.
+    #
+    def self.next array, target
+      near array, target, +1
+    end
+
+    ##
+    # Fetches the object at the given offset from
+    # the given target object in the given array.
+    #
+    def self.near array, target, offset
+      if index = array.index(target)
+        array[(index + offset) % array.length]
       end
     end
   end
