@@ -132,7 +132,7 @@ Move the red, green, and blue clients into the floating area:
 ------------------------------------------------------------------------------
 rgb = %w[red green blue]
 terms = curr_view.clients.select {|c| rgb.include? c.label.read }
-curr_view.areas[0].push terms
+curr_view.areas[0].push *terms
 ------------------------------------------------------------------------------
 
 Slurp all floating clients into the last column:
@@ -155,14 +155,14 @@ Move the red, green, and blue clients to the top of the second column:
 
 [source,ruby]
 ------------------------------------------------------------------------------
-curr_view.areas[2].unshift terms
+curr_view.areas[2].unshift *terms
 ------------------------------------------------------------------------------
 
 Move the red, green, and blue clients to the bottom of the third column:
 
 [source,ruby]
 ------------------------------------------------------------------------------
-curr_view.areas[3].push terms
+curr_view.areas[3].push *terms
 ------------------------------------------------------------------------------
 
 % close_terms.call
@@ -301,7 +301,7 @@ Color the button black-on-white and label it as "hello world":
 
 [source,ruby]
 ------------------------------------------------------------------------------
-content = "#000000 #ffffff #000000 hello world"
+content = "colors #000000 #ffffff #000000\nlabel hello world"
 b.write content
 b.read == content #=> true
 ------------------------------------------------------------------------------
