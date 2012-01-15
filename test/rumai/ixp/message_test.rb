@@ -1,9 +1,9 @@
 require 'rumai/fs'
 require 'pp' if $VERBOSE
 
-D 'IXP' do
-  extend Rumai::IXP
+include Rumai::IXP
 
+D 'IXP' do
   D .<< do
     # connect to the wmii IXP server
     @conn = UNIXSocket.new(Rumai::IXP_SOCK_ADDR)
