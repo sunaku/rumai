@@ -1,2 +1,2 @@
-require 'rumai/inochi'
-require 'detest/auto'
+require 'minitest/spec'
+require 'minitest/autorun'

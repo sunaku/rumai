@@ -1,10 +1,10 @@
 require 'rumai/fs'
 require 'pp' if $VERBOSE
 
-include Rumai::IXP
+class MessageTest < MiniTest::Spec
+  include Rumai::IXP
 
-D 'IXP' do
-  D .<< do
+  before do
     # connect to the wmii IXP server
     @conn = UNIXSocket.new(Rumai::IXP_SOCK_ADDR)
 
@@ -15,208 +15,187 @@ D 'IXP' do
     #   end
     # end
 
-    D 'establish a new session' do
-      request, response = talk(Tversion,
-        :tag     => Fcall::NOTAG,
-        :msize   => Tversion::MSIZE,
-        :version => Tversion::VERSION
-      )
-      T response.type == Rversion.type
-      T response.version == request.version
-    end
+    # establish a new session
+    request, response = talk(Tversion,
+      :tag     => Fcall::NOTAG,
+      :msize   => Tversion::MSIZE,
+      :version => Tversion::VERSION
+    )
+    response.type.must_equal Rversion.type
+    response.version.must_equal request.version
   end
 
-  D 'can read a directory' do
-    D 'attach to FS root' do
-      request, response = talk(Tattach,
-        :tag   => 0,
-        :fid   => 0,
-        :afid  => Fcall::NOFID,
-        :uname => ENV['USER'],
-        :aname => ''
-      )
-      T response.type == Rattach.type
+  it 'can read a directory' do
+    # attach to FS root
+    request, response = talk(Tattach,
+      :tag   => 0,
+      :fid   => 0,
+      :afid  => Fcall::NOFID,
+      :uname => ENV['USER'],
+      :aname => ''
+    )
+    response.type.must_equal Rattach.type
+
+    # stat FS root
+    request, response = talk(Tstat,
+      :tag => 0,
+      :fid => 0
+    )
+    response.type.must_equal Rstat.type
+
+    # open the FS root for reading
+    request, response = talk(Topen,
+      :tag  => 0,
+      :fid  => 0,
+      :mode => Topen::OREAD
+    )
+    response.type.must_equal Ropen.type
+
+    # fetch a Stat for every file in FS root
+    request, response = talk(Tread,
+      :tag    => 0,
+      :fid    => 0,
+      :offset => 0,
+      :count  => Tversion::MSIZE
+    )
+    response.type.must_equal Rread.type
+
+    if $VERBOSE
+      buffer = StringIO.new(response.data, 'r')
+      stats = []
+
+      until buffer.eof?
+        stats << Stat.from_9p(buffer)
+      end
+
+      puts '--- stats'
+      pp stats
     end
 
-    D 'stat FS root' do
-      request, response = talk(Tstat,
-        :tag => 0,
-        :fid => 0
-      )
-      T response.type == Rstat.type
-    end
+    # close the fid for FS root
+    request, response = talk(Tclunk,
+      :tag    => 0,
+      :fid    => 0
+    )
+    response.type.must_equal Rclunk.type
 
-    D 'open the FS root for reading' do
-      request, response = talk(Topen,
-        :tag  => 0,
-        :fid  => 0,
-        :mode => Topen::OREAD
-      )
-      T response.type == Ropen.type
-    end
+    # closed fid should not be readable
+    request, response = talk(Tread,
+      :tag    => 0,
+      :fid    => 0,
+      :offset => 0,
+      :count  => Tversion::MSIZE
+    )
+    response.type.must_equal Rerror.type
+  end
 
-    D 'fetch a Stat for every file in FS root' do
-      request, response = talk(Tread,
-        :tag    => 0,
-        :fid    => 0,
-        :offset => 0,
-        :count  => Tversion::MSIZE
-      )
-      T response.type == Rread.type
+  it 'can read & write a file' do
+    root_path = ['rbar']
+    file_name = "temp#{$$}"
+    file_path = root_path + [file_name]
 
-      if $VERBOSE
-        buffer = StringIO.new(response.data, 'r')
-        stats = []
+    # attach to /
+    request, response = talk(Tattach,
+      :tag   => 0,
+      :fid   => 0,
+      :afid  => Fcall::NOFID,
+      :uname => ENV['USER'],
+      :aname => ''
+    )
+    response.type.must_equal Rattach.type
 
-        until buffer.eof?
-          stats << Stat.from_9p(buffer)
+    # walk to /rbar
+    request, response = talk(Twalk,
+      :tag    => 0,
+      :fid    => 0,
+      :newfid => 1,
+      :wname  => root_path
+    )
+    response.type.must_equal Rwalk.type
+
+    # create the file
+    request, response = talk(Tcreate,
+      :tag  => 0,
+      :fid  => 1,
+      :name => file_name,
+      :perm => 0644,
+      :mode => Topen::ORDWR
+    )
+    response.type.must_equal Rcreate.type
+
+    # close the fid for /rbar
+    request, response = talk(Tclunk,
+      :tag => 0,
+      :fid => 1
+    )
+    response.type.must_equal Rclunk.type
+
+    # walk to the file from /
+    request, response = talk(Twalk,
+      :tag    => 0,
+      :fid    => 0,
+      :newfid => 1,
+      :wname  => file_path
+    )
+    response.type.must_equal Rwalk.type
+
+    # close the fid for /
+    request, response = talk(Tclunk,
+      :tag => 0,
+      :fid => 0
+    )
+    response.type.must_equal Rclunk.type
+
+    # open the file for writing
+    request, response = talk(Topen,
+      :tag  => 0,
+      :fid  => 1,
+      :mode => Topen::ORDWR
+    )
+    response.type.must_equal Ropen.type
+
+    # write to the file
+    message = "\u{266A} hello world \u{266B}"
+    write_request, write_response = talk(Twrite,
+      :tag    => 0,
+      :fid    => 1,
+      :offset => 0,
+      :data   => (
+        require 'rumai/wm'
+        if Rumai::Barlet::SPLIT_FILE_FORMAT
+          "colors #000000 #000000 #000000\nlabel #{message}"
+        else
+          "#000000 #000000 #000000 #{message}"
         end
-
-        puts '--- stats'
-        pp stats
-      end
-    end
-
-    D 'close the fid for FS root' do
-      request, response = talk(Tclunk,
-        :tag    => 0,
-        :fid    => 0
       )
-      T response.type == Rclunk.type
-    end
+    )
+    write_response.type.must_equal Rwrite.type
+    write_response.count.must_equal write_request.data.bytesize
 
-    D 'closed fid should not be readable' do
-      request, response = talk(Tread,
-        :tag    => 0,
-        :fid    => 0,
-        :offset => 0,
-        :count  => Tversion::MSIZE
-      )
-      T response.type == Rerror.type
-    end
-  end
+    # verify the write
+    read_request, read_response = talk(Tread,
+      :tag    => 0,
+      :fid    => 1,
+      :offset => 0,
+      :count  => write_response.count
+    )
+    read_response.type.must_equal Rread.type
+    # wmii responds in ASCII-8BIT whereas we requested in UTF-8
+    read_response.data.force_encoding(message.encoding).must_equal write_request.data
 
-  D 'can read & write a file' do
-    D 'attach to /' do
-      request, response = talk(Tattach,
-        :tag   => 0,
-        :fid   => 0,
-        :afid  => Fcall::NOFID,
-        :uname => ENV['USER'],
-        :aname => ''
-      )
-      T response.type == Rattach.type
-    end
+    # remove the file
+    request, response = talk(Tremove,
+      :tag => 0,
+      :fid => 1
+    )
+    response.type.must_equal Rremove.type
 
-    file = %W[rbar temp#{$$}]
-    root = file[0..-2]
-    leaf = file.last
-
-    D "walk to #{root.inspect}" do
-      request, response = talk(Twalk,
-        :tag    => 0,
-        :fid    => 0,
-        :newfid => 1,
-        :wname => root
-      )
-      T response.type == Rwalk.type
-    end
-
-    D "create #{leaf.inspect}" do
-      request, response = talk(Tcreate,
-        :tag  => 0,
-        :fid  => 1,
-        :name => leaf,
-        :perm => 0644,
-        :mode => Topen::ORDWR
-      )
-      T response.type == Rcreate.type
-    end
-
-    D "close the fid for #{root.inspect}" do
-      request, response = talk(Tclunk,
-        :tag => 0,
-        :fid => 1
-      )
-      T response.type == Rclunk.type
-    end
-
-    D "walk to #{file.inspect} from /" do
-      request, response = talk(Twalk,
-        :tag    => 0,
-        :fid    => 0,
-        :newfid => 1,
-        :wname => file
-      )
-      T response.type == Rwalk.type
-    end
-
-    D 'close the fid for /' do
-      request, response = talk(Tclunk,
-        :tag => 0,
-        :fid => 0
-      )
-      T response.type == Rclunk.type
-    end
-
-    D "open #{file.inspect} for writing" do
-      request, response = talk(Topen,
-        :tag  => 0,
-        :fid  => 1,
-        :mode => Topen::ORDWR
-      )
-      T response.type == Ropen.type
-    end
-
-    D "write to #{file.inspect}" do
-      message = "\u{266A} hello world \u{266B}"
-      write_request, write_response = talk(Twrite,
-        :tag    => 0,
-        :fid    => 1,
-        :offset => 0,
-        :data   => (
-          require 'rumai/wm'
-          if Rumai::Barlet::SPLIT_FILE_FORMAT
-            "colors #000000 #000000 #000000\nlabel #{message}"
-          else
-            "#000000 #000000 #000000 #{message}"
-          end
-        )
-      )
-      T write_response.type == Rwrite.type
-      T write_response.count == write_request.data.bytesize
-
-      D "verify the write" do
-        read_request, read_response = talk(Tread,
-          :tag    => 0,
-          :fid    => 1,
-          :offset => 0,
-          :count  => write_response.count
-        )
-        T read_response.type == Rread.type
-
-        # wmii responds in ASCII-8BIT whereas we requested in UTF-8
-        read_response.data.force_encoding message.encoding
-
-        T read_response.data == write_request.data
-      end
-    end
-
-    D "remove #{file.inspect}" do
-      request, response = talk(Tremove,
-        :tag => 0,
-        :fid => 1
-      )
-      T response.type == Rremove.type
-    end
-
-    D "fid for #{file.inspect} should have been closed by Tremove" do
-      request, response = talk(Tclunk,
-        :tag => 0,
-        :fid => 1
-      )
-      T response.type == Rerror.type
-    end
+    # fid for the file should have been closed by Tremove
+    request, response = talk(Tclunk,
+      :tag => 0,
+      :fid => 1
+    )
+    response.type.must_equal Rerror.type
   end
 
   ##
@@ -242,14 +221,15 @@ D 'IXP' do
     end
 
     if response.type == Rerror.type
-      T response.kind_of? Rerror
+      response.must_be_kind_of Rerror
     else
-      T response.type == request.type + 1
+      response.type.must_equal request.type + 1
     end
 
-    T response.tag == request.tag
+    response.tag.must_equal request.tag
 
     # return the conversation
     [request, response]
   end
+
 end
