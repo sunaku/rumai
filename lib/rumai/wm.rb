@@ -1030,7 +1030,7 @@ module Rumai
         return unless num_clients > 0
 
         num_columns = Math.sqrt(num_clients)
-        max_clients_per_column = (num_clients / num_columns).round
+        max_clients_per_column = (num_clients / num_columns).floor
       end
 
       return if max_clients_per_column < 1
