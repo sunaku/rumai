@@ -1019,6 +1019,10 @@ module Rumai
       arrange_columns heights, :stack
     end
 
+    def join
+      arrange_columns [num_managed_clients]
+    end
+
     ##
     # Arranges the clients in this view, while maintaining
     # their relative order, in (at best) a square grid.
