@@ -882,7 +882,7 @@ module Rumai
     # Returns all columns (managed areas) in this view.
     #
     def columns
-      areas[1..-1]
+      areas[1..-1].to_a
     end
 
     alias managed_areas columns
@@ -993,7 +993,7 @@ module Rumai
     #
     def tile_outward
       rising, num_summit_clients, falling = calculate_equilateral_triangle
-      heights = falling + rising[1..-1]
+      heights = falling + rising[1..-1].to_a
 
       # distribute extra clients on the outsides
       num_summit_clients += rising[0].to_i
