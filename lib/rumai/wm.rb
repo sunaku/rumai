@@ -912,7 +912,7 @@ module Rumai
     # 1, N
     #
     def tile_right
-      arrange_columns [1, num_managed_clients-1], :default
+      arrange_columns [1, num_managed_clients-1]
     end
 
     ##
@@ -927,7 +927,7 @@ module Rumai
     def tile_rightward
       num_rising_columns, num_summit_clients = calculate_right_triangle
       heights = (1..num_rising_columns).to_a.push(num_summit_clients)
-      arrange_columns heights, :default
+      arrange_columns heights
     end
 
     ##
@@ -936,7 +936,7 @@ module Rumai
     # N, 1
     #
     def tile_left
-      arrange_columns [num_managed_clients-1, 1], :default
+      arrange_columns [num_managed_clients-1, 1]
     end
 
     ##
@@ -951,7 +951,7 @@ module Rumai
     def tile_leftward
       num_rising_columns, num_summit_clients = calculate_right_triangle
       heights = (1..num_rising_columns).to_a.push(num_summit_clients).reverse
-      arrange_columns heights, :default
+      arrange_columns heights
     end
 
     ##
@@ -979,7 +979,7 @@ module Rumai
         end
       end
 
-      arrange_columns rising + summit + falling, :default
+      arrange_columns rising + summit + falling
     end
 
     ##
@@ -1006,7 +1006,7 @@ module Rumai
         heights.push split
       end
 
-      arrange_columns heights, :default
+      arrange_columns heights
     end
 
     ##
@@ -1036,12 +1036,7 @@ module Rumai
       return if max_clients_per_column < 1
 
       # apply the distribution
-      maintain_focus do
-        each_column do |a|
-          a.length = max_clients_per_column
-          a.layout = :default
-        end
-      end
+      arrange_columns [max_clients_per_column] * num_columns
     end
 
     alias arrange_as_larswm tile_right
